@@ -4,6 +4,6 @@ The EDE is software that is inspired by the PEP9 virtual computer. Pep 9 is an e
 Then I thought why don't I also make this tool into a tool that can be used to teach a computer architecture class. I could allow the user to use an Hardware description Language to create their emulator. The advantage of an HDL is that the instructor can go into various levels of specificity from the descriptive level to the structural level of the processor. Then the user could use any language they want to make an assembler. With those two things created they could "load" them into the environment and create some code to verify their processor works correctly.
 
 # Software Used in this Poject
-Java - main language
-Javafx - API to create the IDE
-Icarus Verilog - Verilog Simulator used to run the code
+Java - main language <br>
+Javafx - API to create the IDE <br>
+Icarus Verilog - Verilog Simulator used to run the code <br>
