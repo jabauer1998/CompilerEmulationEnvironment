@@ -1,1 +1,1 @@
-# ProcessorIDE
+# EDE - Emulator Development Enviroment
