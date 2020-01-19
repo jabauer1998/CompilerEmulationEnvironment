@@ -7,5 +7,7 @@ Then I thought why don't I also make this tool into a tool that can be used to t
 Java - main language <br>
 Javafx - API to create the IDE <br>
 Icarus Verilog - Verilog Simulator used to run the code <br>
+GTKWAVE - Waveform Analysis tool
 
 # Features Completed
+Java -  Tool to automatically create testbenches and open GTKWave with the newly created test file
