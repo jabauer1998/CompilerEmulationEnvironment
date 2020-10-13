@@ -12,4 +12,4 @@ GTKWAVE - Waveform Analysis tool
 Java - Tool to automatically create testbenches and open GTKWave with the newly created test file
 
 # Important Info
-Verilog - Currently not working on this because I am moving this to become my senior project starting in Febuary
+Currently put on pause because I am moving this to become my senior project starting in Febuary
