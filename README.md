@@ -9,4 +9,7 @@ Icarus Verilog - Verilog Simulator used to run the code <br>
 GTKWAVE - Waveform Analysis tool
 
 # Features Completed
-Java -  Tool to automatically create testbenches and open GTKWave with the newly created test file
+Java - Tool to automatically create testbenches and open GTKWave with the newly created test file
+
+# Important Info
+Verilog - Currently not working on this because I am moving this to become my senior project starting in Febuary
