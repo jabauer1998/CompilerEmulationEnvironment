@@ -1,0 +1,32 @@
+package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+
+public class NandGate extends Gate{
+
+    public NandGate(Gate output, Gate... inputs){
+	super(output, inputs);
+    }
+    
+    public void update(){
+	if(signal == true){
+		for(Gate input : inputs){
+			if(input.getSignal() == false){
+				return;
+			}
+		}
+		signal = false;
+		super.updateOutputs();
+	} else {
+		for(Gate input : inputs){
+			if(input.getSignal() == false){
+				signal = true;
+				super.updateOutputs();
+				break;
+			}
+		}
+	}
+    }
+
+    public boolean getSignal(){
+	return super.getSignal();
+    }
+}

@@ -1,0 +1,32 @@
+package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+
+import java.util.LinkedList;
+
+public class Gate{
+    
+    protected List<Gate> inputs;
+    protected List<Gate> outputs;
+
+    protected boolean outputSignal;
+    
+    protected Gate(Gate output, Gate... inputs){
+	this.outputs = new LinkedList<>();
+	this.inputs = new LinkedList<>();
+	for(Gate input : inputs){
+	    this.inputs.add(input);
+	}
+	this.outputs.add(output);
+	outputSignal = false;
+	this.update();
+    }
+
+    protected void updateOutputs(){
+	for(Gate output : outputs){
+		output.update();
+	}
+    }
+
+    protected boolean getSignal(){
+	return outputSignal;
+    }
+}
