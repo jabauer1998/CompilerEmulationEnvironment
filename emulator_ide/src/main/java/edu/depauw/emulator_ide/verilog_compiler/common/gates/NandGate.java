@@ -25,8 +25,4 @@ public class NandGate extends Gate {
 		}
 	}
     }
-
-    public boolean getSignal(){
-	return super.getSignal();
-    }
 }

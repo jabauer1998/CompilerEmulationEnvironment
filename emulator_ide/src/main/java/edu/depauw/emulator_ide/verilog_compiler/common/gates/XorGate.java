@@ -32,8 +32,4 @@ public class XorGate extends Gate{
 	    }
 	}
     }
-
-    public boolean getSignal(){
-	return super.getSignal();
-    }
 }

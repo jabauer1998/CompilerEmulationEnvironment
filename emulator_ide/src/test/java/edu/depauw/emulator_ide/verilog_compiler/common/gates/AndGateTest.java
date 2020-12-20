@@ -1,7 +1,5 @@
 package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
-import edu.depauw.emulator_ide.verilog_compiler.common.gates.*;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
