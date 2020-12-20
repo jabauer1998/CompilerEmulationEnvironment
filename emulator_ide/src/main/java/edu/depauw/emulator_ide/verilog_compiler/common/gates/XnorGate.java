@@ -1,15 +1,15 @@
 package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
-public class XnorGate extends Gate{
+public class XnorGate extends Gate {
 
-    public XnorGate(Gate output, Gate... inputs){
-	super(output, inputs);
+    public XnorGate(CircuitElem input1, CircuitElem input2, CircuitElem... inputs){
+	super(input1, input2, inputs);
     }
     
-    public void update(){
+    protected void update(){
 	if(outputSignal == false){
 	    int numTrue = 0;
-	    for(Gate input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}
@@ -20,7 +20,7 @@ public class XnorGate extends Gate{
 	    }
 	} else {
 	    int numTrue = 0;
-	    for(Gate input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}

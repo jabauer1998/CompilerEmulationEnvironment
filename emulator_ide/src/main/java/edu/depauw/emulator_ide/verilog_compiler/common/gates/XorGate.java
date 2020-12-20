@@ -3,14 +3,14 @@ package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
 public class XorGate extends Gate{
 
-    public XorGate(Gate output, Gate... inputs){
-	super(output, inputs);
+    public XorGate(CircuitElem input1, CircuitElem input2, CircuitElem... inputs){
+	super(input1, input2, inputs);
     }
     
-    public void update(){
+    protected void update(){
 	if(outputSignal == false){
 	    int numTrue = 0;
-	    for(Gate input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}
@@ -21,7 +21,7 @@ public class XorGate extends Gate{
 	    }
 	} else {
 	    int numTrue = 0;
-	    for(Gate input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}

@@ -1,24 +1,26 @@
 package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
-public class Register extends Gate{
+import java.util.LinkedList;
+
+public class Register extends CircuitElem{
+
+    public Register(boolean signal){
+	outputs = new LinkedList<>();
+	outputSignal = signal;
+    }
+
+    public void setSignal(boolean signal){
+	outputSignal = signal;
+	update();
+    }
     
-    public Register(Gate output, Gate input){
-	super(output, input);
-    }
-
-    public Register(Gate output, Boolean outputSignal){
-	super(output);
-	super.outputSignal = outputSignal;
-	this.update();
-    }
-
-    public void update(){
-	if(inputs.size() > 0){
-	    outputSignal = inputs.get(0).getSignal();
+    protected void update(){
+	for(CircuitElem output : outputs){
+	    output.update();
 	}
     }
-
+    
     public boolean getSignal(){
-	return super.getSignal();
+	return outputSignal;
     }
 }

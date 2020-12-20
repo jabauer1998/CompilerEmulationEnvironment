@@ -2,11 +2,11 @@ package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
 public class OrGate extends Gate{
 
-    public OrGate(CurcuitElem output, CircuitElem input1, CircuitElem input2, CurcuitElem optionalInputs){
-	super(output, input1, input2, optionalInputs);
+    public OrGate(CircuitElem input1, CircuitElem input2, CircuitElem... optionalInputs){
+	super(input1, input2, optionalInputs);
     }
     
-    public void update(){
+    protected void update(){
 	if(outputSignal == false){
 	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){

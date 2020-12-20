@@ -1,4 +1,3 @@
-/home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/test/java/edu/depauw/emulator_ide/AppTest.java
 /home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/test/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/XorGateTest.java
 /home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/test/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/NandGateTest.java
 /home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/test/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/AndGateTest.java

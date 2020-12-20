@@ -1,14 +1,14 @@
 package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
-public class NorGate extends Gate{
+public class NorGate extends Gate {
 
-    public NorGate(Gate output, Gate... inputs){
-	super(output, inputs);
+    public NorGate(CircuitElem input1, CircuitElem input2, CircuitElem... inputs){
+	super(input1, input2, inputs);
     }
     
-    public void update(){
+    protected void update(){
 	if(outputSignal == true){
-	    for(Gate input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    outputSignal = false;
 		    super.updateOutputs();
@@ -16,7 +16,7 @@ public class NorGate extends Gate{
 		}
 	    }	
 	} else {
-	    for(Gate input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    return;
 		}

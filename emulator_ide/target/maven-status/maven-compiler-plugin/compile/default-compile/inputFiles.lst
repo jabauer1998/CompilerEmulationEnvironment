@@ -6,3 +6,4 @@
 /home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/main/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/NandGate.java
 /home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/main/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/Gate.java
 /home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/main/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/NorGate.java
+/home/jacob/Desktop/EDE---Emulator-Debug-Enviroment-Previously-Processor-IDE-/emulator_ide/src/main/java/edu/depauw/emulator_ide/verilog_compiler/common/gates/CircuitElem.java
