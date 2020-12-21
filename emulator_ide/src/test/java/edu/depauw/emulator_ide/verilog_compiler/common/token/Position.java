@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.common;
+package edu.depauw.emulator_ide.verilog_compiler.common.token;
 
 import java.lang.String;
 
