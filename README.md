@@ -1,5 +1,4 @@
 # Emulator Debug Enviroment
-Previously called Processor IDE
 # What is it?
 The EDE is software that is inspired by the PEP9 virtual computer. PEP9 is an educational tool that allows students to learn the basics of how a computer works without having to dive into any actual hardware. It is a much more cost effective solution for universities to teach undergrad/introductory level assembly/computer systems courses. The clever GUI also allows the students to easily visualize whats going on inside the CPU. It does have its limits. Since PEP 9 is not an actual computer the assembly syntax is useless with in industry. It also offeres a very impractical register file. Also architectures are constantly adding more instrctions. To account for this the EDE is a system where an instructor(or anyone else) can create an emulator with an hdl with some constraints, and a config file for the GUI then the tool will combine the inputs and produce a PEP9 like GUI Image for your Architecture. The instructor can then distribute this executable emulator gui to their class.
 
