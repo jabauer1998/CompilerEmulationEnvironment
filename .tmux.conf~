@@ -1,4 +1,0 @@
-unbind C-b
-set-option -g prefix `
-bind-key ` send-prefix
-set -g mouse on
