@@ -1,9 +1,0 @@
-edu/depauw/emulator_ide/verilog_compiler/common/gates/NandGate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/AndGate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/Gate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/NorGate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/OrGate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/CircuitElem.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/XnorGate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/XorGate.class
-edu/depauw/emulator_ide/verilog_compiler/common/gates/Register.class

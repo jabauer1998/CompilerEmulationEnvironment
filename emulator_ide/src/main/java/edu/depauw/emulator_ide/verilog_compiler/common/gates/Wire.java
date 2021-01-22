@@ -4,30 +4,19 @@ import java.util.LinkedList;
 
 public class Register extends CircuitElem{
     public CircuitElem input;
-    
-    public Register(boolean signal){
-	outputs = new LinkedList<>();
-	input = null;
-	outputSignal = signal;
-    }
 
-    public Register(CircuitELem input){
+    public Wire(CircuitELem input){
 	outputs = new LinkedList<>();
-	this.input = input;
 	outputSignal = input.getSignal();
-    }
-
-    public void setSignal(boolean signal){
-	outputSignal = signal;
-	update();
+	this.input = input;
     }
     
     protected void update(){
-	for(CircuitElem output : outputs){
-		output.update();
-	}
-	if (input != null) {
+	if(input.getSignal != outputSignal){
 	    outputSignal = input.getSignal();
+	    for(CircuitElem output : outputs){
+		output.update();
+	    }
 	}
     }
     
