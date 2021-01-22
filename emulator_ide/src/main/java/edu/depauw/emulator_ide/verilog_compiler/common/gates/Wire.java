@@ -7,12 +7,13 @@ public class Wire extends CircuitElem{
 
     public Wire(CircuitElem input){
 	outputs = new LinkedList<>();
-	outputSignal = input.getSignal();
 	this.input = input;
+	input.outputs.add(this);
+	outputSignal = this.input.getSignal();
     }
     
     protected void update(){
-	if(input.getSignal() != outputSignal){
+	if(this.input.getSignal() != outputSignal){
 	    outputSignal = input.getSignal();
 	    for(CircuitElem output : outputs){
 		output.update();
