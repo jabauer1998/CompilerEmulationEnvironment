@@ -1,6 +1,7 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.source;
+package edu.depauw.emulator_ide.verilog_compiler.common.io;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 public class Source{
@@ -12,12 +13,16 @@ public class Source{
     private int next;
     
     public Source(InputStream inputStream){
-	this(new inputStreamReader(inputStream));
+	this(new InputStreamReader(inputStream));
     }
 
     public Source(Reader inputReader){
 	input = inputReader;
-	next = inputReader.read();
+	try {
+	    next = input.read();
+	} catch (Exception e){
+	    System.err.println("Error could not read incoming character and could not advance");
+	}
 	if(next == -1){
 	    current = -1;
 	    past = -1;
@@ -31,7 +36,11 @@ public class Source{
 	if(!atEOD()){
 	    past = current;
 	    current = next;
-	    next = inputStream.read();
+	    try {
+		next = input.read();
+	    } catch (Exception e){
+		System.err.println("Error could not read incoming character and could not advance");
+	    }
 	}
     }
     
@@ -52,6 +61,10 @@ public class Source{
     }
 
     public void close(){
-	input.close();
+	    try {
+		input.close();
+	    } catch (Exception e){
+		System.err.println("Error could not close input stream/reader correctly");
+	    }
     }
 }

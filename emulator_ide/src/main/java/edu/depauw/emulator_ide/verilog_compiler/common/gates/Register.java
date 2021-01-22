@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 import java.util.LinkedList;
 
 public class Register extends CircuitElem{
-    public CircuitElem input;
+    private CircuitElem input;
     
     public Register(boolean signal){
 	outputs = new LinkedList<>();
@@ -11,7 +11,7 @@ public class Register extends CircuitElem{
 	outputSignal = signal;
     }
 
-    public Register(CircuitELem input){
+    public Register(CircuitElem input){
 	outputs = new LinkedList<>();
 	this.input = input;
 	outputSignal = input.getSignal();
