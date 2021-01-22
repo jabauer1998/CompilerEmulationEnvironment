@@ -10,7 +10,7 @@ Java - Programming langage
 <h2> Varilog Compiler <h2>
   <ul>
     <li> Created Gate classes to use for interpretation (usefull for debugging) </li>
-    <li> Created Source class for Dealing with IO</li>
+    <li> Created Source class and Destination for Dealing with IO</li>
   </ul>
 
 # Important Info
