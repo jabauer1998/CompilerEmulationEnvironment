@@ -25,8 +25,4 @@ public class OrGate extends Gate{
 	    super.updateOutputs();
 	}
     }
-
-    public boolean getSignal(){
-	return super.getSignal();
-    }
 }

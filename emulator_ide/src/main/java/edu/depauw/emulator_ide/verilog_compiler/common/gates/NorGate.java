@@ -25,8 +25,4 @@ public class NorGate extends Gate {
 	    super.updateOutputs();
 	}
     }
-
-    public boolean getSignal(){
-	return super.getSignal();
-    }
 }

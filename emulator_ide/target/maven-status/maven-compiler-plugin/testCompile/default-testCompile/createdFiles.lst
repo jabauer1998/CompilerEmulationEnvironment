@@ -1,3 +1,4 @@
+edu/depauw/emulator_ide/verilog_compiler/common/gates/RegisterTest.class
 edu/depauw/emulator_ide/verilog_compiler/common/gates/AndGateTest.class
 edu/depauw/emulator_ide/verilog_compiler/common/gates/NandGateTest.class
 edu/depauw/emulator_ide/verilog_compiler/common/gates/OrGateTest.class

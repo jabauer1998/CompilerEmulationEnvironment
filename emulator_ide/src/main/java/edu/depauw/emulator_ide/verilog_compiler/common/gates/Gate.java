@@ -19,8 +19,6 @@ public abstract class Gate extends CircuitElem{
 	update();
     }
 
-    abstract protected void update();
-
     protected void updateOutputs(){
 	for(CircuitElem output : outputs){
 		output.update();
@@ -29,11 +27,15 @@ public abstract class Gate extends CircuitElem{
 
     private void connectInputs(){
 	for(CircuitElem input : inputs){
-	    input.outputs.add(this);
+	    if(!input.outputs.contains(this)){
+		input.outputs.add(this);
+	    }
 	}
     }
 
     public boolean getSignal(){
 	return outputSignal;
     }
+
+    abstract protected void update();
 }

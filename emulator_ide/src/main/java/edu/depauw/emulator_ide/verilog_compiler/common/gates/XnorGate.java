@@ -31,8 +31,4 @@ public class XnorGate extends Gate {
 	    }
 	}
     }
-
-    public boolean getSignal(){
-	return super.getSignal();
-    }
 }
