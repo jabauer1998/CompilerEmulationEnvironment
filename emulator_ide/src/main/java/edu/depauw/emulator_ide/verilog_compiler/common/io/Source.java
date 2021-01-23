@@ -56,6 +56,10 @@ public class Source{
 	return (char)next;
     }
 
+    public boolean hasNext(){
+	return next != -1;
+    }
+
     public boolean atEOD(){
 	return current == -1;
     }
@@ -64,7 +68,7 @@ public class Source{
 	    try {
 		input.close();
 	    } catch (Exception e){
-		System.err.println("Error could not close input stream/reader correctly");
+		System.err.println("Error: could not close input stream/reader correctly");
 	    }
     }
 }
