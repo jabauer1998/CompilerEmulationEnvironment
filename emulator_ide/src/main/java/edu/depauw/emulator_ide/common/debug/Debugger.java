@@ -1,6 +1,6 @@
-package  edu.depauw.emulator_ide.verilog_compiler.common.debug;
+package  edu.depauw.emulator_ide.common.debug;
 
-import edu.depauw.emulator_ide.verilog_compiler.common.io.Destination;
+import edu.depauw.emulator_ide.common.io.Destination;
 
 import java.io.PrintStream;
 

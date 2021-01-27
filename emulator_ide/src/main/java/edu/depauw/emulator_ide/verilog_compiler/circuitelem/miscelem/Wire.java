@@ -1,14 +1,19 @@
 package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
-public class Wire extends CircuitElem{
+public class Wire extends MiscElem{
     public CircuitElem input;
+    private ArrayList<CircuitElem> outputs;
 
     public Wire(CircuitElem input){
-	outputs = new LinkedList<>();
+	outputs = new ArrayList<>();
 	this.input = input;
-	input.outputs.add(this);
+	if (input instanceof Wire){
+	    this.input.outputs.add(this);
+	} else {
+	    this.input.output = this;
+	}
 	outputSignal = this.input.getSignal();
     }
     
@@ -22,6 +27,6 @@ public class Wire extends CircuitElem{
     }
     
     public boolean getSignal(){
-	return outputSignal;
+	return super.getSignal();
     }
 }

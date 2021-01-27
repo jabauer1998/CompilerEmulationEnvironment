@@ -1,6 +1,7 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.debug;
+package edu.depauw.emulator_ide.common.debug.item;
 
-import edu.depauw.emulator_ide.verilog_compiler.common.token.Position;
+import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+
     
 import java.lang.String;
 import java.lang.StringBuilder;

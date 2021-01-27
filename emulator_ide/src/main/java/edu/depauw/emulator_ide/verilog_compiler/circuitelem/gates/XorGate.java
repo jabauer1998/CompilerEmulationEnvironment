@@ -1,10 +1,19 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates;
 
+import java.util.ArrayList;
 
 public class XorGate extends Gate{
 
-    public XorGate(CircuitElem input1, CircuitElem input2, CircuitElem... inputs){
-	super(input1, input2, inputs);
+    private ArrayList<MiscElem> inputs;
+    
+    public XorGate(MiscElem input1, MiscElem input2, MiscElem... optional){
+	this.inputs = new ArrayList<>();
+	inputs.add(input1);
+	inputs.add(input2);
+	for(MiscElem input: optional){
+	    inputs.add(input);
+	}
+	super(inputs);
     }
     
     protected void update(){
@@ -17,7 +26,7 @@ public class XorGate extends Gate{
 	    }
 	    if(numTrue % 2 == 1){
 		outputSignal = true;
-		super.updateOutputs();
+		super.updateOutput();
 	    }
 	} else {
 	    int numTrue = 0;
@@ -28,7 +37,7 @@ public class XorGate extends Gate{
 	    }
 	    if(numTrue % 2 == 0){
 		outputSignal = false;
-		super.updateOutputs();
+		super.updateOutput();
 	    }
 	}
     }

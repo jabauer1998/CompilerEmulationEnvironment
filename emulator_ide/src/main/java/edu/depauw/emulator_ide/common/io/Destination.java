@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.io;
+package edu.depauw.emulator_ide.common.io;
 
 import java.io.Writer;
 import java.io.OutputStreamWriter;

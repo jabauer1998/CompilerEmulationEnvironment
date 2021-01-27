@@ -1,9 +1,11 @@
 package edu.depauw.emulator_ide.verilog_compiler.common.gates;
 
 public class NandGate extends Gate {
-
-    public NandGate(CircuitElem input1, CircuitElem input2, CircuitElem... inputs){
-	super(input1, input2, inputs);
+    
+    private ArrayList<MiscElem> inputs;
+    
+    public NandGate(CircuitElem input1, CircuitElem input2, CircuitElem... optional){
+	super(inputs);
     }
     
     protected void update(){
