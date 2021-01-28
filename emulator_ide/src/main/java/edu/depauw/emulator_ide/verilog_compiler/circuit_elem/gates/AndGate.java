@@ -1,4 +1,6 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates;
+
+import edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem.Wire;
 
 import java.util.ArrayList;
 
@@ -8,26 +10,31 @@ import java.util.ArrayList;
  */
 public class AndGate extends Gate {
     /**
-     * The and gate constructor creates a new and gate. It ca take in a variable number of inputs with a minimum of two inputs
+     * The and gate constructor creates a new and gate. It can take in a variable number of inputs with a minimum of two inputs
      * @param input1: the first input into the andgate
      * @param input2: the second input into the andgate
-     * @param optionalInputs: these are optional inputs to morph the andgate into a multiple input and gate 
+     * @param optional: these are optional inputs to morph the andgate into a multiple input and gate 
      * @author Jacob Bauer
      */
-    private ArrayList<MiscElem> inputs;
+    private ArrayList<Wire> inputs;
     
-    public AndGate(MiscElem input1, MiscElem input2, MiscElem... optional){
-	this.inputs = new ArrayList<>();
-	this.inputs.add(input1);
-	if(!input.contains(input2)){
-	    this.inputs.add(input2);
+    public AndGate(Wire output, Wire input1, Wire input2, Wire... optional){
+	this.inputs = new ArrayList<>(); //Initialize the array for inputs
+	this.inputs.add(input1); //add all of the inputs to the array by removing duplicates
+	if(!inputs.contains(input2)){ 
+	    this.inputs.add(input2); 
 	}
-	for(MiscElem input : optional){
+	for(Wire input: optional){
 	    if(!inputs.contains(input)){
 		this.inputs.add(input);
 	    }
 	}
-	super(inputs);
+	for(Wire input : inputs){
+	    if(!input.hasOutput(this)){
+		input.addOutput(this);
+	    }
+	}
+	super(output); //call the common gate constructor to deeal with configuring outputs
     }
 
     /**
@@ -53,10 +60,5 @@ public class AndGate extends Gate {
 			}
 		}
 	}
-    }
-
-    @Override
-    public void ComparableTo(AndGate ){
-	
     }
 }

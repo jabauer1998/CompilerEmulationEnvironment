@@ -1,8 +1,7 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem;
 
-import java.util.LinkedList;
-
-import edu.depauw.emulator_ide.verilog_compiler.common.gates.*;
+import edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates.*;
+import edu.depauw.emulator_ide.verilog_compiler.circuitelem.CircuitElem;
 
 import org.junit.Test;
 

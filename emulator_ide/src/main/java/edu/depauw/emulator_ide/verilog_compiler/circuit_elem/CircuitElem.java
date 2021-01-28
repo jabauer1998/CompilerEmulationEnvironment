@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.circuitelem;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem;
 
 public abstract class CircuitElem{
 

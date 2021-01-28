@@ -1,4 +1,5 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates;
+import edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem.*;
 
 import org.junit.Test;
 
@@ -7,20 +8,14 @@ import static org.junit.Assert.assertTrue;
 public class XnorGateTest {
     @Test
     public void BasicNorTest(){
-    	CircuitElem PULLUP = new Register(true);
-    	CircuitElem PULLDOWN = new Register(false);
+    	CircuitElem input1 = new Register(true);
+    	CircuitElem input2 = new Register(false);
+
+	CircuitElem wire1 = new Wire();
+	CircuitElem wire2 = new Wire();
 	
-    	CircuitElem xnorGate1 = new XnorGate(PULLUP, PULLUP);
+    	CircuitElem xnorGate1 = new XnorGate(wire1, wire2, wire2);
     	assertTrue(xnorGate1.getSignal());
-
-    	CircuitElem xnorGate2 = new XnorGate(PULLDOWN, PULLUP);
-    	assertTrue(!xnorGate2.getSignal());
-
-    	CircuitElem xnorGate3 = new XnorGate(PULLUP, PULLDOWN);
-    	assertTrue(!xnorGate3.getSignal());
-
-    	CircuitElem xnorGate4 = new XnorGate(PULLDOWN, PULLDOWN);
-    	assertTrue(xnorGate4.getSignal());
     }
     
     @Test

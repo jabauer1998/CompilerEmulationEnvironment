@@ -1,4 +1,5 @@
-package edu.depauw.emulator_ide.verilog_compiler.common.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates;
+import edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem.*;
 
 import org.junit.Test;
 
