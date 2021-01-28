@@ -1,25 +1,25 @@
-package edu.depauw.emulator_ide.verilog_compiler.circuitelem.testutils;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils;
 
 import static org.junit.Assert.*;
 
-class Primative {
-    public ArrayList<ArrayList<Boolean>> primativeInputs;
-    public ArrayList<ArrayList<Boolean>> primativeOutputs;
+class Primitive {
+    public ArrayList<ArrayList<Boolean>> primitiveInputs;
+    public ArrayList<ArrayList<Boolean>> primitiveOutputs;
     private final int inputs;
     private final int outptus;
     
-    public Primative(int inputs, int outputs){
+    public Primitive(int inputs, int outputs){
 	this.inputs = inputs;
 	this.outputs = outputs;
-	primativeInputs = new ArrayList<>();
-	primativeOutptus = new ArrayList<>();
+	primitiveInputs = new ArrayList<>();
+	primitiveOutptus = new ArrayList<>();
     }
 
     public void addRow(Inputs inputRow, Output outputRow){
 	AssertTrue("Input length does not match primative input size " + inputs, inputRow.size() == inputs);
 	AssertTrue("Output length does not match primative output size " + outputs, outputRow.size() == outputs);
-	primativeInputs.add(inputRow.getList());
-	primaticeOutputs.add(outputRow.getList());
+	primitiveInputs.add(inputRow.getList());
+	primiticeOutputs.add(outputRow.getList());
     }
 
     public int getNumInputs(){
@@ -31,14 +31,14 @@ class Primative {
     }
 
     public int getNumRows(){
-	return primativeOutputs.size();
+	return primitiveOutputs.size();
     }
 
     public ArrayList<Boolean> getRowInputs(int rowNum){
-	return primativeInputs.get(rowNum);
+	return primitiveInputs.get(rowNum);
     }
 
     public ArrayList<Booelan> getRowOutputs(int rowNum){
-	return primativeOutputs.get(rowNum);
+	return primitiveOutputs.get(rowNum);
     }
 }

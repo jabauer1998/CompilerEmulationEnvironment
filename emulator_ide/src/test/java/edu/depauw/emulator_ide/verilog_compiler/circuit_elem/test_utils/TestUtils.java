@@ -32,7 +32,7 @@ public class TestUtils{
 	}
     }
     
-    public static void primativeVerify(Primative table, RealInputs inputs, RealOutputs outputs){
+    public static void primitiveVerify(Primitive table, RealInputs inputs, RealOutputs outputs){
 	AssertTrue("Total Registers provided does not match primative input size " + table.getNumInputs(), table.getNumInputs() == inputs.size());
 	AssertTrue("Outputs provided does not match primative output size " + table.getNumOutputs(), table.getNumOutputs() == outputs.size());
 	int rows = table.getNumRows();

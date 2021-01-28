@@ -1,6 +1,6 @@
-package edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
-import edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
 
 import java.util.ArrayList;
 

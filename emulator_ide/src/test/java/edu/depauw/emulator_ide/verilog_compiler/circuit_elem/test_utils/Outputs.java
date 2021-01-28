@@ -1,5 +1,6 @@
-import java.util.ArrayList;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils;
 
+import java.util.ArrayList;
 import java.lang.Boolean;
 
 public class Outputs{

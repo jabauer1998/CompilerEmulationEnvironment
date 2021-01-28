@@ -1,7 +1,7 @@
-package edu.depauw.emulator_ide.verilog_compiler.circuitelem.gates;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
 import java.util.ArrayList;
-import edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
 
 /**
  * The XnorGate class is an instance of the the Gate class that is used to simulate and AndGate. These classes will be usefull when trying to create a graph in the Interpreter phase of the compiler. The interpreter is importanct because it will help validate if the code generator actually works and we retrieve the expected results.

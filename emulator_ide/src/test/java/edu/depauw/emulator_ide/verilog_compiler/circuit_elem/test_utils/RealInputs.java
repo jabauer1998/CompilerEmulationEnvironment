@@ -1,4 +1,6 @@
-import edu.depauw.emulator_ide.verilog_compiler.circuitelem.miscelem.Register;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils;
+
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Register;
     
 import java.util.ArrayList;
 import java.lang.Boolean;

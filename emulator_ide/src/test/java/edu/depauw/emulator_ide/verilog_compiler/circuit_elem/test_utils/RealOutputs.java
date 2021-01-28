@@ -1,4 +1,6 @@
-import edu.depauw.emulator_ide.verilog_compiler.circuitelem.CircuitElem;
+package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils;
+
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
 
 import java.util.ArrayList;
 import java.lang.Boolean;
