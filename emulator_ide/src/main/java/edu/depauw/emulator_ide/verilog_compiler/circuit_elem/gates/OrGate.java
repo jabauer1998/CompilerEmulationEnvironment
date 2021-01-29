@@ -22,6 +22,7 @@ public class OrGate extends Gate{
     private ArrayList<Wire> inputs;
     
     public OrGate(Wire output, Wire input1, Wire input2, Wire... optional){
+	super(output); //call the common gate constructor to deeal with configuring outputs
 	this.inputs = new ArrayList<>(); //Initialize the array for inputs
 	this.inputs.add(input1); //add all of the inputs to the array by removing duplicates
 	if(!inputs.contains(input2)){ 
@@ -37,12 +38,12 @@ public class OrGate extends Gate{
 		input.addOutput(this);
 	    }
 	}
-	super(output); //call the common gate constructor to deeal with configuring outputs
+	this.update();
     }
     
-    protected void update(){
+    public void update(){
 	if(outputSignal == false){
-	    for(MiscElem input : inputs){
+	    for(Wire input : inputs){
 		if(input.getSignal() == true){
 		    outputSignal = true;
 		    super.updateOutput();
@@ -50,7 +51,7 @@ public class OrGate extends Gate{
 		}
 	    }	
 	} else {
-	    for(MiscElem input : inputs){
+	    for(Wire input : inputs){
 		if(input.getSignal() == true){
 		    return;
 		}

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 public class XorGate extends Gate{
 
     
-    
     private ArrayList<Wire> inputs;
 
     /**
@@ -24,10 +23,11 @@ public class XorGate extends Gate{
      */
     
     public XorGate(Wire output, Wire input1, Wire input2, Wire... optional){
+	super(output);
 	this.inputs = new ArrayList<>();
 	inputs.add(input1);
 	inputs.add(input2);
-	for(MiscElem input: optional){
+	for(Wire input: optional){
 	    inputs.add(input);
 	}
 	for(Wire input : inputs){
@@ -35,7 +35,7 @@ public class XorGate extends Gate{
 		input.addOutput(this);
 	    }
 	}
-	super(output);
+	this.update();
     }
 
     /**
@@ -43,10 +43,10 @@ public class XorGate extends Gate{
      * @author Jacob Bauer
      */
     
-    protected void update(){
+    public void update(){
 	if(outputSignal == false){
 	    int numTrue = 0;
-	    for(CircuitElem input : inputs){
+	    for(Wire input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}
@@ -57,7 +57,7 @@ public class XorGate extends Gate{
 	    }
 	} else {
 	    int numTrue = 0;
-	    for(CircuitElem input : inputs){
+	    for(Wire input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}

@@ -21,6 +21,7 @@ public class XnorGate extends Gate {
      */
     
     public XnorGate(Wire output, Wire input1, Wire input2, Wire... optional){
+	super(output);
 	this.inputs = new ArrayList<>();
 	inputs.add(input1);
 	inputs.add(input2);
@@ -32,7 +33,7 @@ public class XnorGate extends Gate {
 		input.addOutput(this);
 	    }
 	}
-	super(output);
+	this.update();
     }
 
     /**
@@ -40,7 +41,7 @@ public class XnorGate extends Gate {
      * @author Jacob Bauer
      */
     
-    protected void update(){
+    public void update(){
 	if(outputSignal == false){
 	    int numTrue = 0;
 	    for(Wire input : inputs){

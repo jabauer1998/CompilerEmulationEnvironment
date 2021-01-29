@@ -21,10 +21,6 @@ public class Wire extends CircuitElem{
 	    }
 	}
     }
-    
-    public boolean getSignal(){
-	return super.getSignal();
-    }
 
     public void setInput(CircuitElem input){
 	this.input = input;

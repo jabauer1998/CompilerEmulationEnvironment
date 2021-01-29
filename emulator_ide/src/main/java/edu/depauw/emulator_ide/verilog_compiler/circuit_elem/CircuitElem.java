@@ -4,7 +4,7 @@ public abstract class CircuitElem{
 
     protected boolean outputSignal;
     
-    abstract protected void update();
+    abstract public void update();
     
     public boolean getSignal(){
 	return outputSignal;

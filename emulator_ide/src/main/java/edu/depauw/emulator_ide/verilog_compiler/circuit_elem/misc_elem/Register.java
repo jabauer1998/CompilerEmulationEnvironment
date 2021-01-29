@@ -18,13 +18,17 @@ public class Register extends CircuitElem{
     public void setOutput(Wire output){
 	this.output = output;
 	this.output.setInput(this);
-	this.output.update();
+	update();
     };
+
+    public void update(){
+	this.output.update();
+    }
 
     public void setSignal(boolean signal){
 	if(signal != outputSignal){
 	    outputSignal = signal;
-	    output.update();
+	    this.output.update();
 	}
     }
 }

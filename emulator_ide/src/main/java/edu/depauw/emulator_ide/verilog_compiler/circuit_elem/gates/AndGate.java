@@ -19,6 +19,7 @@ public class AndGate extends Gate {
     private ArrayList<Wire> inputs;
     
     public AndGate(Wire output, Wire input1, Wire input2, Wire... optional){
+	super(output); //call the common gate constructor to deeal with configuring outputs
 	this.inputs = new ArrayList<>(); //Initialize the array for inputs
 	this.inputs.add(input1); //add all of the inputs to the array by removing duplicates
 	if(!inputs.contains(input2)){ 
@@ -34,7 +35,7 @@ public class AndGate extends Gate {
 		input.addOutput(this);
 	    }
 	}
-	super(output); //call the common gate constructor to deeal with configuring outputs
+	this.update(); //update the output
     }
 
     /**
@@ -44,7 +45,7 @@ public class AndGate extends Gate {
     
     public void update(){
 	if(outputSignal == false){
-		for(CircuitElem input : inputs){
+		for(Wire input : inputs){
 			if(input.getSignal() == false){
 				return;
 			}
@@ -52,7 +53,7 @@ public class AndGate extends Gate {
 		outputSignal = true;
 		updateOutput();
 	} else {
-		for(CircuitElem input : inputs){
+		for(Wire input : inputs){
 			if(input.getSignal() == false){
 				outputSignal = false;
 				updateOutput();

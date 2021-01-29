@@ -21,6 +21,7 @@ public class NandGate extends Gate {
      */
     
     public NandGate(Wire output, Wire input1, Wire input2, Wire... optional){
+	super(output); //call the common gate constructor to deeal with configuring outputs
 	this.inputs = new ArrayList<>(); //Initialize the array for inputs
 	this.inputs.add(input1); //add all of the inputs to the array by removing duplicates
 	if(!inputs.contains(input2)){ 
@@ -36,7 +37,7 @@ public class NandGate extends Gate {
 		input.addOutput(this);
 	    }
 	}
-	super(output); //call the common gate constructor to deeal with configuring outputs
+	this.update();
     }
 
      /**
@@ -44,9 +45,9 @@ public class NandGate extends Gate {
      * @author Jacob Bauer
      */
     
-    protected void update(){
+    public void update(){
 	if(outputSignal == true){
-		for(CircuitElem input : inputs){
+		for(Wire input : inputs){
 			if(input.getSignal() == false){
 				return;
 			}
@@ -54,7 +55,7 @@ public class NandGate extends Gate {
 		outputSignal = false;
 		super.updateOutput();
 	} else {
-		for(CircuitElem input : inputs){
+		for(Wire input : inputs){
 			if(input.getSignal() == false){
 				outputSignal = true;
 				super.updateOutput();
