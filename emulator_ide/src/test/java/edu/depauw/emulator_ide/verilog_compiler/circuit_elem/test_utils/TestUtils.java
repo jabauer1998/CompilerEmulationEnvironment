@@ -25,10 +25,10 @@ public class TestUtils{
 	for(int i = 0; i < size; i++){
 	    StringBuilder sb = new StringBuilder("Error: unexpected output at row: ");
 	    sb.append(row);
-            sb.append("index: ");
+            sb.append(" index: ");
 	    sb.append(i);
 	    sb.append(" [Got => ");
-	    sb.append(realOutputs.get(i));
+	    sb.append(realOutputs.get(i).getSignal());
 	    sb.append(" | Expected => ");
 	    sb.append(outputs.get(i));
 	    sb.append(']');

@@ -14,7 +14,7 @@ public class Wire extends CircuitElem{
     }
     
     public void update(){
-	if(this.input.getSignal() != outputSignal){
+        if(this.input.getSignal() != outputSignal){
 	    outputSignal = input.getSignal();
 	    for(CircuitElem output : outputs){
 		output.update();
