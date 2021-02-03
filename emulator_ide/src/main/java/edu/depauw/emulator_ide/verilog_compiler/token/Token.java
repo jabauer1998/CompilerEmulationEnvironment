@@ -5,6 +5,7 @@ public class Token{
 	enum Type {
 	    IDENT, //identifiers
 	    NUM, //Numbers
+	    STRING, //String constants
 	    
 	    //Operators
 	    LPAR,   // (
@@ -72,9 +73,8 @@ public class Token{
 	    REPEAT,
 	    FOR,
 	    INT,
-	    REAL,
-	    RTIME,
-	    TIME,
+	    REG,
+	    REAL
 	};
     private static HashMap<String, Type> OPS;
     private static HashMap<String, Type> KEY;
@@ -145,8 +145,7 @@ public class Token{
 	KEY.put("for", Type.FOR);
 	KEY.put("integer", Type.INT);
 	KEY.put("real", Type.REAL);
-	KEY.put("realtime", Type.RTIME);
-	KEY.put("time", Type.TIME);
+	KEY.put("reg", Type.REG);
     };
 
     private Type type;
@@ -171,6 +170,10 @@ public class Token{
 	}
     }
 
+    public static Token makeStringToken(String lexeme, Position position){
+	return new Token(lexeme, position, Type.STRING);
+    }
+
     public static Token makeOpToken(String lexeme, Position position){
 	return new Token(lexeme, position, OPS.get(lexeme));
     }
@@ -178,5 +181,13 @@ public class Token{
     public static Token makeToken(String lexeme, Position position, Type type){
 	return new Token(lexeme, position, type);
     }
-    
+
+    public static boolean containsOp(String op){
+	return OPS.containsKey(op);
+    }
+
+    @Override
+    public String toString(){
+	return "Token " + this.lexeme + " at " + this.position.toString();
+    }
 }

@@ -12,7 +12,7 @@ import java.io.PrintStream;
  * @author Jacob Bauer 
  */
 
-public class InfoLog{
+public class InfoLog {
     private LinkedList<InfoItem> infoLog;
     private Destination output;
 

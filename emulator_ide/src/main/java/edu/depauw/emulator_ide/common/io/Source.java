@@ -1,5 +1,6 @@
 package edu.depauw.emulator_ide.common.io;
 
+import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -11,6 +12,9 @@ public class Source{
     private int past;
     private int current;
     private int next;
+
+    int linenumber = 0;
+    int position = 0;
     
     public Source(InputStream inputStream){
 	this(new InputStreamReader(inputStream));
@@ -43,6 +47,12 @@ public class Source{
 	    }
 	}
     }
+
+    public void advance(int times){
+	for(int i = 0; i < times; i++){
+	    advance();
+	}
+    }
     
     public char getPast(){
 	return (char)past;
@@ -70,5 +80,9 @@ public class Source{
 	    } catch (Exception e){
 		System.err.println("Error: could not close input stream/reader correctly");
 	    }
+    }
+
+    public Position getPosition(){
+	return new Position(linenumber, position);
     }
 }
