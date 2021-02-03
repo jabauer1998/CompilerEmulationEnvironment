@@ -49,4 +49,8 @@ public class Destination{
 	    System.err.println("Error: Stream could not print newline correctly");
 	}
     }
+
+    public Writer getWriter(){
+	return output;
+    }
 }
