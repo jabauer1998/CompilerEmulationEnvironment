@@ -4,7 +4,7 @@ The EDE is software that is inspired by the PEP9 virtual computer. PEP9 is an ed
 
 # Software Used in this Poject
 Javafx - API to create the IDE <br>
-Java - Programming langage
+Java - Programming langage <br>
 ASM - Library to Create Java Bytecode
 
 # Features Completed
