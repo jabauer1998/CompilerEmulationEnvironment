@@ -14,6 +14,3 @@ ASM - Library to Create Java Bytecode
     <li> Created Source class and Destination for Dealing with IO</li>
     <li> Created Lexer, Token, and Position classes to handle Lexing a subset of the verilog language</li>
   </ul>
-
-# Important Info
-Currently put on pause because I am moving this to become my senior project starting in Febuary
