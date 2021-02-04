@@ -4,7 +4,7 @@ import edu.depauw.emulator_ide.common.debug.item.InfoItem;
 import edu.depauw.emulator_ide.common.io.Destination;
 
 import java.util.LinkedList;
-import java.io.PrintStream;
+import java.io.OutputStreamWriter;
 
 /**
  * The Info log class is a class used to print all of the debugging information in the compiler after each pass
@@ -23,7 +23,7 @@ public class InfoLog {
 
     public InfoLog(){
 	infoLog = new LinkedList<>();
-        this.output = new Destination(new PrintStream(System.out));
+        this.output = new Destination(new OutputStreamWriter(System.out));
     }
 
     public void addItem(InfoItem info){
@@ -31,6 +31,14 @@ public class InfoLog {
     }
 
     public void printLog(){
+	for(InfoItem info : infoLog){
+	    output.println(info.toString());
+	}
+	output.flush();
+	output.close();
+    }
+
+    public void printLogNoFlush(){
 	for(InfoItem info : infoLog){
 	    output.println(info.toString());
 	}

@@ -12,13 +12,14 @@ public class DestinationTest{
     
     @Test
     public void TestDestination(){
-	String input = "Lets make an awesome input stream";
 	Destination destination = new Destination(new StringWriter());
-	int index = 0;
-	String str = "Cool what is this bro";
+	String str = "Lets make an awesome output stream";
 	destination.print(str);
 	Writer writer = destination.getWriter();
-	assertTrue(str.equals(writer.toString()));
+	String result = writer.toString();
+	destination.flush();
+	destination.close();
+	assertTrue(str.equals(result));
     }
 
     
