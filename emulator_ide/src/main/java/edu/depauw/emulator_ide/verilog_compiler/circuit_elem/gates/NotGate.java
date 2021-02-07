@@ -27,7 +27,8 @@ public class NotGate extends Gate{
     }
 
     /**
-     * The update method is actually the magic behind how the gate gets its output. These methods actually only check for the minimum change needed to change the output and then if that change is detected it will change the output
+     * The update method samples the inputs and updates the output of the gate.
+     * @param None
      * @author Jacob Bauer
      */
     

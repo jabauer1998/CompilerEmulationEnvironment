@@ -3,8 +3,6 @@ package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
 
-import java.util.ArrayList;
-
 public abstract class Gate extends CircuitElem{
     
     private Wire output;

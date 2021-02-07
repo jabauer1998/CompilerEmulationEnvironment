@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 /**
@@ -10,6 +10,8 @@ import java.util.ArrayList;
  * @author Jacob Bauer
  */
 public class AndGate extends Gate{
+    private LinkedList<Wire> inputs;
+    
     /**
      * The and gate constructor creates a new and gate. It can take in a variable number of inputs with a minimum of two inputs
      * @param input1: the first input into the andgate
@@ -17,11 +19,10 @@ public class AndGate extends Gate{
      * @param optional: these are optional inputs to morph the andgate into a multiple input and gate 
      * @author Jacob Bauer
      */
-    private ArrayList<Wire> inputs;
     
     public AndGate(Wire output, Wire input1, Wire input2, Wire... optional){
 	super(output); //call the common gate constructor to deeal with configuring outputs
-	this.inputs = new ArrayList<>(); //Initialize the array for inputs
+	this.inputs = new LinkedList<>(); //Initialize the array for inputs
 	this.inputs.add(input1); //add all of the inputs to the array by removing duplicates
 	if(!inputs.contains(input2)){ 
 	    this.inputs.add(input2); 
@@ -40,7 +41,8 @@ public class AndGate extends Gate{
     }
 
     /**
-     * The update method is actually the magic behind how the gate gets its output. These methods actually only check for the minimum change needed to change the output and then if that change is detected it will change the output
+     * The update method samples the inputs and updates the output of the gate.
+     * @param None
      * @author Jacob Bauer
      */
     

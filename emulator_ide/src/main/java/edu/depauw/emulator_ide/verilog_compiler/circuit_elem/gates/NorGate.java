@@ -2,14 +2,14 @@ package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 /**
  * The NorGate class is an instance of the the Gate class that is used to simulate and AndGate. These classes will be usefull when trying to create a graph in the Interpreter phase of the compiler. The interpreter is importanct because it will help validate if the code generator actually works and we retrieve the expected results.
  * @author Jacob Bauer
  */
 
 public class NorGate extends Gate{
-    private ArrayList<Wire> inputs;
+    private LinkedList<Wire> inputs;
 
     /**
      * The and gate constructor creates a new and gate. It can take in a variable number of inputs with a minimum of two inputs
@@ -21,7 +21,7 @@ public class NorGate extends Gate{
     
     public NorGate(Wire output, Wire input1, Wire input2, Wire... optional){
 	super(output);
-	this.inputs = new ArrayList<>();
+	this.inputs = new LinkedList<>();
 	this.inputs.add(input1);
 	if(!inputs.contains(input2)){
 	    this.inputs.add(input2);
@@ -40,7 +40,8 @@ public class NorGate extends Gate{
     }
 
     /**
-     * The update method is actually the magic behind how the gate gets its output. These methods actually only check for the minimum change needed to change the output and then if that change is detected it will change the output
+     * The update method samples the inputs and updates the output of the gate.
+     * @param None
      * @author Jacob Bauer
      */
     
