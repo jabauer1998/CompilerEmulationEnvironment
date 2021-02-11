@@ -12,8 +12,8 @@ import java.util.LinkedList;
 import java.lang.StringBuilder;
 
 public class Lexer{  
-    private Source source;
-    private InfoLog ErrorLog;
+    private final Source source;
+    private final InfoLog ErrorLog;
 
     private Position position;
     private int lineNumber = 0;
@@ -442,5 +442,9 @@ public class Lexer{
 	    }
 	}
 	return tokenList;
+    }
+
+    public InfoLog getErrorLog(){
+	return ErrorLog;
     }
 }

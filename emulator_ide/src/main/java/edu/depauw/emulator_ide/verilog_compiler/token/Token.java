@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.token;
 import java.util.HashMap;
 
 public class Token{
-	enum Type {
+	public enum Type {
 	    IDENT, //identifiers
 	    NUM, //Numbers
 	    STRING, //String constants
@@ -75,9 +75,11 @@ public class Token{
 	    INT,
 	    REG,
 	    REAL
-	};
+	}
+    
     private static HashMap<String, Type> OPS;
     private static HashMap<String, Type> KEY;
+    
     static {
 	OPS = new HashMap<>(); //hashmap to store all of the operators
 	OPS.put("(",Type.LPAR);
@@ -146,11 +148,11 @@ public class Token{
 	KEY.put("integer", Type.INT);
 	KEY.put("real", Type.REAL);
 	KEY.put("reg", Type.REG);
-    };
+    }
 
-    private Type type;
-    private String lexeme;
-    private Position position;
+    private final Type type;
+    private final String lexeme;
+    private final Position position;
 
     private Token(String lexeme, Position position, Type type){
 	this.lexeme = lexeme;
@@ -158,36 +160,48 @@ public class Token{
 	this.position = position;
     }
 
-    public static Token makeNumToken(String lexeme, Position position){
-	return new Token(lexeme, position, Type.NUM);
+    public String getLexeme(){
+	return lexeme;
     }
 
-    public static Token makeIdToken(String lexeme, Position position){
-	if(KEY.containsKey(lexeme)){
-	    return new Token(lexeme, position, KEY.get(lexeme));
-	} else {
-	    return new Token(lexeme, position, Type.IDENT);
-	}
+    public Token.Type getTokenType(){
+	return type;
     }
 
-    public static Token makeStringToken(String lexeme, Position position){
-	return new Token(lexeme, position, Type.STRING);
-    }
-
-    public static Token makeOpToken(String lexeme, Position position){
-	return new Token(lexeme, position, OPS.get(lexeme));
-    }
-
-    public static Token makeToken(String lexeme, Position position, Type type){
-	return new Token(lexeme, position, type);
-    }
-
-    public static boolean containsOp(String op){
-	return OPS.containsKey(op);
+    public Position getPosition(){
+	return position;
     }
 
     @Override
     public String toString(){
 	return "Token " + this.lexeme + " at " + this.position.toString();
+    }
+
+    private static Token makeToken(String lexeme, Position position, Type type){
+	return new Token(lexeme, position, type);
+    }
+
+    public static Token makeNumToken(String lexeme, Position position){
+	return makeToken(lexeme, position, Type.NUM);
+    }
+
+    public static Token makeIdToken(String lexeme, Position position){
+	if(KEY.containsKey(lexeme)){
+	    return makeToken(lexeme, position, KEY.get(lexeme));
+	} else {
+	    return makeToken(lexeme, position, Type.IDENT);
+	}
+    }
+
+    public static Token makeStringToken(String lexeme, Position position){
+	return makeToken(lexeme, position, Type.STRING);
+    }
+
+    public static Token makeOpToken(String lexeme, Position position){
+	return makeToken(lexeme, position, OPS.get(lexeme));
+    }
+
+    public static boolean containsOp(String op){
+	return OPS.containsKey(op);
     }
 }
