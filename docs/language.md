@@ -6,6 +6,7 @@
 Decimal => 839290 | 'd8093284 | 4'd9090<br>
 Hexidecimal => 'h9A9f80 | 5'H89fff<br>
 Octal => 'O46373 | 3'O217<br>
+Binary => 'b101010 2'B10
 </p>
 
 <h3>Real Numbers:</h3>
