@@ -8,7 +8,7 @@ import edu.depauw.emulator_ide.common.debug.InfoLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.lang.StringBuilder;
 
 public class Lexer{  
@@ -433,8 +433,8 @@ public class Lexer{
 	}
     }
     
-    public LinkedList<Token> tokenize(){
-	LinkedList<Token> tokenList = new LinkedList<>();
+    public ArrayList<Token> tokenize(){
+	ArrayList<Token> tokenList = new ArrayList<>();
 	while(!source.atEOD()){
 	    Token nextToken = genNextToken();
 	    if(nextToken != null){

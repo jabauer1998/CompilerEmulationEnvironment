@@ -43,4 +43,8 @@ public class InfoLog {
 	    output.println(info.toString());
 	}
     }
+
+    public int size(){
+	return infoLog.size();
+    }
 }

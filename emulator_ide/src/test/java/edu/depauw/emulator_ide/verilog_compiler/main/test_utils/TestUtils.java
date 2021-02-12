@@ -7,6 +7,8 @@ import edu.depauw.emulator_ide.verilog_compiler.main.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
 
 import java.util.LinkedList;
@@ -20,10 +22,10 @@ public class TestUtils{
     private static int expectedErrorItems = -1; //Expected error items to find in error log
     private static Tuple<Token.Type> testTokens = null; //Tuple object to store all of the incoming Test Tokens
     
-    public static void prepareLexer(Tuple<Token.Type> testTokens, int expectedErrorItems){
-	this.lexerPrepared = true;
-	this.expectedErrorItems = expectedErrorItems;
-	this.testTokens = testTokens;
+    public static void prepareLexer(Tuple<Token.Type> testparTokens, int expectedNumItems){
+	lexerPrepared = true;
+	expectedErrorItems = expectedNumItems;
+	testTokens = testparTokens;
     }
     /** 
      * The test Lexer function is how I plan to test whether the Lexer is working correctly
@@ -31,12 +33,13 @@ public class TestUtils{
      */
     public static void testLexer(Lexer myLexer){
 	if(lexerPrepared){
-	    ArrayList<Token> lexedTokens = myLexer.tokenise();
-	    if(lexedTokens.size() == testItems.size()){
+	    ArrayList<Token> lexedTokens = myLexer.tokenize();
+	    if(lexedTokens.size() == testTokens.size()){
 		ArrayList<Token.Type> tokenTypes = testTokens.getList();
-		for(int i = 0; i < tokens.size(); i++){
+		for(int i = 0; i < testTokens.size(); i++){
 		    assertTrue("Error: token mismatch at token " + i, tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
 		}
+		assertTrue("Expected error log to have " + expectedErrorItems + " [found -> " + myLexer.getErrorLog().size(), expectedErrorItems == myLexer.getErrorLog().size());
 	    } else {
 		System.err.println("Error: size mismatch between Tuple provided and Tokens retrieved from the source");
 		fail();
