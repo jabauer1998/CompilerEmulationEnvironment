@@ -32,21 +32,15 @@ public class TestUtils{
      * @author Jacob Bauer
      */
     public static void testLexer(Lexer myLexer){
-	if(lexerPrepared){
-	    ArrayList<Token> lexedTokens = myLexer.tokenize();
-	    if(lexedTokens.size() == testTokens.size()){
-		ArrayList<Token.Type> tokenTypes = testTokens.getList();
-		for(int i = 0; i < testTokens.size(); i++){
-		    assertTrue("Error: token mismatch at token " + i, tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
-		}
-		assertTrue("Expected error log to have " + expectedErrorItems + " [found -> " + myLexer.getErrorLog().size(), expectedErrorItems == myLexer.getErrorLog().size());
-	    } else {
-		System.err.println("Error: size mismatch between Tuple provided and Tokens retrieved from the source");
-		fail();
-	    }
-	} else {
-	    System.err.println("Error: expected prepare statement before excecution");
-	    fail();
+	assertTrue("Error: expected prepare statement before excecution", lexerPrepared);
+	ArrayList<Token> lexedTokens = myLexer.tokenize();
+	ArrayList<Token.Type> tokenTypes = testTokens.getList();
+	if(myLexer.getErrorLog().size() != 0){
+	    myLexer.getErrorLog().printLog();
+	}
+	assertTrue("Expected error log to have " + expectedErrorItems + " [found -> " + myLexer.getErrorLog().size() +']', expectedErrorItems == myLexer.getErrorLog().size());
+	for(int i = 0; i < testTokens.size(); i++){
+	    assertTrue("Error: token mismatch at token " + i + "[Expected -> " + tokenTypes.get(i) + " | Got -> " + lexedTokens.get(i).getTokenType() + ']',tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
 	}
     }
 }
