@@ -32,7 +32,10 @@ public class Wire extends CircuitElem{
         if(this.input.getSignal() != outputSignal){
 	    outputSignal = input.getSignal();
 	    for(CircuitElem output : outputs){
-		output.update();
+		toUpdate.add(output);
+	    }
+	    if(toUpdate.peek() != null){
+		toUpdate.remove().update();
 	    }
 	}
     }

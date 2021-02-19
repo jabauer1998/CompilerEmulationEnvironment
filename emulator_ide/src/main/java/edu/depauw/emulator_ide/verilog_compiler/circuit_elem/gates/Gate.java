@@ -14,8 +14,11 @@ public abstract class Gate extends CircuitElem{
     }
 
     protected void updateOutput(){ //method used to update the output
-	if(output != null){
-	    this.output.update();
+	if(this.output != null){
+	    toUpdate.add(this.output);
+	}
+	if(toUpdate.peek() != null){
+	    toUpdate.remove().update();
 	}
     }
     

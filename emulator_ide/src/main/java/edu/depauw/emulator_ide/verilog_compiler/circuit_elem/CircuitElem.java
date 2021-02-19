@@ -1,9 +1,14 @@
 package edu.depauw.emulator_ide.verilog_compiler.circuit_elem;
+
+import java.util.Queue;
+import java.util.LinkedList;
 /**
  * The generic class for Circuit Objects
  * @author Jacob Bauer
  */
 public abstract class CircuitElem{
+
+    protected static Queue<CircuitElem> toUpdate = new LinkedList<>(); //queue to store next field to update
 
     protected boolean outputSignal; //the output state of the component
 
@@ -20,6 +25,7 @@ public abstract class CircuitElem{
      * @param None
      * @author Jacob Bauer
      */
+    
     public boolean getSignal(){ //the signal method of the component
 	return outputSignal;
     }

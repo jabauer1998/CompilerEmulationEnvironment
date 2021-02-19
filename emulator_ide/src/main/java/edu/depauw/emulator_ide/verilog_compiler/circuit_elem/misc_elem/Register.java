@@ -43,7 +43,10 @@ public class Register extends CircuitElem{
     
     public void update(){
 	if(output != null){
-	    output.update();
+	    toUpdate.add(output);
+	}
+	if(toUpdate.peek() != null){
+	    toUpdate.remove().update();
 	}
     }
 
