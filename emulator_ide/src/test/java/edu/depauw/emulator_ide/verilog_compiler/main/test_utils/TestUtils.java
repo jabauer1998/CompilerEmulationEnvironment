@@ -19,22 +19,33 @@ import java.util.LinkedList;
  */
 public class TestUtils{
     private static boolean lexerPrepared = false;
+    private static boolean errorLogPrepared = false;
     private static int expectedErrorItems = -1; //Expected error items to find in error log
     private static Tuple<Token.Type> testTokens = null; //Tuple object to store all of the incoming Test Tokens
-    
-    public static void prepareLexer(Tuple<Token.Type> testparTokens, int expectedNumItems){
-	lexerPrepared = true;
+
+    public static void prepareErrorLog(int expectedNumItems){
 	expectedErrorItems = expectedNumItems;
-	testTokens = testparTokens;
+	errorLogPrepared = true;
+    }
+    
+    public static void prepareLexer(Tuple<Token.Type> testArgTokens){
+	testTokens = testArgTokens;
+	lexerPrepared = true;
     }
     /** 
      * The test Lexer function is how I plan to test whether the Lexer is working correctly
+     * It works by prividing a Lexer object and it verifies the 
      * @author Jacob Bauer
      */
     public static void testLexer(Lexer myLexer){
-	assertTrue("Error: expected prepare statement before excecution", lexerPrepared);
+	assertTrue("Error: expected prepareErrorLog statement before testLexer method", errorLogPrepared);
+	assertTrue("Error: expected prepareLexer statement before testLexer method", lexerPrepared);
 	ArrayList<Token> lexedTokens = myLexer.tokenize();
 	ArrayList<Token.Type> tokenTypes = testTokens.getList();
+	for(Token token : lexedTokens){
+	    System.err.println(token.toString());
+	}
+	assertTrue("Expected number of tokens provided to be equal the number of tokens found [found -> " + lexedTokens.size() + " | Provided -> " + tokenTypes.size() +']', lexedTokens.size() == tokenTypes.size());
 	if(myLexer.getErrorLog().size() != 0){
 	    myLexer.getErrorLog().printLog();
 	}
@@ -42,6 +53,8 @@ public class TestUtils{
 	for(int i = 0; i < testTokens.size(); i++){
 	    assertTrue("Error: token mismatch at token " + i + "[Expected -> " + tokenTypes.get(i) + " | Got -> " + lexedTokens.get(i).getTokenType() + ']',tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
 	}
+	errorLogPrepared = false;
+	lexerPrepared = false;
     }
 }
 

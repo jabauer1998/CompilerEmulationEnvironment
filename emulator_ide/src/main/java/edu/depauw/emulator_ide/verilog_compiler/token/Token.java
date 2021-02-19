@@ -41,6 +41,7 @@ public class Token{
 	    BAND,   // &
 	    BNEG,   // ~
 	    BOR,    // |
+	    BXOR,   // ^
 	    BXNOR,  // ^~ or ~^
 	    BNAND,  // ~&
 	    BNOR,   // ~|
@@ -74,7 +75,9 @@ public class Token{
 	    FOR,
 	    INT,
 	    REG,
-	    REAL
+	    REAL,
+	    OUTPUT,
+	    INPUT
 	}
     
     private static HashMap<String, Type> OPS;
@@ -115,6 +118,7 @@ public class Token{
 	OPS.put("&", Type.BAND);
 	OPS.put("|", Type.BOR);
 	OPS.put("~", Type.BNEG);
+	OPS.put("^", Type.BXOR);
 	OPS.put("^~", Type.BXNOR);
 	OPS.put("~^", Type.BXNOR);
 	OPS.put("~|", Type.BNOR);
@@ -148,6 +152,8 @@ public class Token{
 	KEY.put("integer", Type.INT);
 	KEY.put("real", Type.REAL);
 	KEY.put("reg", Type.REG);
+	KEY.put("output", Type.OUTPUT);
+	KEY.put("input", Type.INPUT);
     }
 
     private final Type type;

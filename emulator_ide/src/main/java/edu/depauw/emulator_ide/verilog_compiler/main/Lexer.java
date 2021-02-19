@@ -58,6 +58,7 @@ public class Lexer{
 		if(c == '\n'){
 		    source.advance();
 		    resetPositionToNewLine();
+		    continue;
 	        } else if(Character.isWhitespace(c)){
 		    source.advance();
 		    incrimentPosition();
@@ -127,13 +128,14 @@ public class Lexer{
 		} else if(c == '/'){
 		    position = getCurrentPosition();
 		    if(source.getNext() == '/'){
-			source.advance();
-			incrimentPosition();
+			source.advance(2);
+			incrimentPosition(2);
 			state = STATE.SINGLECOMMENT;
 			continue;
 		    } else if(source.getNext() == '*'){
-			source.advance();
-			incrimentPosition();
+			source.advance(2);
+			incrimentPosition(2);
+			count++;
 			state = STATE.MULTICOMMENT;
 			continue;
 		    } else {
@@ -146,12 +148,13 @@ public class Lexer{
 		    continue;
 		} else {
 		    position = getCurrentPosition();
-		    ErrorLog.addItem(new ErrorItem("Unreconizable character found",source.getPosition()));
+		    ErrorLog.addItem(new ErrorItem("Unreconizable character found", source.getPosition()));
 		    state = STATE.ERROR;
 		    continue;
 		}
 	    case STRING:
 		if(c == '\"'){
+		    lexeme.append(c);
 		    source.advance();
 		    incrimentPosition();
 		    return Token.makeStringToken(lexeme.toString(), position);
@@ -172,6 +175,7 @@ public class Lexer{
 			    c = source.getCurrent();
 			    i++;
 			}
+			return Token.makeOpToken(lexeme.toString(), position);
 		    } else if(source.getNext() == '='){
 			lexeme.append(c);
 			lexeme.append(source.getNext());
@@ -194,6 +198,7 @@ public class Lexer{
 			    c = source.getCurrent();
 			    i++;
 			}
+			return Token.makeOpToken(lexeme.toString(), position);
 		    } else if(source.getNext() == '='){
 			lexeme.append(c);
 			lexeme.append(source.getNext());
@@ -303,8 +308,8 @@ public class Lexer{
 		} else if(c == '/' && source.getNext() == '*') {
 		    ErrorLog.addItem(new ErrorItem("In verilog there are no embedded comments allowed",position));
 		    count++;
-		    source.advance();
-		    incrimentPosition();
+		    source.advance(2);
+		    incrimentPosition(2);
 		    continue;
 		} else {
 		    source.advance();
@@ -312,7 +317,7 @@ public class Lexer{
 		    continue;
 		}
 	    case IDENT:
-		if(Character.isLetter(c) || c == '_'){
+		if(Character.isLetter(c) || c == '_' || Character.isDigit(c)){
 		    lexeme.append(c);
 		    source.advance();
 		    incrimentPosition();
@@ -415,18 +420,15 @@ public class Lexer{
 	    return Token.makeNumToken(lexeme.toString(), position);
 	case OCT:
 	    return Token.makeNumToken(lexeme.toString(), position);
-	case INIT:
-	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found", position));
-	    return null;
 	case MULTICOMMENT:
-	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found", position));
+	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found in multi line MULTICOMMENT state", null));
 	    return null;
 	case IDENT:
 	    return Token.makeIdToken(lexeme.toString(), position);
 	case OP:
 	    return Token.makeOpToken(lexeme.toString(), position);
 	case STRING:
-	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found", position));
+	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found in STRING state", null));
 	    return null;
 	default:
 	    return null;

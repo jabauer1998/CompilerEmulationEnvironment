@@ -20,50 +20,220 @@ import java.io.StringReader;
 public class LexerTest{
         @Test
 	public void testIdentifiers() {
+	        System.err.println("-----Identifier Test----");
 		String input = "This is test1";
-		prepareLexer(new Tuple(Token.Type.IDENT, Token.Type.IDENT, Token.Type.IDENT), 0);
+		
+		prepareErrorLog(0);
+		prepareLexer(new Tuple(Token.Type.IDENT,
+				       Token.Type.IDENT,
+				       Token.Type.IDENT)
+			     );
+		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 	
 	@Test
 	public void testKeyWords() {
-		String input = "initial allways begin end module endmodule task endtask function endfunction assign posedge negedge or if else while forever repeat for integer real reg";
-		prepareLexer(new Tuple(Token.Type.INIT, Token.Type.ALLWAYS, Token.Type.BEGIN, Token.Type.END, Token.Type.MODULE, Token.Type.ENDMODULE, Token.Type.TASK, Token.Type.ENDTASK, Token.Type.FUNCTION, Token.Type.ENDFUNCTION, Token.Type.ASSIGN, Token.Type.POSEGE, Token.Type.NEGEGE, Token.Type.OR, Token.Type.IF, Token.Type.ELSE, Token.Type.WHILE, Token.Type.FOREVER, Token.Type.REPEAT, Token.Type.FOR, Token.Type.INT, Token.Type.REAL, Token.Type.REG), 0);
+	        System.err.println("-----Keyword Test----");
+		String input = "initial allways begin end module endmodule task endtask function endfunction assign posedge negedge or if else while forever repeat for integer real reg output input";
+
+		prepareErrorLog(0);	
+		prepareLexer(new Tuple(Token.Type.INIT,
+				       Token.Type.ALLWAYS,
+				       Token.Type.BEGIN,
+				       Token.Type.END,
+				       Token.Type.MODULE,
+				       Token.Type.ENDMODULE,
+				       Token.Type.TASK,
+				       Token.Type.ENDTASK,
+				       Token.Type.FUNCTION,
+				       Token.Type.ENDFUNCTION,
+				       Token.Type.ASSIGN,
+				       Token.Type.POSEGE,
+				       Token.Type.NEGEGE,
+				       Token.Type.OR,
+				       Token.Type.IF,
+				       Token.Type.ELSE,
+				       Token.Type.WHILE,
+				       Token.Type.FOREVER,
+				       Token.Type.REPEAT,
+				       Token.Type.FOR,
+				       Token.Type.INT,
+				       Token.Type.REAL,
+				       Token.Type.REG,
+				       Token.Type.OUTPUT,
+				       Token.Type.INPUT)
+			     );
+		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 
 	@Test
 	public void testIntegers() {
+	        System.err.println("-----Basic Number Test----");
 		String input = "0 11 9999 0123456789";
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM), 0);
+		prepareErrorLog(0);
+		
+		prepareLexer(new Tuple(Token.Type.NUM,
+				       Token.Type.NUM,
+				       Token.Type.NUM,
+				       Token.Type.NUM)
+			     );
+		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 	
 	@Test
 	public void testStrings() {
+	        System.err.println("-----String Test----");
 		String input = "\"\" \"testing\" \"!@#$%^&(*)-_=+\"";
-		prepareLexer(new Tuple(Token.Type.STRING, Token.Type.STRING, Token.Type.STRING), 0);
+		
+		prepareErrorLog(0);
+		
+		prepareLexer(new Tuple(Token.Type.STRING,
+				       Token.Type.STRING,
+				       Token.Type.STRING)
+			     );
+		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 	
 	@Test
 	public void testComments() {
-	        String input = "/* this is a comment */ // this is another comment";
-		prepareLexer(new Tuple(), 0);
+	        System.err.println("-----String Test----");
+	        String input = "/* this is a comment */ //this is another comment";
+		prepareErrorLog(0);
+		prepareLexer(new Tuple());
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 	
 	@Test
 	public void testOperators() {
-		String input = "(){}[],+-*%/?:<><=>=#;@$= == === != !== &&||!&~ | ^~~^ ~& ~| <<>><<<>>>";
-		prepareLexer(new Tuple(Token.Type.LPAR, Token.Type.RPAR, Token.Type.LCURL, Token.Type.RCURL, Token.Type.LBRACK, Token.Type.RBRACK, Token.Type.COMMA, Token.Type.PLUS, Token.Type.MINUS, Token.Type.TIMES, Token.Type.MOD, Token.Type.DIV, Token.Type.QUEST, Token.Type.COLON, Token.Type.AT, Token.Type.DOLLAR, Token.Type.EQ1, Token.Type.EQ2, Token.Type.EQ3, Token.Type.NE1, Token.Type.NE2, Token.Type.LAND, Token.Type.LOR, Token.Type.LNEG, Token.Type.BAND, Token.Type.LOR, Token.Type.LNEG, Token.Type.BAND, Token.Type.BNEG, Token.Type.BOR, Token.Type.BXNOR, Token.Type.BXNOR, Token.Type.BNAND, Token.Type.BNOR, Token.Type.LSHIFT, Token.Type.RSHIFT, Token.Type.ALSHIFT, Token.Type.ARSHIFT), 0);
+	        System.err.println("-----Operator Test----");
+		String input = "(){}[],+-*%/?:<><=>=;@$= == === != !== &&||!&~ | ^^~~^ ~& ~| <<>><<<>>>";
+		
+		prepareErrorLog(0);
+		prepareLexer(new Tuple(Token.Type.LPAR,
+				       Token.Type.RPAR,
+				       Token.Type.LCURL,
+				       Token.Type.RCURL,
+				       Token.Type.LBRACK,
+				       Token.Type.RBRACK,
+				       Token.Type.COMMA,
+				       Token.Type.PLUS,
+				       Token.Type.MINUS,
+				       Token.Type.TIMES,
+				       Token.Type.MOD,
+				       Token.Type.DIV,
+				       Token.Type.QUEST,
+				       Token.Type.COLON,
+				       Token.Type.LT,
+				       Token.Type.GT,
+				       Token.Type.LE,
+				       Token.Type.GE,
+				       Token.Type.SEMI,
+				       Token.Type.AT,
+				       Token.Type.DOLLAR,
+				       Token.Type.EQ1,
+				       Token.Type.EQ2,
+				       Token.Type.EQ3,
+				       Token.Type.NE1,
+				       Token.Type.NE2,
+				       Token.Type.LAND,
+				       Token.Type.LOR,
+				       Token.Type.LNEG,
+				       Token.Type.BAND,
+				       Token.Type.BNEG,
+				       Token.Type.BOR,
+				       Token.Type.BXOR,
+				       Token.Type.BXNOR,
+				       Token.Type.BXNOR,
+				       Token.Type.BNAND,
+				       Token.Type.BNOR,
+				       Token.Type.LSHIFT,
+				       Token.Type.RSHIFT,
+				       Token.Type.ALSHIFT,
+				       Token.Type.ARSHIFT)
+			     );
+		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 	
 	@Test
 	public void testErrors() {
+	        System.err.println("-----Error Test----");
 		String input = "\"unclosed!";
-		prepareLexer(new Tuple(), 1);
+		
+		prepareErrorLog(1);
+		
+		prepareLexer(new Tuple());
+		
+		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+	}
+
+        @Test
+	public void testMixed() {
+	    System.err.println("-----Mixed(half adder) Test----");
+	    String input = "module half_adder (\n" +
+		"i_bit1,\n" +
+		"i_bit2,\n" +
+		"o_sum,\n"+
+		"o_carry\n"+
+		");\n"+
+		
+		"input  i_bit1;\n"+
+		"input  i_bit2;\n"+
+		"output o_sum;\n"+
+		"output o_carry;\n"+
+		
+		"assign o_sum   = i_bit1 ^ i_bit2;  // bitwise xor\n"+
+		"assign o_carry = i_bit1 & i_bit2;  // bitwise and\n"+
+ 
+		"endmodule // half_adder\n";
+		
+		prepareErrorLog(0);
+		
+	        prepareLexer(new Tuple(Token.Type.MODULE,
+				       Token.Type.IDENT,
+				       Token.Type.LPAR,
+				       Token.Type.IDENT,
+				       Token.Type.COMMA,
+				       Token.Type.IDENT,
+				       Token.Type.COMMA,
+				       Token.Type.IDENT,
+				       Token.Type.COMMA,
+				       Token.Type.IDENT,
+				       Token.Type.RPAR,
+				       Token.Type.SEMI,
+				       Token.Type.INPUT,
+				       Token.Type.IDENT,
+				       Token.Type.SEMI,
+				       Token.Type.INPUT,
+				       Token.Type.IDENT,
+				       Token.Type.SEMI,
+				       Token.Type.OUTPUT,
+				       Token.Type.IDENT,
+				       Token.Type.SEMI,
+				       Token.Type.OUTPUT,
+				       Token.Type.IDENT,
+				       Token.Type.SEMI,
+				       Token.Type.ASSIGN,
+				       Token.Type.IDENT,
+				       Token.Type.EQ1,
+				       Token.Type.IDENT,
+				       Token.Type.BXOR,
+				       Token.Type.IDENT,
+				       Token.Type.SEMI,
+				       Token.Type.ASSIGN,
+				       Token.Type.IDENT,
+				       Token.Type.EQ1,
+				       Token.Type.IDENT,
+				       Token.Type.BAND,
+				       Token.Type.IDENT,
+				       Token.Type.SEMI,
+				       Token.Type.ENDMODULE)
+			     );
+		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
 }

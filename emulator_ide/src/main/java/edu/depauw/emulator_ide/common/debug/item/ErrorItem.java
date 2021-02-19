@@ -19,9 +19,11 @@ public class ErrorItem implements InfoItem{
     public String toString(){
 	StringBuilder result = new StringBuilder("\u001b[31;1mError\u001b[37m:\u001b[0m ");
 	result.append(message);
-	result.append(" at [");
-	result.append(position.toString());
-	result.append(']');
+	if(position != null){
+	    result.append(" at [");
+	    result.append(position.toString());
+	    result.append(']');
+	}
 	return result.toString();
     }
 }
