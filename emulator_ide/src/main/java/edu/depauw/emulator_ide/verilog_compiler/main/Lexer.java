@@ -95,25 +95,25 @@ public class Lexer{
 		    position = getCurrentPosition();
 		    lexeme.append(c);
 		    char next = source.getNext();
-		    if(next == 'd'){
+		    if(next == 'd' || next == 'D'){
 			state = STATE.DEC;
 			lexeme.append(next);
 			source.advance(2);
-			incrimentPosition();
+			incrimentPosition(2);
 			continue;
-		    } else if(next == 'h'){
+		    } else if(next == 'h' || next == 'H'){
 			state = STATE.HEX;
 			lexeme.append(next);
 			source.advance(2);
 			incrimentPosition(2);
 			continue;
-		    } else if(next == 'b'){
+		    } else if(next == 'b' || next == 'B'){
 			state = STATE.BIN;
 			lexeme.append(next);
 			source.advance(2);
 			incrimentPosition(2);
 			continue;
-		    } else if(next == '0'){
+		    } else if(next == 'O' || next == 'o'){
 			state = STATE.OCT;
 			lexeme.append(next);
 			source.advance(2);
@@ -331,6 +331,40 @@ public class Lexer{
 		    source.advance();
 		    incrimentPosition();
 		    continue;
+		} else if(c == '\''){
+		    position = getCurrentPosition();
+		    lexeme.append(c);
+		    char next = source.getNext();
+		    if(next == 'd' || next == 'D'){
+			state = STATE.DEC;
+			lexeme.append(next);
+			source.advance(2);
+			incrimentPosition(2);
+			continue;
+		    } else if(next == 'h' || next == 'H'){
+			state = STATE.HEX;
+			lexeme.append(next);
+			source.advance(2);
+			incrimentPosition(2);
+			continue;
+		    } else if(next == 'b' || next == 'B'){
+			state = STATE.BIN;
+			lexeme.append(next);
+			source.advance(2);
+			incrimentPosition(2);
+			continue;
+		    } else if(next == 'O' || next == 'o'){
+			state = STATE.OCT;
+			lexeme.append(next);
+			source.advance(2);
+			incrimentPosition(2);
+			continue;
+		    } else {
+			position = getCurrentPosition();
+			ErrorLog.addItem(new ErrorItem("Character representing hex, binary, decimal and octal missing", position));
+			state = STATE.ERROR;
+			continue;
+		    }
 		} else if (c == 'e' || c == 'E'){
 		    hasE = true;
 		    lexeme.append(c);
@@ -419,6 +453,8 @@ public class Lexer{
 	case DEC:
 	    return Token.makeNumToken(lexeme.toString(), position);
 	case OCT:
+	    return Token.makeNumToken(lexeme.toString(), position);
+	case HEX:
 	    return Token.makeNumToken(lexeme.toString(), position);
 	case MULTICOMMENT:
 	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found in multi line MULTICOMMENT state", null));

@@ -69,15 +69,62 @@ public class LexerTest{
 	}
 
 	@Test
-	public void testIntegers() {
-	        System.err.println("-----Basic Number Test----");
-		String input = "0 11 9999 0123456789";
+	public void testDecimal() {
+	        System.err.println("-----Basic Decimal Test----");
+		String input = "0 11 9999 0123456789 'D893084 4'd98349";
 		prepareErrorLog(0);
 		
 		prepareLexer(new Tuple(Token.Type.NUM,
 				       Token.Type.NUM,
 				       Token.Type.NUM,
+				       Token.Type.NUM,
+				       Token.Type.NUM,
 				       Token.Type.NUM)
+			     );
+		
+		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+	}
+
+        @Test
+	public void testHexidecimal() {
+	        System.err.println("-----Basic Hexidecimal Test----");
+		String input = "'h98f08 4'Hfffff 54'h0984903";
+		prepareErrorLog(0);
+		
+		prepareLexer(new Tuple(Token.Type.NUM,
+				       Token.Type.NUM,
+				       Token.Type.NUM
+				       )
+			     );
+		
+		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+	}
+
+        @Test
+	public void testOctal() {
+	        System.err.println("-----Basic Octal Test----");
+		String input = "'o07 4'O74343 34'O01713";
+		prepareErrorLog(0);
+		
+		prepareLexer(new Tuple(Token.Type.NUM,
+				       Token.Type.NUM,
+				       Token.Type.NUM
+				       )
+			     );
+		
+		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+	}
+
+        @Test
+	public void testBinary() {
+	        System.err.println("-----Basic Binary Test----");
+		String input = "'b0101010 4'b011101 34'B011010";
+		prepareErrorLog(0);
+		
+		prepareLexer(new Tuple(Token.Type.NUM,
+				       Token.Type.NUM,
+				       Token.Type.NUM
+				       )
 			     );
 		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
@@ -92,7 +139,8 @@ public class LexerTest{
 		
 		prepareLexer(new Tuple(Token.Type.STRING,
 				       Token.Type.STRING,
-				       Token.Type.STRING)
+				       Token.Type.STRING
+				       )
 			     );
 		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
@@ -100,7 +148,7 @@ public class LexerTest{
 	
 	@Test
 	public void testComments() {
-	        System.err.println("-----String Test----");
+	        System.err.println("-----Comment Test----");
 	        String input = "/* this is a comment */ //this is another comment";
 		prepareErrorLog(0);
 		prepareLexer(new Tuple());
@@ -186,8 +234,8 @@ public class LexerTest{
 		"output o_sum;\n"+
 		"output o_carry;\n"+
 		
-		"assign o_sum   = i_bit1 ^ i_bit2;  // bitwise xor\n"+
-		"assign o_carry = i_bit1 & i_bit2;  // bitwise and\n"+
+		"assign o_sum   = i_bit1 ^ i_bit2; // bitwise xor\n"+
+		"assign o_carry = i_bit1 & i_bit2; // bitwise and\n"+
  
 		"endmodule // half_adder\n";
 		
