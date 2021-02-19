@@ -42,16 +42,13 @@ public class TestUtils{
 	assertTrue("Error: expected prepareLexer statement before testLexer method", lexerPrepared);
 	ArrayList<Token> lexedTokens = myLexer.tokenize();
 	ArrayList<Token.Type> tokenTypes = testTokens.getList();
-	for(Token token : lexedTokens){
-	    System.err.println(token.toString());
-	}
 	assertTrue("Expected number of tokens provided to be equal the number of tokens found [found -> " + lexedTokens.size() + " | Provided -> " + tokenTypes.size() +']', lexedTokens.size() == tokenTypes.size());
 	if(myLexer.getErrorLog().size() != 0){
 	    myLexer.getErrorLog().printLog();
 	}
 	assertTrue("Expected error log to have " + expectedErrorItems + " [found -> " + myLexer.getErrorLog().size() +']', expectedErrorItems == myLexer.getErrorLog().size());
 	for(int i = 0; i < testTokens.size(); i++){
-	    assertTrue("Error: token mismatch at token " + i + "[Expected -> " + tokenTypes.get(i) + " | Got -> " + lexedTokens.get(i).getTokenType() + ']',tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
+	    assertTrue("Error: token mismatch at token " + i + " [Expected -> " + tokenTypes.get(i) + " | Got -> " + lexedTokens.get(i).getTokenType() + ']',tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
 	}
 	errorLogPrepared = false;
 	lexerPrepared = false;
