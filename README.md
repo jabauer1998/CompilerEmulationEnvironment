@@ -17,4 +17,5 @@ maven - buildtool <br>
     <li> Created Gate classes to use for interpretation (usefull for debugging) </li>
     <li> Created Source class and Destination for Dealing with IO</li>
     <li> Created Lexer, Token, and Position classes to handle Lexing a subset of the verilog language</li>
+    <li> Specified the Grammer of the Subset of Verilog for the Compiler</li>
   </ul>
