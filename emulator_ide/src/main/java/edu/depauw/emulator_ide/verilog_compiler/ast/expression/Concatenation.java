@@ -1,24 +1,22 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.ExpressionList;
 
-import java.util.List;
-
-public class Concatenation extends Expression {
+public class Concatenation extends Expression{
     
-    private final List<Expression> expressionList;
+    private final ExpressionList expList;
     
-    public Concatenation(List<Expression> expressionList){
-        super(expressionList.get(0).getPosition());
-	this.expressionList = expressionList;
+    public Concatenation(ExpressionList expList){
+	super(expList.getPosition());
+	this.expList = expList;
     }
 
     public Expression getExpression(int index){
-	return expressionList.get(index);
+	return expList.getExpression(index);
     }
 
     public int getSize(){
-	return expressionList.size();
+	return expList.getSize();
     }
-    
 }

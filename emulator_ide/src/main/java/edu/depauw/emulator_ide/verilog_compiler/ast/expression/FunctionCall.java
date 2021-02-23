@@ -1,6 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.ExpressionList;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -8,18 +9,18 @@ import java.util.ArrayList;
 public class FunctionCall extends Expression{
 
     private final Identifier functionName;
-    private final List<Expression> expressionList;
+    private final ExpressionList expList;
     
     public FunctionCall(Identifier functionName){
 	super(functionName.getPosition());
 	this.functionName = functionName;
-	this.expressionList = new ArrayList<>();
+	this.expList = null;
     }
 
-    public FunctionCall(Identifier functionName, List<Expression> expressionList){
+    public FunctionCall(Identifier functionName, ExpressionList expList){
 	super(functionName.getPosition());
 	this.functionName = functionName;
-	this.expressionList = expressionList;
+	this.expList = expList;
     }
 
     public Identifier getFunctionName(){
@@ -27,10 +28,10 @@ public class FunctionCall extends Expression{
     }
 
     public Expression getExpression(int index){
-	return expressionList.get(index);
+	return expList.getExpression(index);
     }
 
     public int getExpressionListSize(){
-	return expressionList.size();
+	return expList.getSize();
     }
 }
