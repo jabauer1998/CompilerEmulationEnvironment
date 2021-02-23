@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.ast.general.ExpressionList;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ExpressionList;
 
 public class Concatenation extends Expression{
     

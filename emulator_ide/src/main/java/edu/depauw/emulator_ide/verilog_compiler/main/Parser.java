@@ -6,8 +6,11 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.ast.general.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.Delay;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
 
 import java.util.ArrayList;
 
@@ -77,6 +80,13 @@ public class Parser{
     }
 
     /**
+     * Below I cam creating the statement classes
+     * @author Jacob Bauer
+     */
+
+    
+
+    /**
      * Below is the code for parsing expressions for the verilog lanuage.
      * These recursive decent takes into account all operator precedence and it can also be used to parse strings
      * There are no booleans in Verilog so having a booelan would not make a bunch of sense.
@@ -100,6 +110,36 @@ public class Parser{
 	    }
 	    return expression;
 	}
+    }
+
+    // lvalue -> IDENT | IDENT [ Expression ] | IDENT [ Expression : Expression ] | Concatenation
+    private Expression parseLValue(){
+	if(willMatch(Token.Type.LCURL)){
+	    return parseConcatenation();
+	} else {
+	    Token ident = match(Token.Type.IDENT);
+	    if(willMatch(Token.Type.LBRACK)){
+		skip();
+		Expression exp = parseExpression();
+		if(willMatch(Token.Type.RBRACK)){
+		    skip();
+		    return new Vector(new Identifier(ident), exp);
+		} else {
+		    match(Token.Type.COLON);
+		    Expression exp2 = parseExpression();
+		    match(Token.Type.RBRACK);
+		    return new Vector(new Identifier(ident), exp, exp2);
+		}
+	    } else {
+		return new Identifier(ident);
+	    }
+	}
+    }
+
+    // ConstantExpression -> expression
+    private Expression parseConstantExpression(){
+	Expression constant = parseExpression();
+	return new ConstantExpression(constant);
     }
 
     // ExpressionList -> Expression ExpressionListRest

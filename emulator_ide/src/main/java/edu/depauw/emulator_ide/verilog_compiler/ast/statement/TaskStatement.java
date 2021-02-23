@@ -1,23 +1,25 @@
-package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
+package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 
-import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ExpressionList;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
+
 
 import java.util.List;
 import java.util.ArrayList;
 
-public class FunctionCall extends Expression{
+public class TaskStatement extends Statement{
 
     private final Identifier functionName;
     private final ExpressionList expList;
     
-    public FunctionCall(Identifier functionName){
+    public TaskStatement(Identifier functionName){
 	super(functionName.getPosition());
 	this.functionName = functionName;
-	this.expList = null;
+	this.expList = new ExpressionList(new ArrayList<>());
     }
 
-    public FunctionCall(Identifier functionName, ExpressionList expList){
+    public TaskStatement(Identifier functionName, ExpressionList expList){
 	super(functionName.getPosition());
 	this.functionName = functionName;
 	this.expList = expList;

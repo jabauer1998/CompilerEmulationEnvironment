@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.ast.general;
+package edu.depauw.emulator_ide.verilog_compiler.ast.general.list;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
