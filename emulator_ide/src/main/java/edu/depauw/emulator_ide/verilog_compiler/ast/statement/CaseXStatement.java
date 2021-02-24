@@ -5,7 +5,7 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
 
-public abstract class CaseXStatement extends Statement{
+public class CaseXStatement extends Statement{
 
     private final Expression exp;
     private final CaseItemList itemList;

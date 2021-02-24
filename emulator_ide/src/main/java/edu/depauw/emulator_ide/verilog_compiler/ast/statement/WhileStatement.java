@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
-public abstract class WhileStatement extends Statement{
+public class WhileStatement extends Statement{
     
     private final Statement stat; //Statement
     private final Expression exp; //Expression

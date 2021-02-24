@@ -84,7 +84,280 @@ public class Parser{
      * @author Jacob Bauer
      */
 
-    
+    public Statement parseStatement(){
+	if(willMatch(Token.Type.IF)){
+	    return parseIfStatement();
+	} else if(willMatch(Token.Type.CASE)){
+	    return parseCaseStatement();
+	} else if(willMatch(Token.Type.CASEZ)){
+	    return parseCaseZStatement();
+	} else if(willMatch(Token.Type.CASEX)){
+	    return parseCaseXStatement();
+	} else if(willMatch(Token.Type.FOREVER)){
+	    return parseForeverStatement();
+	} else if(willMatch(Token.Type.REPEAT)){
+	    return parseRepeatStatement();
+	} else if(willMatch(Token.Type.WHILE)){
+	    return parseWhileStatement();
+	} else if(willMatch(Token.Type.FOR)){
+	    return parseForStatement();
+	} else if(willMatch(Token.Type.WAIT)){
+	    return parseWaitStatement();
+	} else if(willMatch(Token.Type.BEGIN)){
+	    return parseSeqBlock();
+	} else if(willMatch(Token.Type.ASSIGN)){
+	    skip();
+	    Expression exp1 = parseLValue();
+	    match(Token.Type.EQ1);
+	    Expression exp2 = parseExpression();
+	    match(Token.Type.SEMI);
+	    return new ContinuousAssign(exp1, exp2);
+	} else if(willMatch(Token.Type.IDENT)){ //lvalue or task_enable
+	    Identifier ident = parseIdentifier();
+	    if(willMatch(Token.Type.LPAR)){
+		skip();
+		if(willMatch(Token.Type.RPAR)){
+		    skip();
+		    match(Token.Type.SEMI);
+		    return new TaskStatement(ident);
+		} else {
+		    ExpressionList expList = parseExpressionList();
+		    match(Token.Type.RPAR);
+		    match(Token.Type.SEMI);
+		    return new TaskStatement(ident, expList);
+		}
+	    } else if (willMatch(Token.Type.SEMI)){
+		skip();
+		return new TaskStatement(ident);
+	    } else if (willMatch(Token.Type.LBRACK)){ //It must be an assignment
+		skip();
+		Expression exp1 = parseExpression();
+		if(willMatch(Token.Type.RBRACK)){
+		    Expression vec = new Vector(ident, exp1);
+		     if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+			skip();
+			Expression exp = parseExpression();
+			match(Token.Type.SEMI);
+			return new BlockAssign(vec, exp);
+		    } else { //it is a non blocking assignment
+			match(Token.Type.LE);
+			Expression exp = parseExpression();
+			match(Token.Type.SEMI);
+			return new NonBlockAssign(vec, exp);
+		    }
+		} else {
+		    match(Token.Type.COLON);
+		    Expression exp2 = parseExpression();
+		    match(Token.Type.RBRACK);
+		    Expression vec = new Vector(ident, exp1, exp2);
+		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+			skip();
+			Expression exp = parseExpression();
+			match(Token.Type.SEMI);
+			return new BlockAssign(vec, exp);
+		    } else { //it is a non blocking assignment
+			match(Token.Type.LE);
+			Expression exp = parseExpression();
+			match(Token.Type.SEMI);
+			return new NonBlockAssign(vec, exp);
+		    }
+		}
+	    } else if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+		skip();
+		Expression exp = parseExpression();
+		match(Token.Type.SEMI);
+		return new BlockAssign(ident, exp);
+	    } else { //it is a non blocking assignment
+		match(Token.Type.LE);
+		Expression exp = parseExpression();
+		match(Token.Type.SEMI);
+		return new NonBlockAssign(ident, exp);
+	    }
+	} else if (willMatch(Token.Type.DOLLAR)){ //system tasks
+	    skip();
+	    Identifier ident = parseIdentifier();
+	    if(willMatch(Token.Type.SEMI)){
+		skip();
+		return new TaskStatement(ident);
+	    } else {
+		match(Token.Type.LPAR);
+		if(willMatch(Token.Type.RPAR)){
+		    skip();
+		    match(Token.Type.SEMI);
+		    return new TaskStatement(ident);
+		} else {
+		    ExpressionList expList = parseExpressionList();
+		    match(Token.Type.RPAR);
+		    match(Token.Type.SEMI);
+		    return new TaskStatement(ident, expList);
+		}
+	    }
+	} else {
+	    Expression concat = parseConcatenation();
+	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+		skip();
+		Expression exp = parseExpression();
+		match(Token.Type.SEMI);
+		return new BlockAssign(concat, exp);
+	    } else { //it is a non blocking assignment
+		match(Token.Type.LE);
+		Expression exp = parseExpression();
+		match(Token.Type.SEMI);
+		return new NonBlockAssign(concat, exp);
+	    }
+	}
+    }
+
+    private Statement parseStatementOrNull(){
+	if(willMatch(Token.Type.SEMI)){
+	    Token sem = skip();
+	    return new EmptyStatement(sem.getPosition());
+	} else {
+	    return parseStatement();
+	}
+    }
+
+    private StatementList parseStatementList(){
+	List<Statement> statList = new ArrayList<>();
+	
+	while(!willMatch(Token.Type.END)){
+	    Statement stat = parseStatement();
+	    statList.add(stat);
+	}
+	
+	return new StatementList(statList);
+    }
+
+    private CaseItemList parseCaseItemList(){
+	List<CaseItem> caseList = new ArrayList<>();
+	CaseItem item = parseCaseItem();
+	caseList.add(item);
+	while(!willMatch(Token.Type.ENDCASE)){
+	    item = parseCaseItem();
+	    caseList.add(item);
+	}
+	return new CaseItemList(caseList);
+    }
+
+    private CaseItem parseCaseItem(){
+	if(willMatch(Token.Type.DEFAULT)){
+	    if(willMatch(Token.Type.COLON)){
+		skip();
+	    }
+	    Statement stat = parseStatementOrNull();
+	    return new DefCaseItem(stat);
+	} else {
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.COLON);
+	    Statement stat = parseStatementOrNull();
+	    return new ExprCaseItem(expList, stat);
+	}
+    }
+
+    private Statement parseIfStatement(){
+	match(Token.Type.IF);
+	match(Token.Type.LPAR);
+	Expression expr = parseExpression();
+	match(Token.Type.RPAR);
+	Statement stat = parseStatementOrNull();
+        if(willMatch(Token.Type.ELSE)){
+	    skip();
+	    Statement stat2 = parseStatementOrNull();
+	    return new IfElseStatement(expr, stat, stat2);
+	} else {
+	    return new IfStatement(expr, stat);
+	}
+    }
+
+    private Statement parseForStatement(){
+	match(Token.Type.FOR);
+	match(Token.Type.LPAR);
+	Assignment init = parseAssignment();
+	match(Token.Type.SEMI);
+	Expression expr = parseExpression();
+	match(Token.Type.SEMI);
+	Assignment change = parseAssignment();
+	match(Token.Type.RPAR);
+	Statement stat = parseStatement();
+	return new ForStatement(init, expr, change, stat);
+    }
+
+    private Assignment parseAssignment(){
+	Expression exp = parseLValue();
+	match(Token.Type.EQ1);
+	Expression exp1 = parseExpression();
+	return new Assignment(exp, exp1);
+    }
+
+    private Statement parseCaseStatement(){
+	match(Token.Type.CASE);
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	CaseItemList caseList = parseCaseItemList();
+	willMatch(Token.Type.ENDCASE); 
+	return new CaseStatement(exp, caseList);
+    }
+
+    private Statement parseCaseZStatement(){
+	match(Token.Type.CASEZ);
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	CaseItemList caseList = parseCaseItemList();
+	match(Token.Type.ENDCASE);
+	return new CaseZStatement(exp, caseList);
+    }
+
+    private Statement parseCaseXStatement(){
+	match(Token.Type.CASEZ);
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	CaseItemList caseList = parseCaseItemList();
+	match(Token.Type.ENDCASE);
+	return new CaseXStatement(exp, caseList);
+    }
+
+    private Statement parseForeverStatement(){
+	match(Token.Type.FOREVER);
+	Statement stat = parseStatement();
+	return new ForeverStatement(stat);
+    }
+
+    private Statement parseRepeatStatement(){
+	match(Token.Type.REPEAT);
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	Statement stat = parseStatement();
+	return new RepeatStatement(exp, stat);
+    }
+
+    private Statement parseWhileStatement(){
+	match(Token.Type.WHILE);
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	Statement stat = parseStatement();
+	return new WhileStatement(exp, stat);
+    }
+
+    private Statement parseWaitStatement(){
+	match(Token.Type.WAIT);
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	Statement stat = parseStatementOrNull();
+	return new WaitStatement(exp, stat);
+    }
+
+    private Statement parseSeqBlock(){
+	match(Token.Type.BEGIN);
+	StatementList statList = parseStatementList();
+	match(Token.Type.END);
+	return new SeqBlockStatement(statList);
+    }
 
     /**
      * Below is the code for parsing expressions for the verilog lanuage.
@@ -295,7 +568,35 @@ public class Parser{
 	if(willMatch(Token.Type.NUM)){
 	    return parseNumValue();
 	} else if (willMatch(Token.Type.IDENT)){
-	    return parseIdentifier();
+	    Token identToken = skip();
+	    if(willMatch(Token.Type.LBRACK)){
+		skip();
+		Identifier ident = parseIdentifier(identToken);
+		Expression index1 = parseExpression();
+		if(willMatch(Token.Type.COLON)){
+		    skip();
+		    Expression index2 = parseExpression();
+		    match(Token.Type.RBRACK);
+		    return new Vector(ident, index1, index2);
+		} else {
+		    match(Token.Type.RBRACK);
+		    return new Vector(ident, index1);
+		}
+	    } else if (willMatch(Token.Type.LPAR)) {
+		skip();
+		Identifier ident = parseIdentifier(identToken);
+		if(!willMatch(Token.Type.RPAR)){
+		    ExpressionList expList = parseExpressionList();
+		    match(Token.Type.RPAR);
+		    return new FunctionCall(ident, expList);
+		} else {
+		    match(Token.Type.RPAR);
+		    return new FunctionCall(ident);
+		}
+	    } else {
+		Identifier ident = new Identifier(identToken);
+		return ident;
+	    }
 	} else if (willMatch(Token.Type.LCURL)){
 	    return parseConcatenation();
 	} else if (willMatch(Token.Type.LPAR)) {
@@ -324,7 +625,7 @@ public class Parser{
     }
 
     //Concatenation -> { ExpressionList }
-    private Expression parseConcatenation(){
+    private Expression  parseConcatenation(){
 	match(Token.Type.LCURL);
 	ExpressionList expList = parseExpressionList();
 	match(Token.Type.RCURL);
@@ -332,40 +633,17 @@ public class Parser{
     }
 
     //Identifier -> IDENT | IDENT [ Expression : Expression ] | IDENT [ Expression ] | IDENT ( ExpressionList ) | IDENT ()
-    private Expression parseIdentifier(){
-	Token identToken = match(Token.Type.IDENT);
-	if(willMatch(Token.Type.LBRACK)){
-	    skip();
-	    Identifier ident = new Identifier(identToken);
-	    Expression index1 = parseExpression();
-	    if(willMatch(Token.Type.COLON)){
-		skip();
-		Expression index2 = parseExpression();
-		match(Token.Type.RBRACK);
-		return new Vector(ident, index1, index2);
-	    } else {
-		match(Token.Type.RBRACK);
-		return new Vector(ident, index1);
-	    }
-	} else if (willMatch(Token.Type.LPAR)) {
-	    skip();
-	    Identifier ident = new Identifier(identToken);
-	    if(!willMatch(Token.Type.RPAR)){
-	        ExpressionList expList = parseExpressionList();
-	        match(Token.Type.RPAR);
-		return new FunctionCall(ident, expList);
-	    } else {
-		match(Token.Type.RPAR);
-		return new FunctionCall(ident, new ExpressionList(new ArrayList<>()));
-	    }
-	} else {
-	    Identifier ident = new Identifier(identToken);
-	    return ident;
-	}
+    private Identifier parseIdentifier(Token identToken){
+	return new Identifier(identToken);
+    }
+    
+    private Identifier parseIdentifier(){
+	Token ident = match(Token.Type.IDENT);
+	return new Identifier(ident);
     }
 
     // NumValue -> NUM
-    private Expression parseNumValue(){
+    private NumValue parseNumValue(){
 	Token numToken = match(Token.Type.NUM);
 	return new NumValue(numToken);
     }

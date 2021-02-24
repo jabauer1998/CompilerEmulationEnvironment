@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
-public abstract class Assignment extends Statement{
+public class Assignment extends Statement{
 
     private final Expression lValue;
     private final Expression exp;
