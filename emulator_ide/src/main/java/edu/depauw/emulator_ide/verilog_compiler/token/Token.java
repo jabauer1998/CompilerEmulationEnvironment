@@ -47,6 +47,7 @@ public class Token{
 	    BNOR,   // ~|
 	    LSHIFT, // <<
 	    RSHIFT, // >>
+	    DOT, // .
 	    
 	    //keywords
 	    INIT,
@@ -79,7 +80,15 @@ public class Token{
 	    WAIT,
 	    CASEZ,
 	    CASEX,
-	    DEFAULT
+	    DEFAULT,
+	    WIRE,
+	    ORGATE,
+	    NORGATE,
+	    NANDGATE,
+	    ANDGATE,
+	    XORGATE,
+	    XNORGATE,
+	    NOTGATE
 	}
     
     private static HashMap<String, Type> OPS;
@@ -127,6 +136,7 @@ public class Token{
 	OPS.put("~&", Type.BNAND);
 	OPS.put("<<", Type.LSHIFT);
 	OPS.put(">>", Type.RSHIFT);
+	OPS.put(".", Type.DOT);
 
 	KEY = new HashMap<>(); //hashmap to store all of the key words
 	KEY.put("initial", Type.INIT);
@@ -158,6 +168,12 @@ public class Token{
 	KEY.put("casez", Type.CASEZ);
 	KEY.put("casex", Type.CASEX);
 	KEY.put("default", Type.DEFAULT);
+	KEY.put("and", Type.ANDGATE);
+	KEY.put("nand", Type.NANDGATE);
+	KEY.put("or", Type.ORGATE);
+	KEY.put("nor", Type.NORGATE);
+	KEY.put("xor", Type.XORGATE);
+	KEY.put("xnor", Type.XNORGATE);
     }
 
     private final Type type;

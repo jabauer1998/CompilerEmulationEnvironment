@@ -11,6 +11,8 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.gate_declaration.*;
 
 import java.util.ArrayList;
 
@@ -78,6 +80,95 @@ public class Parser{
 	    return null;
 	}
     }
+
+    /**
+     * Below is all of the code for parsing  Module Items. 
+     * @author Jacob Bauer
+     */
+
+    
+    private ModItem parseGateDeclaration(){
+	if(willMatch(Token.Type.ORGATE)){
+	    skip();
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new OrGateDeclaration(expList);
+	} else if(willMatch(Token.Type.ANDGATE)){
+	    skip();
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new AndGateDeclaration(expList);
+	} else if(willMatch(Token.Type.NANDGATE)){
+	    skip();
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new NandGateDeclaration(expList);
+	} else if(willMatch(Token.Type.NORGATE)){
+	    skip();
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new NorGateDeclaration(expList);
+	} else if(willMatch(Token.Type.XORGATE)){
+	    skip();
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new XorGateDeclaration(expList);
+	} else if(willMatch(Token.Type.XNORGATE)){
+	    skip();
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new XnorGateDeclaration(expList);
+	} else {
+	    match(Token.Type.NOTGATE);
+	    match(Token.Type.LPAR);
+	    ExpressionList expList = parseExpressionList();
+	    match(Token.Type.RPAR);
+	    return new NotGateDeclaration(expList);
+	}
+    }
+
+    //ModInstantiation -> IDENT ModuleInstanceList
+    private ModItem parseModInstantiation(){
+	Identifier ident = parseIdentifier();
+	ModInstanceList modList = parseModInstanceList();
+	match(Token.Type.SEMI);
+	return new ModInstantiation(ident, modList);
+    }
+
+    //ModInstanceList -> ModInstance ModInstanceListRest
+    //ModInstance -> , ModInstance ModInstanceListRest | null 
+    private ModInstanceList parseModInstanceList(){
+	List<ModInstance> modList = new ArrayList<>();
+	ModInstance inst = parseModInstance();
+	modList.add(inst);
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    inst = parseModInstance();
+	    modList.add(inst);
+	}
+	return new ModInstanceList(modList);
+    }
+
+    //ModInstance -> IDENT ( ExpressionList )
+    private ModInstance parseModInstance(){
+	Identifier ident = parseIdentifier();
+	match(Token.Type.LPAR);
+	ExpressionList expList;
+	if(willMatch(Token.Type.DOT)){
+	    expList = parsePortConnectionList();
+	} else {
+	    expList = parseExpressionOrNullList();
+	}
+	match(Token.Type.RPAR);
+	return new ModInstance(ident, expList);
+    }
+    
 
     /**
      * Below is the code for parsing statements aswell as CaseItems
@@ -401,6 +492,17 @@ public class Parser{
 	}
     }
 
+    //ExpressionOrNull -> Expression | NULL (ex: a, b, ,d)
+    //This is mainly used for Module Items
+    private Expression parseExpressionOrNull(){
+	if(willMatch(Token.Type.COMMA)){
+	    Token comma = peek();
+	    return new EmptyExpression(comma.getPosition());
+	} else {
+	    return parseExpression();
+	}
+    }
+
     // lvalue -> IDENT | IDENT [ Expression ] | IDENT [ Expression : Expression ] | Concatenation
     private Expression parseLValue(){
 	if(willMatch(Token.Type.LCURL)){
@@ -445,6 +547,48 @@ public class Parser{
 	}
 	
 	return new ExpressionList(expList);
+    }
+
+    //ExpressionOrNullList -> ExpressionOrNull ExpressionOrNullListRest
+    //ExpressionOrNullListRest -> , ExpressionOrNull ExpressionOrNullListRest
+    private ExpressionList parseExpressionOrNullList(){
+	List<Expression> expList = new ArrayList<>();
+
+	Expression exp = parseExpressionOrNull();
+	expList.add(exp);
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    exp = parseExpressionOrNull();
+	    expList.add(exp);
+	}
+	
+	return new ExpressionList(expList);
+    }
+    //PortConnectionList -> PortConnection PortConnectionListRest
+    //PortConnectionListRest -> , PortConenction
+    private ExpressionList parsePortConnectionList(){
+	List<Expression> expList = new ArrayList<>();
+
+	Expression exp = parsePortConnection();
+	expList.add(exp);
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    exp = parsePortConnection();
+	    expList.add(exp);
+	}
+	
+	return new ExpressionList(expList);
+    }
+    //PortConnection -> . IDENT ( Expression )
+    private Expression parsePortConnection(){
+	match(Token.Type.DOT);
+	Identifier ident = parseIdentifier();
+	match(Token.Type.LPAR);
+	Expression exp = parseExpression();
+	match(Token.Type.RPAR);
+	return new PortConnection(ident, exp);
     }
 
     // LOR_Expression -> LAND_Expression BinOp LAND_Expression
