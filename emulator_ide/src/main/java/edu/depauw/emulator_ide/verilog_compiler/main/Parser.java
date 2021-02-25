@@ -80,10 +80,11 @@ public class Parser{
     }
 
     /**
-     * Below I cam creating the statement classes
+     * Below is the code for parsing statements aswell as CaseItems
      * @author Jacob Bauer
      */
 
+    // Statement -> IfStatement | CaseXStatement | CaseStatement | CaseZStatement | ForeverStatement | RepeatStatement | WhileStatement | ForStatement | WaitStatement | SeqBlock | NonBlockAssign | ContinuousAssign | BlockAssign | NONBlockAssign | TaskCall
     public Statement parseStatement(){
 	if(willMatch(Token.Type.IF)){
 	    return parseIfStatement();
@@ -133,7 +134,7 @@ public class Parser{
 		skip();
 		Expression exp1 = parseExpression();
 		if(willMatch(Token.Type.RBRACK)){
-		    Expression vec = new Vector(ident, exp1);
+		     Expression vec = new Vector(ident, exp1);
 		     if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
@@ -208,6 +209,7 @@ public class Parser{
 	}
     }
 
+    //StatementOrNull -> {Statement | NULL} ;
     private Statement parseStatementOrNull(){
 	if(willMatch(Token.Type.SEMI)){
 	    Token sem = skip();
@@ -216,7 +218,7 @@ public class Parser{
 	    return parseStatement();
 	}
     }
-
+    //StatementList -> Statement StatementList | NULL
     private StatementList parseStatementList(){
 	List<Statement> statList = new ArrayList<>();
 	
@@ -228,6 +230,7 @@ public class Parser{
 	return new StatementList(statList);
     }
 
+    //CaseItemList -> CaseItemList CaseItem 
     private CaseItemList parseCaseItemList(){
 	List<CaseItem> caseList = new ArrayList<>();
 	CaseItem item = parseCaseItem();
@@ -239,6 +242,7 @@ public class Parser{
 	return new CaseItemList(caseList);
     }
 
+    //CaseItem -> DEFAULT : Statement | DEFAULT Statement | ExpressionList : Statement
     private CaseItem parseCaseItem(){
 	if(willMatch(Token.Type.DEFAULT)){
 	    if(willMatch(Token.Type.COLON)){
@@ -254,6 +258,8 @@ public class Parser{
 	}
     }
 
+    //IfStatement -> IF ( expression ) StatementOrNull
+    //IfElseStatement -> IF ( expression ) StatementOrNull ELSE StatementOrNull 
     private Statement parseIfStatement(){
 	match(Token.Type.IF);
 	match(Token.Type.LPAR);
@@ -269,6 +275,7 @@ public class Parser{
 	}
     }
 
+    //ForStatement -> FOR ( Assignment ; Expression ; Assignment ) Statement
     private Statement parseForStatement(){
 	match(Token.Type.FOR);
 	match(Token.Type.LPAR);
@@ -282,6 +289,7 @@ public class Parser{
 	return new ForStatement(init, expr, change, stat);
     }
 
+    //Assignment -> LValue = Expression
     private Assignment parseAssignment(){
 	Expression exp = parseLValue();
 	match(Token.Type.EQ1);
@@ -289,6 +297,7 @@ public class Parser{
 	return new Assignment(exp, exp1);
     }
 
+    //CaseStatement -> CASE ( Expression ) CaseItemList ENDCASE
     private Statement parseCaseStatement(){
 	match(Token.Type.CASE);
 	match(Token.Type.LPAR);
@@ -299,6 +308,7 @@ public class Parser{
 	return new CaseStatement(exp, caseList);
     }
 
+    //CaseZStatement -> CASEZ ( Expression ) CaseItemList ENDCASE
     private Statement parseCaseZStatement(){
 	match(Token.Type.CASEZ);
 	match(Token.Type.LPAR);
@@ -309,6 +319,7 @@ public class Parser{
 	return new CaseZStatement(exp, caseList);
     }
 
+    //CaseXStatement -> CASEX ( Expression ) CaseItemList ENDCASE
     private Statement parseCaseXStatement(){
 	match(Token.Type.CASEZ);
 	match(Token.Type.LPAR);
@@ -319,12 +330,14 @@ public class Parser{
 	return new CaseXStatement(exp, caseList);
     }
 
+    //ForeverStatement -> FOREVER Statement
     private Statement parseForeverStatement(){
 	match(Token.Type.FOREVER);
 	Statement stat = parseStatement();
 	return new ForeverStatement(stat);
     }
 
+    //RepeatStatement -> REPEAT Statement
     private Statement parseRepeatStatement(){
 	match(Token.Type.REPEAT);
 	match(Token.Type.LPAR);
@@ -334,6 +347,7 @@ public class Parser{
 	return new RepeatStatement(exp, stat);
     }
 
+    //WhileStatement -> WHILE Statement
     private Statement parseWhileStatement(){
 	match(Token.Type.WHILE);
 	match(Token.Type.LPAR);
@@ -343,6 +357,7 @@ public class Parser{
 	return new WhileStatement(exp, stat);
     }
 
+    //WaitStatement -> WAIT Statement
     private Statement parseWaitStatement(){
 	match(Token.Type.WAIT);
 	match(Token.Type.LPAR);
@@ -352,6 +367,7 @@ public class Parser{
 	return new WaitStatement(exp, stat);
     }
 
+    //SeqBlock -> BEGIN StatementList END
     private Statement parseSeqBlock(){
 	match(Token.Type.BEGIN);
 	StatementList statList = parseStatementList();
