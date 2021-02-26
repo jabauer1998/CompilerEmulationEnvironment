@@ -21,11 +21,12 @@
 
 # Declarations
 
-<p>input_declaration -> range list_of_variables ;</p>
-<p>output_declaration -> range list_of_variables ;</p>
+<p>input_declaration -> INPUTrange list_of_variables ;</p>
+<p>output_declaration -> OUTPUT range list_of_variables ;</p>
 <p>net_declaration -> WIRE range delay list_of_variables ;</p>
 <p>reg_declaration -> REG range list_of_register_variables ;</p>
 <p>real_declaration -> REAL list_of_variables ;</p>
+<p>integer_declaration -> INTEGER list_of_variables ;</p>
 <p>continious_assign -> ASSIGN delay list_of_assignments ;</p>
 
 <p>list_of_variables -> name_of_variable name_of_variable_expaned | WIRE range delay list_of_assignments ;</p>
