@@ -5,7 +5,7 @@ import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
-import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.Delay;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
@@ -83,10 +83,86 @@ public class Parser{
     }
 
     /**
+     * Below is the code for dealing with parsing Module Declarations
+     * @author Jacob Bauer
+     */
+
+    //ModuleDeclaration -> MODULE IDENT ( IdentifierList ) ; ModItemList ENDMODULE
+    private ModuleDeclaration parseModuleDeclaration(){
+	match(Token.Type.MODULE);
+	Identifier ident = parseIdentifier();
+	if(willMatch(Token.Type.LPAR)){
+	    skip();
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
+	    if(willMatch(Token.Type.ENDMODULE)){
+		skip();
+		return new ModuleDeclaration(ident, identList);
+	    } else {
+		ModItemList modList = parseModItemList();
+		match(Token.Type.ENDMODULE);
+		return new ModuleDeclaration(ident, identList, modList);
+	    }
+	} else {
+	    match(Token.Type.SEMI);
+	    if(willMatch(Token.Type.ENDMODULE)){
+		skip();
+		return new ModuleDeclaration(ident);
+	    } else {
+		ModItemList modList = parseModItemList();
+		match(Token.Type.ENDMODULE);
+		return new ModuleDeclaration(ident, modList);
+	    }
+	}
+    }
+
+    /**
      * Below is all of the code for parsing  Module Items. 
      * @author Jacob Bauer
      */
 
+    //ModItem -> Function | Task | IntegerDeclaration | RealDeclaration | OutputDeclaration | InitialDeclaration | AllwaysDeclaration | RegDeclaration | ContinuousAssignment | ModuleInstantiation | GateDeclaration
+    private ModItem parseModItem(){
+	if(willMatch(Token.Type.FUNCTION)){
+	    return parseFunction();
+	} else if (willMatch(Token.Type.TASK)){
+	    return parseTask();
+	} else if(willMatch(Token.Type.INTEGER)){
+	    return parseIntegerDeclaration();
+	} else if(willMatch(Token.Type.REAL)){
+	    return parseRealDeclaration();
+	} else if(willMatch(Token.Type.OUTPUT)){
+	    return parseOutputDeclaration();
+	} else if(willMatch(Token.Type.INITIAL)){
+	    return parseInitialStatement();
+	} else if (willMatch(Token.Type.ALLWAYS)){
+	    return parseAllwaysStatement();
+	} else if(willMatch(Token.Type.REG)){
+	    return parseRegDeclaration();
+	} else if(willMatch(Token.Type.WIRE)){
+	    return parseWireDeclaration();
+	} else if(willMatch(Token.Type.ASSIGN)){
+	    return parseContinuousAssignment();
+	} else if (willMatch(Token.Type.IDENT)) {
+	    return parseModInstantiation();
+	} else {
+	    return parseGateDeclaration();
+	}
+    }
+
+    //ModItemList -> ModItem ModItemListRest | NULL
+    //ModItemListRest -> ModItem ModItemListRest | NULL 
+    private ModItemList parseModItemList(){
+	List<ModItem> modList = new ArrayList<>();
+	
+	while(!willMatch(Token.Type.ENDMODULE)){
+	    modList.add(parseModItem());
+	}
+
+	return new ModItemList(modList);
+    }
+    
     //Function -> TASK IDENT ; DeclarationList Statement ENDTASK
     private ModItem parseFunction(){
 	match(Token.Type.FUNCTION);
