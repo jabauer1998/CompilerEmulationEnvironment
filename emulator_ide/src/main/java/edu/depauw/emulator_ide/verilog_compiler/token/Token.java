@@ -50,7 +50,7 @@ public class Token{
 	    DOT, // .
 	    
 	    //keywords
-	    INIT,
+	    INITIAL,
 	    ALLWAYS,
 	    BEGIN,
 	    END,
@@ -72,7 +72,7 @@ public class Token{
 	    FOREVER,
 	    REPEAT,
 	    FOR,
-	    INT,
+	    INTEGER,
 	    REG,
 	    REAL,
 	    OUTPUT,
@@ -139,7 +139,7 @@ public class Token{
 	OPS.put(".", Type.DOT);
 
 	KEY = new HashMap<>(); //hashmap to store all of the key words
-	KEY.put("initial", Type.INIT);
+	KEY.put("initial", Type.INITIAL);
 	KEY.put("allways", Type.ALLWAYS);
 	KEY.put("begin", Type.BEGIN);
 	KEY.put("end", Type.END);
@@ -159,7 +159,7 @@ public class Token{
 	KEY.put("forever", Type.FOREVER);
 	KEY.put("repeat", Type.REPEAT);
 	KEY.put("for", Type.FOR);
-	KEY.put("integer", Type.INT);
+	KEY.put("integer", Type.INTEGER);
 	KEY.put("real", Type.REAL);
 	KEY.put("reg", Type.REG);
 	KEY.put("output", Type.OUTPUT);

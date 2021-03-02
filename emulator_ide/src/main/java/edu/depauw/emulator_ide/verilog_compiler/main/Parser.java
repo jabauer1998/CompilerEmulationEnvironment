@@ -13,6 +13,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.expression.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.gate_declaration.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
 
 import java.util.ArrayList;
 
@@ -86,49 +87,223 @@ public class Parser{
      * @author Jacob Bauer
      */
 
+    //Function -> TASK IDENT ; DeclarationList Statement ENDTASK
+    private ModItem parseFunction(){
+	match(Token.Type.FUNCTION);
+	Identifier ident = parseIdentifier();
+	match(Token.Type.SEMI);
+	DeclarationList declList = parseDeclarationList(true);
+	Statement stat = parseStatement();
+	match(Token.Type.ENDFUNCTION);
+	return new Function(ident, declList, stat);
+    }
+
+    //Task -> TASK IDENT ; DeclarationList StatementOrNull ENDTASK
+    private ModItem parseTask(){
+	match(Token.Type.TASK);
+	Identifier ident = parseIdentifier();
+	match(Token.Type.SEMI);
+	DeclarationList declList = parseDeclarationList(false);
+	Statement stat = parseStatementOrNull();
+	match(Token.Type.ENDTASK);
+	return new Task(ident, declList, stat);
+    }
+
+    //Declaration -> IntegerDeclaration | WireDeclaration | RealDeclaration | RegDeclaration | OutputDeclaration | InputDeclaration 
+    private Declaration parseDeclaration(){
+	if(willMatch(Token.Type.INTEGER)){
+	    return parseIntegerDeclaration();
+	} else if (willMatch(Token.Type.REAL)){
+	    return parseRealDeclaration();
+	} else if(willMatch(Token.Type.WIRE)){
+	    return parseWireDeclaration();
+	} else if(willMatch(Token.Type.REG)){
+	    return parseRegDeclaration();
+	} else if(willMatch(Token.Type.INPUT)){
+	    return parseInputDeclaration();
+	} else {
+	    return parseOutputDeclaration();
+	}
+    }
+
+    //DeclarationList -> NULL | Declaration DeclarationListRest
+    //DeclarationListRest -> Declaration DeclarationListRest | NULL
+    private DeclarationList parseDeclarationList(boolean atLeastOne){
+	List<Declaration> declList = new ArrayList<>();
+
+	if(atLeastOne){
+	    declList.add(parseDeclaration());
+	}
+	
+	while(willMatch(Token.Type.INTEGER) || willMatch(Token.Type.REAL) || willMatch(Token.Type.WIRE) || willMatch(Token.Type.REG) || willMatch(Token.Type.INPUT) || willMatch(Token.Type.OUTPUT)){
+	    declList.add(parseDeclaration());
+	}
+	return new DeclarationList(declList);
+    }
+
+    //AllwaysStatement -> Allways Statement
+    private ModItem parseAllwaysStatement(){
+	match(Token.Type.ALLWAYS);
+	Statement stat = parseStatement();
+	return new AllwaysStatement(stat);
+    }
+
+    //InitialStatement -> Initial Statement
+    private ModItem parseInitialStatement(){
+	match(Token.Type.INITIAL);
+	Statement stat = parseStatement();
+	return new InitialStatement(stat);
+    }
+
+    //ContinuousAssignment -> ASSIGN AssignmentList ;
+    private ModItem parseContinuousAssignment(){
+	match(Token.Type.ASSIGN);
+	AssignmentList assignList = parseAssignmentList();
+	match(Token.Type.SEMI);
+	return new ContinuousAssignment(assignList);
+    }
+
+    //RegDeclaration -> REG RegValueList ; | REG [ ConstExpression : ConstExpression ] RegValueList ;
+    private Declaration parseRegDeclaration(){
+	match(Token.Type.REG);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    RegValueList identList = parseRegValueList();
+	    match(Token.Type.SEMI);
+	    return new RegVectorDeclaration(exp1, exp2, identList);
+	} else {
+	    RegValueList identList = parseRegValueList();
+	    match(Token.Type.SEMI);
+	    return new RegScalarDeclaration(identList);
+	}
+    }
+
+    //WireDeclaration -> WIRE IdentifierList ; | WIRE [ ConstExpression : ConstExpression ] IdentifierList ;
+    private Declaration parseWireDeclaration(){
+	match(Token.Type.WIRE);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new WireVectorDeclaration(exp1, exp2, identList);
+	} else {
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new WireScalarDeclaration(identList);
+	}
+    }
+
+    //InputDeclaration -> INPUT IdentifierList ; | INPUT [ ConstExpression : ConstExpression ] IdentifierList ;
+     private Declaration parseInputDeclaration(){
+	match(Token.Type.INPUT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new InputVectorDeclaration(exp1, exp2, identList);
+	} else {
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new InputScalarDeclaration(identList);
+	}
+    }
+    //OutputDeclaration -> OUTPUT IdentifierList ; | OUTPUT [ ConstExpression : ConstExpression ] IdentifierList ;
+     private Declaration parseOutputDeclaration(){
+	match(Token.Type.OUTPUT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new OutputVectorDeclaration(exp1, exp2, identList);
+	} else {
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new OutputScalarDeclaration(identList);
+	}
+    }
+
+    //RealDeclaration -> REAL IdentifierList ;
+    private Declaration parseRealDeclaration(){
+	match(Token.Type.REAL);
+	IdentifierList identList = parseIdentifierList();
+	match(Token.Type.SEMI);
+	return new RealDeclaration(identList);
+    }
+
+    //IntegerDeclaration -> INTEGER IdentifierList ;
+    private Declaration parseIntegerDeclaration(){
+	match(Token.Type.INTEGER);
+	RegValueList identList = parseRegValueList();
+	match(Token.Type.SEMI);
+	return new IntegerDeclaration(identList);
+    }
     
+    // GateDeclaration -> GATYPE ( ExpressionList );
     private ModItem parseGateDeclaration(){
 	if(willMatch(Token.Type.ORGATE)){
 	    skip();
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new OrGateDeclaration(expList);
 	} else if(willMatch(Token.Type.ANDGATE)){
 	    skip();
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new AndGateDeclaration(expList);
 	} else if(willMatch(Token.Type.NANDGATE)){
 	    skip();
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new NandGateDeclaration(expList);
 	} else if(willMatch(Token.Type.NORGATE)){
 	    skip();
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new NorGateDeclaration(expList);
 	} else if(willMatch(Token.Type.XORGATE)){
 	    skip();
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new XorGateDeclaration(expList);
 	} else if(willMatch(Token.Type.XNORGATE)){
 	    skip();
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new XnorGateDeclaration(expList);
 	} else {
 	    match(Token.Type.NOTGATE);
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
+	    match(Token.Type.SEMI);
 	    return new NotGateDeclaration(expList);
 	}
     }
@@ -199,12 +374,40 @@ public class Parser{
 	    return parseSeqBlock();
 	} else if(willMatch(Token.Type.ASSIGN)){
 	    skip();
-	    Expression exp1 = parseLValue();
-	    match(Token.Type.EQ1);
-	    Expression exp2 = parseExpression();
-	    match(Token.Type.SEMI);
-	    return new ContinuousAssign(exp1, exp2);
-	} else if(willMatch(Token.Type.IDENT)){ //lvalue or task_enable
+	    return parseAssignment();
+	} else if (willMatch(Token.Type.DOLLAR)){ //system tasks
+	    skip();
+	    Identifier ident = parseIdentifier();
+	    if(willMatch(Token.Type.SEMI)){
+		skip();
+		return new TaskStatement(ident);
+	    } else {
+		match(Token.Type.LPAR);
+		if(willMatch(Token.Type.RPAR)){
+		    skip();
+		    match(Token.Type.SEMI);
+		    return new TaskStatement(ident);
+		} else {
+		    ExpressionList expList = parseExpressionList();
+		    match(Token.Type.RPAR);
+		    match(Token.Type.SEMI);
+		    return new TaskStatement(ident, expList);
+		}
+	    }
+	} else if (willMatch(Token.Type.LCURL)){
+	    Expression concat = parseConcatenation();
+	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+		skip();
+		Expression exp = parseExpression();
+		match(Token.Type.SEMI);
+		return new BlockAssign(concat, exp);
+	    } else { //it is a non blocking assignment
+		match(Token.Type.LE);
+		Expression exp = parseExpression();
+		match(Token.Type.SEMI);
+		return new NonBlockAssign(concat, exp);
+	    }
+	} else { //lvalue or task_enable
 	    Identifier ident = parseIdentifier();
 	    if(willMatch(Token.Type.LPAR)){
 		skip();
@@ -265,39 +468,7 @@ public class Parser{
 		match(Token.Type.SEMI);
 		return new NonBlockAssign(ident, exp);
 	    }
-	} else if (willMatch(Token.Type.DOLLAR)){ //system tasks
-	    skip();
-	    Identifier ident = parseIdentifier();
-	    if(willMatch(Token.Type.SEMI)){
-		skip();
-		return new TaskStatement(ident);
-	    } else {
-		match(Token.Type.LPAR);
-		if(willMatch(Token.Type.RPAR)){
-		    skip();
-		    match(Token.Type.SEMI);
-		    return new TaskStatement(ident);
-		} else {
-		    ExpressionList expList = parseExpressionList();
-		    match(Token.Type.RPAR);
-		    match(Token.Type.SEMI);
-		    return new TaskStatement(ident, expList);
-		}
-	    }
-	} else {
-	    Expression concat = parseConcatenation();
-	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
-		skip();
-		Expression exp = parseExpression();
-		match(Token.Type.SEMI);
-		return new BlockAssign(concat, exp);
-	    } else { //it is a non blocking assignment
-		match(Token.Type.LE);
-		Expression exp = parseExpression();
-		match(Token.Type.SEMI);
-		return new NonBlockAssign(concat, exp);
-	    }
-	}
+	} 
     }
 
     //StatementOrNull -> {Statement | NULL} ;
@@ -386,6 +557,19 @@ public class Parser{
 	match(Token.Type.EQ1);
 	Expression exp1 = parseExpression();
 	return new Assignment(exp, exp1);
+    }
+
+    //AssignmentList -> Assignment AssignmentListRest
+    //AssignmentListRest -> , Assignment AssignmentListRest | NULL 
+    private AssignmentList parseAssignmentList(){
+	List<Assignment> assignList = new ArrayList();
+	assignList.add(parseAssignment());
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    assignList.add(parseAssignment());
+	}
+
+	return new AssignmentList(assignList);
     }
 
     //CaseStatement -> CASE ( Expression ) CaseItemList ENDCASE
@@ -527,8 +711,44 @@ public class Parser{
 	}
     }
 
+    //RegValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
+    private Expression parseRegValue(){
+	Token ident = match(Token.Type.IDENT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    Expression exp = parseExpression();
+	    if(willMatch(Token.Type.RBRACK)){
+		skip();
+		return new Vector(new Identifier(ident), exp);
+	    } else {
+		match(Token.Type.COLON);
+		Expression exp2 = parseExpression();
+		match(Token.Type.RBRACK);
+		return new Vector(new Identifier(ident), exp, exp2);
+	    }
+	} else {
+	    return new Identifier(ident);
+	}
+    }
+    
+    //RegValueList -> RegValue RegValueRest
+    //RegValueRest -> , RegValue RegValueRest | NULL
+    private RegValueList parseRegValueList(){
+	List<Expression> expList = new ArrayList<>();
+	
+	expList.add(parseRegValue());
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    Expression exp = parseRegValue();
+	    expList.add(exp);
+	}
+	
+	return new RegValueList(expList);
+    }
+
     // ConstantExpression -> expression
-    private Expression parseConstantExpression(){
+    private ConstantExpression parseConstantExpression(){
 	Expression constant = parseExpression();
 	return new ConstantExpression(constant);
     }
@@ -792,14 +1012,29 @@ public class Parser{
 	return new Concatenation(expList);
     }
 
-    //Identifier -> IDENT | IDENT [ Expression : Expression ] | IDENT [ Expression ] | IDENT ( ExpressionList ) | IDENT ()
+    //Identifier -> IDENT
     private Identifier parseIdentifier(Token identToken){
 	return new Identifier(identToken);
     }
-    
+
+    //Identifier -> IDENT
     private Identifier parseIdentifier(){
 	Token ident = match(Token.Type.IDENT);
 	return new Identifier(ident);
+    }
+
+    //IdentifierList -> Identifier IdentifierListRest
+    //IdentifierListRest -> , Identifier IdentifierListRest | NULL
+    private IdentifierList parseIdentifierList(){
+	List<Identifier> identList = new ArrayList<>();
+	
+	identList.add(parseIdentifier());
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    identList.add(parseIdentifier());
+	}
+
+	return new IdentifierList(identList);
     }
 
     // NumValue -> NUM
