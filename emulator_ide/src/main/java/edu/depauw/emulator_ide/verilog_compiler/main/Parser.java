@@ -125,9 +125,9 @@ public class Parser{
     //ModItem -> Function | Task | IntegerDeclaration | RealDeclaration | OutputDeclaration | InitialDeclaration | AllwaysDeclaration | RegDeclaration | ContinuousAssignment | ModuleInstantiation | GateDeclaration
     private ModItem parseModItem(){
 	if(willMatch(Token.Type.FUNCTION)){
-	    return parseFunction();
+	    return parseFunctionDeclaration();
 	} else if (willMatch(Token.Type.TASK)){
-	    return parseTask();
+	    return parseTaskDeclaration();
 	} else if(willMatch(Token.Type.INTEGER)){
 	    return parseIntegerDeclaration();
 	} else if(willMatch(Token.Type.REAL)){
@@ -164,25 +164,25 @@ public class Parser{
     }
     
     //Function -> TASK IDENT ; DeclarationList Statement ENDTASK
-    private ModItem parseFunction(){
+    private ModItem parseFunctionDeclaration(){
 	match(Token.Type.FUNCTION);
 	Identifier ident = parseIdentifier();
 	match(Token.Type.SEMI);
 	DeclarationList declList = parseDeclarationList(true);
 	Statement stat = parseStatement();
 	match(Token.Type.ENDFUNCTION);
-	return new Function(ident, declList, stat);
+	return new FunctionDeclaration(ident, declList, stat);
     }
 
     //Task -> TASK IDENT ; DeclarationList StatementOrNull ENDTASK
-    private ModItem parseTask(){
+    private ModItem parseTaskDeclaration(){
 	match(Token.Type.TASK);
 	Identifier ident = parseIdentifier();
 	match(Token.Type.SEMI);
 	DeclarationList declList = parseDeclarationList(false);
 	Statement stat = parseStatementOrNull();
 	match(Token.Type.ENDTASK);
-	return new Task(ident, declList, stat);
+	return new TaskDeclaration(ident, declList, stat);
     }
 
     //Declaration -> IntegerDeclaration | WireDeclaration | RealDeclaration | RegDeclaration | OutputDeclaration | InputDeclaration 
@@ -504,7 +504,7 @@ public class Parser{
 		skip();
 		Expression exp1 = parseExpression();
 		if(willMatch(Token.Type.RBRACK)){
-		     Expression vec = new Vector(ident, exp1);
+		     Expression vec = new VectorCall(ident, exp1);
 		     if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
@@ -520,7 +520,7 @@ public class Parser{
 		    match(Token.Type.COLON);
 		    Expression exp2 = parseExpression();
 		    match(Token.Type.RBRACK);
-		    Expression vec = new Vector(ident, exp1, exp2);
+		    Expression vec = new VectorCall(ident, exp1, exp2);
 		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
@@ -774,12 +774,12 @@ public class Parser{
 		Expression exp = parseExpression();
 		if(willMatch(Token.Type.RBRACK)){
 		    skip();
-		    return new Vector(new Identifier(ident), exp);
+		    return new VectorCall(new Identifier(ident), exp);
 		} else {
 		    match(Token.Type.COLON);
 		    Expression exp2 = parseExpression();
 		    match(Token.Type.RBRACK);
-		    return new Vector(new Identifier(ident), exp, exp2);
+		    return new VectorCall(new Identifier(ident), exp, exp2);
 		}
 	    } else {
 		return new Identifier(ident);
@@ -795,12 +795,12 @@ public class Parser{
 	    Expression exp = parseExpression();
 	    if(willMatch(Token.Type.RBRACK)){
 		skip();
-		return new Vector(new Identifier(ident), exp);
+		return new VectorCall(new Identifier(ident), exp);
 	    } else {
 		match(Token.Type.COLON);
 		Expression exp2 = parseExpression();
 		match(Token.Type.RBRACK);
-		return new Vector(new Identifier(ident), exp, exp2);
+		return new VectorCall(new Identifier(ident), exp, exp2);
 	    }
 	} else {
 	    return new Identifier(ident);
@@ -1033,10 +1033,10 @@ public class Parser{
 		    skip();
 		    Expression index2 = parseExpression();
 		    match(Token.Type.RBRACK);
-		    return new Vector(ident, index1, index2);
+		    return new VectorCall(ident, index1, index2);
 		} else {
 		    match(Token.Type.RBRACK);
-		    return new Vector(ident, index1);
+		    return new VectorCall(ident, index1);
 		}
 	    } else if (willMatch(Token.Type.LPAR)) {
 		skip();

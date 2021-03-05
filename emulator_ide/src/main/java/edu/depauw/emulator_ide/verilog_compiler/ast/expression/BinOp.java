@@ -4,6 +4,12 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
+/**
+ * The BinOp class is used to store the type of Binary operator in a 
+ * binary operation ast node
+ * This class comes packaged with helper methods to determin if tokens are valid binary tokens
+ * @author Jacob Bauer
+ */
 public class BinOp {
     
     public enum Type{

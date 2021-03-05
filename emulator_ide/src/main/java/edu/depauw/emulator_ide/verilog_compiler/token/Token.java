@@ -162,6 +162,7 @@ public class Token{
 	KEY.put("integer", Type.INTEGER);
 	KEY.put("real", Type.REAL);
 	KEY.put("reg", Type.REG);
+	KEY.put("wire", Type.WIRE);
 	KEY.put("output", Type.OUTPUT);
 	KEY.put("input", Type.INPUT);
 	KEY.put("wait", Type.WAIT);
@@ -174,6 +175,7 @@ public class Token{
 	KEY.put("nor", Type.NORGATE);
 	KEY.put("xor", Type.XORGATE);
 	KEY.put("xnor", Type.XNORGATE);
+	KEY.put("not", Type.NOTGATE);
     }
 
     private final Type type;

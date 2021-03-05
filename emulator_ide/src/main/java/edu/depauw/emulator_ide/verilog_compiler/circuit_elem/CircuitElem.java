@@ -10,7 +10,7 @@ public abstract class CircuitElem{
 
     protected static Queue<CircuitElem> toUpdate = new LinkedList<>(); //queue to store next field to update
 
-    protected boolean outputSignal; //the output state of the component
+    protected volatile boolean outputSignal; //the output state of the component
 
     /**
      * method to update the output of the component

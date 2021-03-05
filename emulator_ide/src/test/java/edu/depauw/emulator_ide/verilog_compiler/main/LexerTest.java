@@ -35,10 +35,10 @@ public class LexerTest{
 	@Test
 	public void testKeyWords() {
 	        System.err.println("-----Keyword Test----");
-		String input = "initial allways begin end module endmodule task endtask function endfunction assign posedge negedge or if else while forever repeat for integer real reg output input";
+		String input = "initial allways begin end module endmodule task endtask function endfunction assign posedge negedge or and nand nor xor xnor not if else while wait forever repeat for integer real reg wire output input";
 
 		prepareErrorLog(0);	
-		prepareLexer(new Tuple(Token.Type.INIT,
+		prepareLexer(new Tuple(Token.Type.INITIAL,
 				       Token.Type.ALLWAYS,
 				       Token.Type.BEGIN,
 				       Token.Type.END,
@@ -51,16 +51,24 @@ public class LexerTest{
 				       Token.Type.ASSIGN,
 				       Token.Type.POSEGE,
 				       Token.Type.NEGEGE,
-				       Token.Type.OR,
+				       Token.Type.ORGATE,
+				       Token.Type.ANDGATE,
+				       Token.Type.NANDGATE,
+				       Token.Type.NORGATE,
+				       Token.Type.XORGATE,
+				       Token.Type.XNORGATE,
+				       Token.Type.NOTGATE,
 				       Token.Type.IF,
 				       Token.Type.ELSE,
 				       Token.Type.WHILE,
+				       Token.Type.WAIT,
 				       Token.Type.FOREVER,
 				       Token.Type.REPEAT,
 				       Token.Type.FOR,
-				       Token.Type.INT,
+				       Token.Type.INTEGER,
 				       Token.Type.REAL,
 				       Token.Type.REG,
+				       Token.Type.WIRE,
 				       Token.Type.OUTPUT,
 				       Token.Type.INPUT)
 			     );
@@ -158,7 +166,7 @@ public class LexerTest{
 	@Test
 	public void testOperators() {
 	        System.err.println("-----Operator Test----");
-		String input = "(){}[],+-*%/?:<><=>=;@$= == === != !== &&||!&~ | ^^~~^ ~& ~| <<>><<<>>>";
+		String input = "(){}[],+-*%/?:<><=>=;@$= == === != !== &&||!&~ | ^^~~^ ~& ~| <<>>";
 		
 		prepareErrorLog(0);
 		prepareLexer(new Tuple(Token.Type.LPAR,
@@ -199,9 +207,7 @@ public class LexerTest{
 				       Token.Type.BNAND,
 				       Token.Type.BNOR,
 				       Token.Type.LSHIFT,
-				       Token.Type.RSHIFT,
-				       Token.Type.ALSHIFT,
-				       Token.Type.ARSHIFT)
+				       Token.Type.RSHIFT)
 			     );
 		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));

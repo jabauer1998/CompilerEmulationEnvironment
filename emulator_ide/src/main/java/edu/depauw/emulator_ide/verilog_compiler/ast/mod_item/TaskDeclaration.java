@@ -4,13 +4,13 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.DeclarationList;
 
-public class Function extends ModItem{
+public class TaskDeclaration extends ModItem{
 
     private final Identifier ident;
     private final DeclarationList declList;
     private final Statement stat;
     
-    public Function(Identifier ident, DeclarationList declList, Statement stat){
+    public TaskDeclaration(Identifier ident, DeclarationList declList, Statement stat){
 	super(ident.getPosition());
 	this.ident = ident;
 	this.declList = declList;
