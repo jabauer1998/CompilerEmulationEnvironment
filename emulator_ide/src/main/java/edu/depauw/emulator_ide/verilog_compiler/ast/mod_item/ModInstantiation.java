@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ModInstanceList;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
 
 public class ModInstantiation extends ModItem{
 
@@ -22,6 +23,10 @@ public class ModInstantiation extends ModItem{
 
     public ModInstanceList getModInstanceList(){
 	return modList;
+    }
+
+    public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
+	return astNodeVisitor.visit(this);
     }
     
 }

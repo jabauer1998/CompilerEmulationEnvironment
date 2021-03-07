@@ -31,6 +31,6 @@ public class ConstantExpression extends Expression{
      * @param astNodeVisitor the visitor that is visiting the object
      */
     public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	astNodeVisitor.visit(this);
+	return astNodeVisitor.visit(this);
     }
 }

@@ -3,6 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.mod_item;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.DeclarationList;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
 
 public class FunctionDeclaration extends ModItem{
 
@@ -28,6 +29,10 @@ public class FunctionDeclaration extends ModItem{
     
     public Statement getStatement(){
 	return stat;
+    }
+
+    public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
+	return astNodeVisitor.visit(this);
     }
     
 }

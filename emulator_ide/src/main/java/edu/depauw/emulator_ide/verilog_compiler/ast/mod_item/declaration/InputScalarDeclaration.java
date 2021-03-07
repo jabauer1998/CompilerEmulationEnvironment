@@ -1,5 +1,6 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration;
 
+import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.ModItem;
@@ -17,6 +18,10 @@ public class InputScalarDeclaration extends ScalarDeclaration{
 
     public IdentifierList getIdentifierList(){
 	return this.identList;
+    }
+
+    public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
+	return astNodeVisitor.visit(this);
     }
     
 }

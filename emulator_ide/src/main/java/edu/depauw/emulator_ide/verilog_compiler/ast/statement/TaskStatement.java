@@ -1,6 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ExpressionList;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 
@@ -35,5 +36,9 @@ public class TaskStatement extends Statement{
 
     public int getExpressionListSize(){
 	return expList.getSize();
+    }
+
+    public <ModVisitType, StatVisitType, ExprVisitType> StatVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
+	return astNodeVisitor.visit(this);
     }
 }
