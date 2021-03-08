@@ -16,8 +16,12 @@ public class OutputScalarDeclaration extends ScalarDeclaration{
 	this.identList = identList;
     }
 
-    public IdentifierList getIdentifierList(){
-	return this.identList;
+    public Identifier getIdentifier(int index){
+	return identList.getIdentifier(index);
+    }
+
+    public int numIdentifiers(){
+	return this.identList.getSize();
     }
 
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){

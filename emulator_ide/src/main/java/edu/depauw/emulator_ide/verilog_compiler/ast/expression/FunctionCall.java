@@ -49,7 +49,7 @@ public class FunctionCall extends Expression{
     /** This function returns the expression List size
      * @param none
      */
-    public int getExpressionListSize(){
+    public int numExpressions(){
 	return expList.getSize();
     }
 

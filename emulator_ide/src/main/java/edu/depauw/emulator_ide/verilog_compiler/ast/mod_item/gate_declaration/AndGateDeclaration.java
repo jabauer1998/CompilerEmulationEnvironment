@@ -12,8 +12,12 @@ public class AndGateDeclaration extends GateDeclaration{
 	super(exprList);
     }
 
-    public ExpressionList getExpressionList(){
-	return super.getExpressionList();
+    public Expression getExpression(int index){
+	return super.getExpressionList().getExpression(index);
+    }
+
+    public int numExpressions(){
+	return super.getExpressionList().getSize();
     }
 
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){

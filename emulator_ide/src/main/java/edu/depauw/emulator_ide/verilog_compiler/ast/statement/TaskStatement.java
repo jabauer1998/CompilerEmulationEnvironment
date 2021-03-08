@@ -26,7 +26,7 @@ public class TaskStatement extends Statement{
 	this.expList = expList;
     }
 
-    public Identifier getFunctionName(){
+    public Identifier getTaskName(){
 	return this.functionName;
     }
 
@@ -34,7 +34,7 @@ public class TaskStatement extends Statement{
 	return expList.getExpression(index);
     }
 
-    public int getExpressionListSize(){
+    public int numExpressions(){
 	return expList.getSize();
     }
 

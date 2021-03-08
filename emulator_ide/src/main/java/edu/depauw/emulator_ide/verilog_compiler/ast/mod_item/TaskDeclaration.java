@@ -19,12 +19,16 @@ public class TaskDeclaration extends ModItem{
 	
     }
 
-    public Identifier getIdentifier(){
+    public Identifier getTaskName(){
 	return ident;
     }
 
-    public DeclarationList getdeclList(){
-	return declList;
+    public DeclarationList numDeclarations(){
+	return declList.getSize();
+    }
+
+    public Declaration getDeclaration(int index){
+	return declList.getDeclaration(index);
     }
     
     public Statement getStatement(){

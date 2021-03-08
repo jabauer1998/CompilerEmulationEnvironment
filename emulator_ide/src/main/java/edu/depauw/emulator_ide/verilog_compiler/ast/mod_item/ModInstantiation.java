@@ -17,12 +17,16 @@ public class ModInstantiation extends ModItem{
 	this.modList = modList;
     }
 
-    public Identifier getIdentifier(){
+    public Identifier getModuleName(){
 	return ident;
     }
 
-    public ModInstanceList getModInstanceList(){
-	return modList;
+    public ModInstance getModInstance(int index){
+	return modList.getModInstance(index);
+    }
+
+    public int numModInstances(){
+	return modList.getSize();
     }
 
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){

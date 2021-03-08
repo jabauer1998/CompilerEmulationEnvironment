@@ -17,8 +17,12 @@ public class CaseStatement extends Statement{
 	this.itemList = itemList;
     }
 
-    public CaseItemList getItemList(){
-	return itemList;
+    public CaseItem getCaseItem(int index){
+	return itemList.getCaseItem(index);
+    }
+
+    public int  numCaseItems(){
+	return itemList.getSize();
     }
 
     public Expression getExpression(){

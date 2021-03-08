@@ -19,11 +19,19 @@ public class FunctionDeclaration extends ModItem{
 	
     }
 
-    public Identifier getIdentifier(){
+    public Identifier getFunctionName(){
 	return ident;
     }
 
-    public DeclarationList getdeclList(){
+    public int numDeclarations(){
+	return declList.size();
+    }
+
+    public Declaration getDeclaration(int index){
+	return declList.getDeclaration(index);
+    }
+    
+    public DeclarationList getDeclList(){
 	return declList;
     }
     

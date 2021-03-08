@@ -15,8 +15,12 @@ public class ContinuousAssignment extends ModItem{
 	this.assignList = assignList;
     }
 
-    public AssignmentList getAssignmentList(){
-	return assignList;
+    public Assignment getAssignment(int index){
+	return assignList.get(index);
+    }
+
+    public int numAssignments(){
+	return assignList.getSize();
     }
 
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){

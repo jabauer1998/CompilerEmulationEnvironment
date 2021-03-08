@@ -16,8 +16,12 @@ public class RegVectorDeclaration extends VectorDeclaration{
 	this.regValueList = regValueList;
     }
 
-    public RegValueList getRegValueList(){
-	return this.regValueList;
+    public RegValue getRegValue(int index){
+	return this.regValueList.getRegValue(index);
+    }
+
+    public int numRegValues(int index){
+	return this.regValueList.getSize();
     }
 
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){

@@ -21,8 +21,12 @@ public class ModInstance extends ModItem{
 	return ident;
     }
 
-    public ExpressionList getExpressionList(){
-	return expList;
+    public Expression getExpression(int index){
+	return expList.getExpression(index);
+    }
+
+    public int numExpressions(){
+	return expList.getSize();
     }
 
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){

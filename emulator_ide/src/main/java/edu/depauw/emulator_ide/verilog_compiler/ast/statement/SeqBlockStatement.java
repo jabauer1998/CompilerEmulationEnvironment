@@ -14,6 +14,14 @@ public class SeqBlockStatement extends Statement{
 	this.statList = statList;
     }
 
+    public int numStatements(){
+	return statList.getSize();
+    }
+
+    public Statement getStatement(int index){
+	return statList.getStatement(index);
+    }
+
     public <ModVisitType, StatVisitType, ExprVisitType> StatVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
 	return astNodeVisitor.visit(this);
     }

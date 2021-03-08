@@ -16,8 +16,12 @@ public class ExprCaseItem extends CaseItem{
 	this.stat = stat;
     }
 
-    public ExpressionList getExpressionList(){
-	return expList;
+    public Expression getExpression(int index){
+	return expList.getExpression(index);
+    }
+
+    public int numExpressions(){
+	return expList.getSize();
     }
 
     public Statement getStatement(){

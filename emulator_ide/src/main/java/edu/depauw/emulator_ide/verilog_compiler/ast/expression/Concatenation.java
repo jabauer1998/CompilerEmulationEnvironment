@@ -31,7 +31,7 @@ public class Concatenation extends Expression{
     /** Get the size of the expression list for which to concatenate
      * @param none
      */
-    public int getSize(){
+    public int numExpressions(){
 	return expList.getSize();
     }
 

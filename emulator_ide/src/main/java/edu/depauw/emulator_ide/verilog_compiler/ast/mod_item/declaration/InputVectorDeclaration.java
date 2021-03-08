@@ -16,6 +16,14 @@ public class InputVectorDeclaration extends VectorDeclaration{
 	this.identList = identList;
     }
 
+    public Identifier getIdentifier(int index){
+	return identList.getIdentifier(index);
+    }
+
+    public int numIdentifiers(){
+	return this.identList.getSize();
+    }
+
     public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
 	return astNodeVisitor.visit(this);
     }

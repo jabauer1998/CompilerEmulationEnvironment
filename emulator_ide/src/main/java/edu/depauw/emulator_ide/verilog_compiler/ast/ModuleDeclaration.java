@@ -39,16 +39,23 @@ public class ModuleDeclaration extends AstNode{
 	this.modItemList = modItemList;
     }
 
-    public Identifier getIdentifier(){
+    public Identifier getModuleName(){
 	return ident;
     }
 
-    public IdentifierList getIdentifierList(){
-	return identList;
+    public Identifier getParamater(int index){
+	return identList.getIdentifier(index);
     }
 
-    public ModItemList getModItemList(){
+    public int  numParamaters(){
+	return identList.getSize();
+    }
+
+    public ModItem getModItem(int index){
 	return modItemList;
     }
 
+    public ModItem numModItems(){
+	return modItemList.getSize();
+    }
 }
