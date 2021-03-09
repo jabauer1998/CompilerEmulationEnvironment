@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.DeclarationList;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.Declaration;
 
 public class FunctionDeclaration extends ModItem{
 
@@ -24,15 +25,11 @@ public class FunctionDeclaration extends ModItem{
     }
 
     public int numDeclarations(){
-	return declList.size();
+	return declList.getSize();
     }
 
     public Declaration getDeclaration(int index){
 	return declList.getDeclaration(index);
-    }
-    
-    public DeclarationList getDeclList(){
-	return declList;
     }
     
     public Statement getStatement(){

@@ -14,7 +14,7 @@ public class ModItemList extends AstNode {
 	this.modList = modList;
     }
 
-    public ModItem getModInstance(int index){
+    public ModItem getModItem(int index){
 	return modList.get(index);
     }
 

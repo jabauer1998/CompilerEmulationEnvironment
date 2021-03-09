@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.symboltable;
+package edu.depauw.emulator_ide.verilog_compiler.symbol_table;
 
 import java.util.Stack;
 import java.util.HashMap;

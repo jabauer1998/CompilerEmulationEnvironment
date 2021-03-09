@@ -5,6 +5,7 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.ModItem;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.ConstantExpression;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.IdentifierList;
 
 public class OutputVectorDeclaration extends VectorDeclaration{

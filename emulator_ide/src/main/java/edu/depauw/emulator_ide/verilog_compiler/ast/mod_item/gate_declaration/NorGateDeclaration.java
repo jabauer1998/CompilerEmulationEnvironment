@@ -5,6 +5,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.ModItem;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ExpressionList;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
 
 public class NorGateDeclaration extends GateDeclaration{
     

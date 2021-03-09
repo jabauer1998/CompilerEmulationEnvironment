@@ -5,9 +5,15 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.gate_declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.*;
-import edi.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
+import edu.depauw.emulator_ide.common.io.*;
+import edu.depauw.emulator_ide.common.debug.*;
+import edu.depauw.emulator_ide.common.debug.item.*;
     
 public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 
@@ -34,12 +40,14 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      *@param mod
      *@author Jacob bauer
      */
-    private bool param = false;
+
+    private boolean param = false;
     public void visit(ModuleDeclaration mod){
 	modEnv.addScope();
 	funcEnv.addScope();
+	varEnv.addScope();
 	Identifier modName = mod.getModuleName();
-	if(mod.entryExists(modName.getLexeme())){
+	if(modEnv.entryExists(modName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Module Entry " + modName.getLexeme() + " Allready Exists", modName.getPosition())); 
 	} else {
 	    dest.println("DECL MODULE " + modName.getLexeme() + " at " + modName.getPosition());
@@ -53,6 +61,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < mod.numModItems(); i++){
 	    mod.getModItem(i).accept(this);
 	}
+	varEnv.removeScope();
 	funcEnv.removeScope();
 	modEnv.removeScope();
     }
@@ -68,6 +77,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(AllwaysStatement stat){
 	stat.getStatement().accept(this);
+	return null;
     }
 
     /**
@@ -77,8 +87,9 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(ContinuousAssignment assign){
 	for(int i = 0; i < assign.numAssignments(); i++){
-	    assign.getAssignment().accept(this);
+	    assign.getAssignment(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -100,6 +111,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	}
 	function.getStatement().accept(this);
 	varEnv.removeScope();
+	return null;
     }
 
     /**
@@ -111,6 +123,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	varEnv.addScope();
 	stat.getStatement().accept(this);
 	varEnv.removeScope();
+	return null;
     }
 
     /**
@@ -122,6 +135,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < mod.numModInstances(); i++){
 	    mod.getModInstance(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -139,6 +153,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < mod.numExpressions(); i++){
 	    mod.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -147,19 +162,20 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(TaskDeclaration task){
-	Identifier taskName = function.getTaskName();
+	Identifier taskName = task.getTaskName();
 	if(funcEnv.entryExists(taskName.getLexeme())){
-	    errorLog.addItem(new ErrorItem("Task Entry " + funcName.getLexeme() + " Allready Exists", taskName.getPosition())); 
+	    errorLog.addItem(new ErrorItem("Task Entry " + taskName.getLexeme() + " Allready Exists", taskName.getPosition())); 
 	} else {
 	    dest.println("DECL TASK " + taskName.getLexeme() + " AT " + taskName.getPosition());
 	    funcEnv.addEntry(taskName.getLexeme(), taskName.getPosition());
 	}
 	varEnv.addScope();
-	for(int i = 0; i < function.numDeclarations(); i++){
-	    function.getDeclaration(i).accept(this);
+	for(int i = 0; i < task.numDeclarations(); i++){
+	    task.getDeclaration(i).accept(this);
 	}
-	function.getStatement().accept(this);
+	task.getStatement().accept(this);
 	varEnv.removeScope();
+	return null;
     }
 
     /**
@@ -170,7 +186,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(InputScalarDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -178,6 +194,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -188,7 +205,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(InputVectorDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -196,6 +213,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -206,7 +224,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(WireScalarDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -214,6 +232,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -224,7 +243,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(WireVectorDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -232,6 +251,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -242,14 +262,21 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(RegScalarDeclaration decl){
 	for(int i = 0; i < decl.numRegValues(); i++){
-	    RegValue currrent = decl.getRegValue(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+	    Expression current = decl.getRegValue(i);
+	    Identifier cur = null;
+	    if(current instanceof Identifier){
+		cur = (Identifier)current;
 	    } else {
-		dest.println("DECL REG " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		cur = ((VectorCall)current).getIdentifier();
+	    }
+	    if(varEnv.entryExists(cur.getLexeme())){
+		errorLog.addItem(new ErrorItem("Variable Entry " + cur.getLexeme() + " Allready Exists", cur.getPosition())); 
+	    } else {
+		dest.println("DECL REG " + cur.getLexeme() + " AT " + cur.getPosition());
+		funcEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -260,14 +287,21 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(RegVectorDeclaration decl){
 	for(int i = 0; i < decl.numRegValues(); i++){
-	    RegValue currrent = decl.getRegValue(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+	    Expression current = decl.getRegValue(i);
+	    Identifier cur = null;
+	    if(current instanceof Identifier){
+		cur = (Identifier)current;
 	    } else {
-		dest.println("DECL REG " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		cur = ((VectorCall)current).getIdentifier();
+	    }
+	    if(varEnv.entryExists(cur.getLexeme())){
+		errorLog.addItem(new ErrorItem("Variable Entry " + cur.getLexeme() + " Allready Exists", cur.getPosition())); 
+	    } else {
+		dest.println("DECL REG " + cur.getLexeme() + " AT " + cur.getPosition());
+		funcEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
 	}
+	return null;
     }
 
 
@@ -279,7 +313,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(OutputScalarDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -287,6 +321,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -297,7 +332,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(OutputVectorDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -305,6 +340,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -315,14 +351,21 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(IntegerDeclaration decl){
 	for(int i = 0; i < decl.numRegValues(); i++){
-	    RegValue currrent = decl.getRegValue(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+	    Expression current = decl.getRegValue(i);
+	    Identifier cur = null;
+	    if(current instanceof Identifier){
+		cur = (Identifier)current;
 	    } else {
-		dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		cur = ((VectorCall)current).getIdentifier();
+	    }
+	    if(varEnv.entryExists(cur.getLexeme())){
+		errorLog.addItem(new ErrorItem("Variable Entry " + cur.getLexeme() + " Allready Exists", cur.getPosition())); 
+	    } else {
+		dest.println("DECL REG " + cur.getLexeme() + " AT " + cur.getPosition());
+		funcEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -333,7 +376,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(RealDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier currrent = decl.getIdentifier(i);
+	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
 		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
 	    } else {
@@ -341,6 +384,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		funcEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
+	return null;
     }
 
     /**
@@ -353,6 +397,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -365,6 +410,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
      /**
@@ -377,6 +423,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -389,6 +436,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -401,6 +449,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -413,6 +462,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -425,6 +475,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    decl.getExpression(i).accept(this);
 	}
+	return null;
     }
 
 
@@ -444,6 +495,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(Assignment assign){
 	assign.getLValue().accept(this);
 	assign.getExpression().accept(this);
+	return null;
     }
 
     /**
@@ -454,6 +506,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(BlockAssign assign){
 	assign.getLValue().accept(this);
 	assign.getExpression().accept(this);
+	return null;
     }
 
     /**
@@ -462,16 +515,18 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(CaseStatement stat){
-	stat.getExpression.accept(this);
+	stat.getExpression().accept(this);
 	for(int i = 0; i < stat.numCaseItems(); i++){
 	    CaseItem item = stat.getCaseItem(i);
-	    if(item instanceof ExpCaseItem){
-		for(int i = 0; i < stat.numExpressions(); i++){
-		    stat.getExpression(i).accept(this);
+	    if(item instanceof ExprCaseItem){
+		ExprCaseItem exprItem = (ExprCaseItem)item;
+		for(int x = 0; x < exprItem.numExpressions(); x++){
+		    exprItem.getExpression(x).accept(this);
 		}
 	    }
 	    item.getStatement().accept(this);
 	}
+	return null;
     }
 
     /**
@@ -480,16 +535,18 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(CaseXStatement stat){
-	stat.getExpression.accept(this);
+	stat.getExpression().accept(this);
 	for(int i = 0; i < stat.numCaseItems(); i++){
 	    CaseItem item = stat.getCaseItem(i);
-	    if(item instanceof ExpCaseItem){
-		for(int i = 0; i < stat.numExpressions(); i++){
-		    stat.getExpression(i).accept(this);
+	    if(item instanceof ExprCaseItem){
+		ExprCaseItem exprItem = (ExprCaseItem)item;
+		for(int x = 0; x < exprItem.numExpressions(); x++){
+		    exprItem.getExpression(x).accept(this);
 		}
 	    }
 	    item.getStatement().accept(this);
 	}
+	return null;
     }
 
     /**
@@ -498,16 +555,18 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(CaseZStatement stat){
-	stat.getExpression.accept(this);
+	stat.getExpression().accept(this);
 	for(int i = 0; i < stat.numCaseItems(); i++){
 	    CaseItem item = stat.getCaseItem(i);
-	    if(item instanceof ExpCaseItem){
-		for(int i = 0; i < stat.numExpressions(); i++){
-		    stat.getExpression(i).accept(this);
+	    if(item instanceof ExprCaseItem){
+		ExprCaseItem exprItem = (ExprCaseItem)item;
+		for(int x = 0; x < exprItem.numExpressions(); x++){
+		    exprItem.getExpression(x).accept(this);
 		}
 	    }
 	    item.getStatement().accept(this);
 	}
+	return null;
     }
 
     /**
@@ -516,10 +575,11 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(ForStatement forLoop){
-	forLoop.getInit.accept(this);
-	forLoop.getExpression.accept(this);
-	forLoop.getChange.accept(this);
-	forLoop.getStatement.accept(this);
+	forLoop.getInit().accept(this);
+	forLoop.getExpression().accept(this);
+	forLoop.getChange().accept(this);
+	forLoop.getStatement().accept(this);
+	return null;
     }
 
     /**
@@ -529,6 +589,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(ForeverStatement foreverLoop){
 	foreverLoop.getStatement().accept(this);
+	return null;
     }
 
     /**
@@ -540,6 +601,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	ifElseStatement.getExpression().accept(this);
 	ifElseStatement.getIfStatement().accept(this);
 	ifElseStatement.getElseStatement().accept(this);
+	return null;
     }
 
     /**
@@ -550,6 +612,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(IfStatement ifStatement){
 	ifStatement.getExpression().accept(this);
 	ifStatement.getStatement().accept(this);
+	return null;
     }
 
     /**
@@ -560,6 +623,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(NonBlockAssign assign){
 	assign.getLValue().accept(this);
 	assign.getExpression().accept(this);
+	return null;
     }
 
     /**
@@ -570,6 +634,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(RepeatStatement stat){
 	stat.getExpression().accept(this);
 	stat.getStatement().accept(this);
+	return null;
     }
 
     /**
@@ -581,6 +646,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < stat.numStatements(); i++){
 	    stat.getStatement(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -600,6 +666,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < task.numExpressions(); i++){
 	    task.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -610,6 +677,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(WaitStatement wait){
 	wait.getExpression().accept(this);
 	wait.getStatement().accept(this);
+	return null;
     }
 
     /**
@@ -618,8 +686,9 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
      
     public Void visit(WhileStatement whileLoop){
-	whileLoop.getExpression.accept(this);
-	whileLoop.getStatement.accept(this);
+	whileLoop.getExpression().accept(this);
+	whileLoop.getStatement().accept(this);
+	return null;
     }
 
 
@@ -630,6 +699,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(EmptyStatement stat){
 	//this is empty it is just a placeholder
+	return null;
     }
 
     
@@ -646,6 +716,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(BinaryOperation op){
 	op.getLeft().accept(this);
 	op.getRight().accept(this);
+	return null;
     }
 
     /**
@@ -655,6 +726,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(UnaryOperation op){
 	op.getRight().accept(this);
+	return null;
     }
 
 
@@ -667,6 +739,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < concat.numExpressions(); i++){
 	    concat.getExpression(i).accept(this);
 	}
+	return null;
     }
 
     /**
@@ -676,6 +749,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(ConstantExpression expr){
 	expr.getExpression().accept(this);
+	return null;
     }
 
     /**
@@ -685,6 +759,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(EmptyExpression  expr){
 	//this is just a placeholder we do not need to put anything here
+	return null;
     }
 
     /**
@@ -704,7 +779,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < call.numExpressions(); i++){
 	    call.getExpression(i).accept(this);
 	}
-	
+	return null;
     }
 
     /**
@@ -726,6 +801,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
 	    }
 	}
+	return null;
     }
 
     /**
@@ -735,6 +811,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(NumValue number){
 	// do nothing
+	return null;
     }
 
     /**
@@ -744,6 +821,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(PortConnection connection){
 	connection.getExpression().accept(this);
+	return null;
     }
 
     /**
@@ -753,6 +831,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(StrValue string){
 	// do nothing
+	return null;
     }
 
     /**
@@ -764,6 +843,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	expr.getCondition().accept(this);
 	expr.getLeft().accept(this);
 	expr.getRight().accept(this);
+	return null;
     }
 
     /**
@@ -789,5 +869,6 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 
 	vector.getExpression1().accept(this);
 	vector.getExpression2().accept(this);
+	return null;
     }
 }

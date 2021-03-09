@@ -3,6 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.mod_item;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.DeclarationList;
+import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.Declaration;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
 
 public class TaskDeclaration extends ModItem{
@@ -23,7 +24,7 @@ public class TaskDeclaration extends ModItem{
 	return ident;
     }
 
-    public DeclarationList numDeclarations(){
+    public int numDeclarations(){
 	return declList.getSize();
     }
 

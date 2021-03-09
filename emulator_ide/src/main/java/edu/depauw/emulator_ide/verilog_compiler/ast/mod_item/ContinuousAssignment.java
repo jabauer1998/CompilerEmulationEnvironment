@@ -16,7 +16,7 @@ public class ContinuousAssignment extends ModItem{
     }
 
     public Assignment getAssignment(int index){
-	return assignList.get(index);
+	return assignList.getAssignment(index);
     }
 
     public int numAssignments(){

@@ -2,6 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
+import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.ModItem;
 
 import java.util.ArrayList;
     
@@ -43,19 +44,19 @@ public class ModuleDeclaration extends AstNode{
 	return ident;
     }
 
-    public Identifier getParamater(int index){
+    public Identifier getParameter(int index){
 	return identList.getIdentifier(index);
     }
 
-    public int  numParamaters(){
+    public int  numParameters(){
 	return identList.getSize();
     }
 
     public ModItem getModItem(int index){
-	return modItemList;
+	return modItemList.getModItem(index);
     }
 
-    public ModItem numModItems(){
+    public int numModItems(){
 	return modItemList.getSize();
     }
 }
