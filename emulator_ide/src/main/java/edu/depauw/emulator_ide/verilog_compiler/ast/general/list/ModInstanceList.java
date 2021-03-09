@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.ModInstance;
 
 import java.util.List;
+import java.util.Collections;
 
 public class ModInstanceList extends AstNode {
     
@@ -11,7 +12,7 @@ public class ModInstanceList extends AstNode {
     
     public ModInstanceList(List<ModInstance> modList){
         super(modList.get(0).getPosition());
-	this.modList = modList;
+	this.modList = Collections.unmodifiableList(modList);
     }
 
     public ModInstance getModInstance(int index){

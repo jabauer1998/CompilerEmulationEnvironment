@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.CaseItem;
 
 import java.util.List;
+import java.util.Collections;
 
 public class CaseItemList extends AstNode {
     
@@ -11,7 +12,7 @@ public class CaseItemList extends AstNode {
     
     public CaseItemList(List<CaseItem> caseItemList){
         super(caseItemList.get(0).getPosition());
-	this.caseItemList = caseItemList;
+	this.caseItemList = Collections.unmodifiableList(caseItemList);
     }
 
     public CaseItem  getCaseItem(int index){

@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Assignment;
 
 import java.util.List;
+import java.util.Collections;
 
 public class AssignmentList extends AstNode {
     
@@ -11,7 +12,7 @@ public class AssignmentList extends AstNode {
     
     public AssignmentList(List<Assignment> assignList){
         super(assignList.get(0).getPosition());
-	this.assignList = assignList;
+	this.assignList = Collections.unmodifiableList(assignList);
     }
 
     public Assignment getAssignment(int index){

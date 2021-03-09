@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
 
 import java.util.List;
+import java.util.Collections;
 
 public class DeclarationList extends AstNode {
     
@@ -11,7 +12,7 @@ public class DeclarationList extends AstNode {
     
     public DeclarationList(List<Declaration> declList){
         super(declList.get(0).getPosition());
-	this.declList = declList;
+	this.declList = Collections.unmodifiableList(declList);
     }
 
     public Declaration getDeclaration(int index){

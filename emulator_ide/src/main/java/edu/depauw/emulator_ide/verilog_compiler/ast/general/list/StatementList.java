@@ -4,6 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
 
 import java.util.List;
+import java.util.Collections;
 
 public class StatementList extends AstNode {
     
@@ -11,7 +12,7 @@ public class StatementList extends AstNode {
     
     public StatementList(List<Statement> statList){
         super(statList.get(0).getPosition());
-	this.statList = statList;
+	this.statList = Collections.unmodifiableList(statList);
     }
 
     public Statement getStatement(int index){
