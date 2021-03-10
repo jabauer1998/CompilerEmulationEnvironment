@@ -16,23 +16,21 @@ import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
     
 public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
-
+    
     private Environment<String, Position> modEnv;
     private Environment<String, Position> funcEnv;
     private Environment<String, Position> varEnv;
-    private ModuleDeclaration mod;
-
+    private AstNode node;
     private Destination dest;
     private InfoLog errorLog;
     
-    public IndexerVisitor(ModuleDeclaration mod, Destination dest, InfoLog errorLog){
+    public IndexerVisitor(AstNode node, Destination dest, InfoLog errorLog){
 	this.modEnv = new Environment<>();
 	this.funcEnv = new Environment<>();
 	this.varEnv = new Environment<>();
 	this.dest = dest;
 	this.errorLog = errorLog;
-	this.mod = mod;
-	visit(this.mod);
+	this.node = node;
     }
     /**
      *This is the top level visit statement used to visit a Verilog Module which should allways be the root of the
@@ -41,7 +39,18 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      *@author Jacob bauer
      */
 
-    private boolean param = false;
+    public void visitRoot(){
+	if(node instanceof Expression){
+	    ((Expression)node).accept(this);
+	} else if(node instanceof Statement){
+	    ((Statement)node).accept(this);
+	} else {
+	    visit((ModuleDeclaration)node);
+	}
+	this.dest.flush();
+	this.errorLog.printLog();
+    }
+    
     public void visit(ModuleDeclaration mod){
 	modEnv.addScope();
 	funcEnv.addScope();
@@ -50,14 +59,14 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	if(modEnv.entryExists(modName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Module Entry " + modName.getLexeme() + " Allready Exists", modName.getPosition())); 
 	} else {
-	    dest.println("DECL MODULE " + modName.getLexeme() + " at " + modName.getPosition());
+	    dest.println("DECL MODULE " + modName.getLexeme() + " AT [" + modName.getPosition() + ']');
 	    modEnv.addEntry(modName.getLexeme(), modName.getPosition());
 	}
-	param = true;
 	for(int i = 0; i < mod.numParameters(); i++){
-	    mod.getParameter(i).accept(this);
+	    Identifier param = mod.getParameter(i);
+	    dest.println("DECL MODULE PORT " + param.getLexeme() + " AT [" + param.getPosition() + ']');
+	    varEnv.addEntry(param.getLexeme(), param.getPosition());
 	}
-	param = false;
 	for(int i = 0; i < mod.numModItems(); i++){
 	    mod.getModItem(i).accept(this);
 	}
@@ -102,7 +111,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	if(funcEnv.entryExists(funcName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Function Entry " + funcName.getLexeme() + " Allready Exists", funcName.getPosition())); 
 	} else {
-	    dest.println("DECL FUNCTION " + funcName.getLexeme() + " at " + funcName.getPosition());
+	    dest.println("DECL FUNCTION " + funcName.getLexeme() + " AT [" + funcName.getPosition() + ']');
 	    funcEnv.addEntry(funcName.getLexeme(), funcName.getPosition());
 	}
 	varEnv.addScope();
@@ -146,7 +155,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     public Void visit(ModInstance mod){
 	Identifier modName = mod.getIdentifier();
 	if(modEnv.entryExists(modName.getLexeme())){
-	    dest.println("USE MODULE " + modName.getLexeme() + " DECLARED AT " + modEnv.getEntry(modName.getLexeme()));
+	    dest.println("USE MODULE " + modName.getLexeme() + " DECLARED AT [" + modEnv.getEntry(modName.getLexeme()) + ']');
 	} else {
 	    errorLog.addItem(new ErrorItem("Identifier " + modName.getLexeme() + " not found", modName.getPosition()));
 	}
@@ -166,7 +175,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	if(funcEnv.entryExists(taskName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Task Entry " + taskName.getLexeme() + " Allready Exists", taskName.getPosition())); 
 	} else {
-	    dest.println("DECL TASK " + taskName.getLexeme() + " AT " + taskName.getPosition());
+	    dest.println("DECL TASK " + taskName.getLexeme() + " AT [" + taskName.getPosition() + ']');
 	    funcEnv.addEntry(taskName.getLexeme(), taskName.getPosition());
 	}
 	varEnv.addScope();
@@ -188,10 +197,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE INPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']'); 
 	    } else {
-		dest.println("DECL INPUT " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		dest.println("DECL INPUT " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -207,10 +216,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE INPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
 	    } else {
-		dest.println("DECL INPUT " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		dest.println("DECL INPUT " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -226,10 +235,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
 	    } else {
-		dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		dest.println("DECL WIRE " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -245,10 +254,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
 	    } else {
 		dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -270,10 +279,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		cur = ((VectorCall)current).getIdentifier();
 	    }
 	    if(varEnv.entryExists(cur.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + cur.getLexeme() + " Allready Exists", cur.getPosition())); 
+		dest.println("USE REG " + cur.getLexeme() + " AT [" + cur.getPosition() + "] DECLARED AT [" + varEnv.getEntry(cur.getLexeme()) + ']');
 	    } else {
-		dest.println("DECL REG " + cur.getLexeme() + " AT " + cur.getPosition());
-		funcEnv.addEntry(cur.getLexeme(), cur.getPosition());
+		dest.println("DECL REG " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
+		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
 	}
 	return null;
@@ -295,10 +304,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		cur = ((VectorCall)current).getIdentifier();
 	    }
 	    if(varEnv.entryExists(cur.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + cur.getLexeme() + " Allready Exists", cur.getPosition())); 
+		dest.println("USE REG " + cur.getLexeme() + " AT [" + cur.getPosition() + "] DECLARED AT [" + varEnv.getEntry(cur.getLexeme()) + ']'); 
 	    } else {
-		dest.println("DECL REG " + cur.getLexeme() + " AT " + cur.getPosition());
-		funcEnv.addEntry(cur.getLexeme(), cur.getPosition());
+		dest.println("DECL REG " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
+		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
 	}
 	return null;
@@ -315,10 +324,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE OUTPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
 	    } else {
-		dest.println("DECL OUTPUT " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		dest.println("DECL OUTPUT " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -334,10 +343,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE OUTPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
 	    } else {
 		dest.println("DECL OUTPUT " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -359,10 +368,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		cur = ((VectorCall)current).getIdentifier();
 	    }
 	    if(varEnv.entryExists(cur.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + cur.getLexeme() + " Allready Exists", cur.getPosition())); 
+		dest.println("USE INTEGER " + cur.getLexeme() + " AT [" + cur.getPosition() + "] DECLARED AT [" + varEnv.getEntry(cur.getLexeme()) + ']'); 
 	    } else {
-		dest.println("DECL REG " + cur.getLexeme() + " AT " + cur.getPosition());
-		funcEnv.addEntry(cur.getLexeme(), cur.getPosition());
+		dest.println("DECL INTEGER " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
+		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
 	}
 	return null;
@@ -378,10 +387,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		errorLog.addItem(new ErrorItem("Variable Entry " + current.getLexeme() + " Allready Exists", current.getPosition())); 
+		dest.println("USE REAL " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']'); 
 	    } else {
-		dest.println("DECL REAL " + current.getLexeme() + " AT " + current.getPosition());
-		funcEnv.addEntry(current.getLexeme(), current.getPosition());
+		dest.println("DECL REAL " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;
@@ -658,7 +667,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	Identifier tname = task.getTaskName();
 	
 	if(funcEnv.entryExists(tname.getLexeme())){
-	    dest.println("USE FUNCTION " + tname.getLexeme() + " AT " + tname.getPosition() + " DEFINED AT " + funcEnv.getEntry(tname.getLexeme()));
+	    dest.println("USE FUNCTION " + tname.getLexeme() + " AT [" + tname.getPosition() + "] DEFINED AT [" + funcEnv.getEntry(tname.getLexeme()) + ']');
 	} else {
 	    errorLog.addItem(new ErrorItem("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition())); 
 	}
@@ -771,7 +780,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	Identifier fname = call.getFunctionName();
 	
 	if(funcEnv.entryExists(fname.getLexeme())){
-	    dest.println("USE FUNCTION " + fname.getLexeme() + " AT " + fname.getPosition() + " DEFINED AT " + funcEnv.getEntry(fname.getLexeme()));
+	    dest.println("USE FUNCTION " + fname.getLexeme() + " AT [" + fname.getPosition() + "] DECLARED AT [" + funcEnv.getEntry(fname.getLexeme()) + ']');
 	} else {
 	    errorLog.addItem(new ErrorItem("Function Entry " + fname.getLexeme() + " Doesnt Exist", fname.getPosition())); 
 	}
@@ -788,18 +797,10 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(Identifier ident){
-	if(param){
-	    if(varEnv.entryExists(ident.getLexeme())){
-		dest.println("USE PARAM " + ident.getLexeme() + " AT " + ident.getPosition() + " DEFINED AT " + varEnv.getEntry(ident.getLexeme()));
-	    } else {
-		errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
-	    }
+	if(varEnv.entryExists(ident.getLexeme())){
+	    dest.println("USE VARIABLE " + ident.getLexeme() + " AT [" + ident.getPosition() + "] DECLARED AT [" + varEnv.getEntry(ident.getLexeme()) + ']');
 	} else {
-	    if(varEnv.entryExists(ident.getLexeme())){
-		dest.println("USE VARIABLE " + ident.getLexeme() + " AT " + ident.getPosition() + " DEFINED AT " + varEnv.getEntry(ident.getLexeme()));
-	    } else {
-		errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
-	    }
+	    errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
 	}
 	return null;
     }
@@ -853,20 +854,11 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     
     public Void visit(VectorCall vector){
 	Identifier ident = vector.getIdentifier();
-	if(param){
-	    if(varEnv.entryExists(ident.getLexeme())){
-		dest.println("USE PARAM " + ident.getLexeme() + " AT " + ident.getPosition() + " DEFINED AT " + varEnv.getEntry(ident.getLexeme()));
-	    } else {
-		errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
-	    }
+	if(varEnv.entryExists(ident.getLexeme())){
+	    dest.println("USE VECTOR " + ident.getLexeme() + " AT [" + ident.getPosition() + "] DECLARED AT [" + varEnv.getEntry(ident.getLexeme()) + ']');
 	} else {
-	    if(varEnv.entryExists(ident.getLexeme())){
-		dest.println("USE VECTOR " + ident.getLexeme() + " AT " + ident.getPosition() + " DEFINED AT " + varEnv.getEntry(ident.getLexeme()));
-	    } else {
-		errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
-	    }
+	    errorLog.addItem(new ErrorItem("Vector Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
 	}
-
 	vector.getExpression1().accept(this);
 	vector.getExpression2().accept(this);
 	return null;

@@ -47,7 +47,7 @@ public class Token{
 	    BNOR,   // ~|
 	    LSHIFT, // <<
 	    RSHIFT, // >>
-	    DOT, // .
+	    DOT, //.
 	    
 	    //keywords
 	    INITIAL,
@@ -176,6 +176,8 @@ public class Token{
 	KEY.put("xor", Type.XORGATE);
 	KEY.put("xnor", Type.XNORGATE);
 	KEY.put("not", Type.NOTGATE);
+	KEY.put("case", Type.CASE);
+	KEY.put("endcase", Type.ENDCASE);
     }
 
     private final Type type;

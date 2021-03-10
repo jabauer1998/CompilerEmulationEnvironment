@@ -11,7 +11,7 @@ public class RegValueList extends AstNode {
     private final List<Expression> regValList;
     
     public RegValueList(List<Expression> regValList){
-        super(regValList.get(0).getPosition());
+        super(regValList.isEmpty() ? null : regValList.get(0).getPosition());
 	this.regValList = Collections.unmodifiableList(regValList);
     }
 

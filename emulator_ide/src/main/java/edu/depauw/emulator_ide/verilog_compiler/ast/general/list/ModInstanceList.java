@@ -11,7 +11,7 @@ public class ModInstanceList extends AstNode {
     private final List<ModInstance> modList;
     
     public ModInstanceList(List<ModInstance> modList){
-        super(modList.get(0).getPosition());
+        super(modList.isEmpty() ? null : modList.get(0).getPosition());
 	this.modList = Collections.unmodifiableList(modList);
     }
 

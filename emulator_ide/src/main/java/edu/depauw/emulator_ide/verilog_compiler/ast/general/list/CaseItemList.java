@@ -11,7 +11,7 @@ public class CaseItemList extends AstNode {
     private final List<CaseItem> caseItemList;
     
     public CaseItemList(List<CaseItem> caseItemList){
-        super(caseItemList.get(0).getPosition());
+        super(caseItemList.isEmpty() ? null : caseItemList.get(0).getPosition());
 	this.caseItemList = Collections.unmodifiableList(caseItemList);
     }
 

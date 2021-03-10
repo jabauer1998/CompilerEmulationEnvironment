@@ -11,7 +11,7 @@ public class DeclarationList extends AstNode {
     private final List<Declaration> declList;
     
     public DeclarationList(List<Declaration> declList){
-        super(declList.get(0).getPosition());
+        super(declList.isEmpty() ? null : declList.get(0).getPosition());
 	this.declList = Collections.unmodifiableList(declList);
     }
 

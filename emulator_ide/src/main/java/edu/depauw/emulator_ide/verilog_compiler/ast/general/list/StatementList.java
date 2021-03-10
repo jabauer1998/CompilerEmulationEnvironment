@@ -11,7 +11,7 @@ public class StatementList extends AstNode {
     private final List<Statement> statList;
     
     public StatementList(List<Statement> statList){
-        super(statList.get(0).getPosition());
+        super(statList.isEmpty() ? null : statList.get(0).getPosition());
 	this.statList = Collections.unmodifiableList(statList);
     }
 

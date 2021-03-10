@@ -11,7 +11,7 @@ public class ExpressionList extends AstNode {
     private final List<Expression> expList;
     
     public ExpressionList(List<Expression> expList){
-        super(expList.get(0).getPosition());
+        super(expList.isEmpty() ? null : expList.get(0).getPosition());
 	this.expList = Collections.unmodifiableList(expList);
     }
 

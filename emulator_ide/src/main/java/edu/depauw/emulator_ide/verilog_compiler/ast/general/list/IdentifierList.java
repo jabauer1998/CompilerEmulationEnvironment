@@ -11,7 +11,7 @@ public class IdentifierList extends AstNode {
     private final List<Identifier> identList;
     
     public IdentifierList(List<Identifier> identList){
-        super(identList.get(0).getPosition());
+        super(identList.isEmpty() ? null : identList.get(0).getPosition());
 	this.identList = Collections.unmodifiableList(identList);
     }
 

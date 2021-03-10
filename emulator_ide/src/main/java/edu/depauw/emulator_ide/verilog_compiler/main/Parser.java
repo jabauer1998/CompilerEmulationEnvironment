@@ -16,8 +16,6 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.gate_declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
 
 import java.util.ArrayList;
-
-
 import java.util.List;
 
 
@@ -38,10 +36,7 @@ public class Parser{
     }
 
     private boolean willMatch(Token.Type type){
-	if(!lexedTokens.isEmpty()){
-	    errorLog.addItem(new ErrorItem("Unexpected end of file while parsing", null));
-	    errorLog.printLog();
-	    System.exit(1);
+	if(lexedTokens.isEmpty()){
 	    return false;
 	} else {
 	    return lexedTokens.get(0).getTokenType() == type; 
@@ -71,7 +66,12 @@ public class Parser{
     }
 
     private Token match(Token.Type type){
-	if(willMatch(type)){
+	if(lexedTokens.isEmpty()){
+	    errorLog.addItem(new ErrorItem("Unexpected end of file while parsing", null));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return null;
+	} else if(willMatch(type)){
 	    return skip();
 	} else {
 	    Token matched = lexedTokens.get(0);
@@ -80,6 +80,10 @@ public class Parser{
 	    System.exit(1);
 	    return null;
 	}
+    }
+
+    public ModuleDeclaration parseAST(){
+	return parseModuleDeclaration();
     }
 
     /**
@@ -93,7 +97,12 @@ public class Parser{
 	Identifier ident = parseIdentifier();
 	if(willMatch(Token.Type.LPAR)){
 	    skip();
-	    IdentifierList identList = parseIdentifierList();
+	    IdentifierList identList = null;
+	    if(willMatch(Token.Type.RPAR)){
+		identList = new IdentifierList(new ArrayList<>());
+	    } else {
+		identList = parseIdentifierList();
+	    }
 	    match(Token.Type.RPAR);
 	    match(Token.Type.SEMI);
 	    if(willMatch(Token.Type.ENDMODULE)){
@@ -134,6 +143,8 @@ public class Parser{
 	    return parseRealDeclaration();
 	} else if(willMatch(Token.Type.OUTPUT)){
 	    return parseOutputDeclaration();
+	} else if(willMatch(Token.Type.INPUT)){
+	    return parseInputDeclaration();
 	} else if(willMatch(Token.Type.INITIAL)){
 	    return parseInitialStatement();
 	} else if (willMatch(Token.Type.ALLWAYS)){
@@ -146,8 +157,14 @@ public class Parser{
 	    return parseContinuousAssignment();
 	} else if (willMatch(Token.Type.IDENT)) {
 	    return parseModInstantiation();
-	} else {
+	} else if (willMatch(Token.Type.ANDGATE) || willMatch(Token.Type.ORGATE) || willMatch(Token.Type.NANDGATE) || willMatch(Token.Type.NORGATE) || willMatch(Token.Type.NOTGATE) || willMatch(Token.Type.XNORGATE) || willMatch(Token.Type.XORGATE)){
 	    return parseGateDeclaration();
+	} else {
+	    Token matched = peek();
+	    errorLog.addItem(new ErrorItem("Unexpected ModItem token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return null;
 	}
     }
 
@@ -197,8 +214,14 @@ public class Parser{
 	    return parseRegDeclaration();
 	} else if(willMatch(Token.Type.INPUT)){
 	    return parseInputDeclaration();
-	} else {
+	} else if (willMatch(Token.Type.OUTPUT)){
 	    return parseOutputDeclaration();
+	} else {
+	    Token matched = peek();
+	    errorLog.addItem(new ErrorItem("Unexpected Declaration token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return null;
 	}
     }
 
@@ -374,13 +397,19 @@ public class Parser{
 	    match(Token.Type.RPAR);
 	    match(Token.Type.SEMI);
 	    return new XnorGateDeclaration(expList);
-	} else {
+	} else if(willMatch(Token.Type.NOTGATE)){
 	    match(Token.Type.NOTGATE);
 	    match(Token.Type.LPAR);
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
 	    match(Token.Type.SEMI);
 	    return new NotGateDeclaration(expList);
+	} else {
+	    Token matched = peek();
+	    errorLog.addItem(new ErrorItem("Unexpected GateDeclaration token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return null;
 	}
     }
 
@@ -461,12 +490,10 @@ public class Parser{
 		match(Token.Type.LPAR);
 		if(willMatch(Token.Type.RPAR)){
 		    skip();
-		    match(Token.Type.SEMI);
 		    return new TaskStatement(ident);
 		} else {
 		    ExpressionList expList = parseExpressionList();
 		    match(Token.Type.RPAR);
-		    match(Token.Type.SEMI);
 		    return new TaskStatement(ident, expList);
 		}
 	    }
@@ -475,12 +502,10 @@ public class Parser{
 	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 		skip();
 		Expression exp = parseExpression();
-		match(Token.Type.SEMI);
 		return new BlockAssign(concat, exp);
 	    } else { //it is a non blocking assignment
 		match(Token.Type.LE);
 		Expression exp = parseExpression();
-		match(Token.Type.SEMI);
 		return new NonBlockAssign(concat, exp);
 	    }
 	} else { //lvalue or task_enable
@@ -489,12 +514,10 @@ public class Parser{
 		skip();
 		if(willMatch(Token.Type.RPAR)){
 		    skip();
-		    match(Token.Type.SEMI);
 		    return new TaskStatement(ident);
 		} else {
 		    ExpressionList expList = parseExpressionList();
 		    match(Token.Type.RPAR);
-		    match(Token.Type.SEMI);
 		    return new TaskStatement(ident, expList);
 		}
 	    } else if (willMatch(Token.Type.SEMI)){
@@ -508,12 +531,10 @@ public class Parser{
 		     if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
-			match(Token.Type.SEMI);
 			return new BlockAssign(vec, exp);
 		    } else { //it is a non blocking assignment
 			match(Token.Type.LE);
 			Expression exp = parseExpression();
-			match(Token.Type.SEMI);
 			return new NonBlockAssign(vec, exp);
 		    }
 		} else {
@@ -524,25 +545,27 @@ public class Parser{
 		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
-			match(Token.Type.SEMI);
 			return new BlockAssign(vec, exp);
 		    } else { //it is a non blocking assignment
 			match(Token.Type.LE);
 			Expression exp = parseExpression();
-			match(Token.Type.SEMI);
 			return new NonBlockAssign(vec, exp);
 		    }
 		}
 	    } else if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 		skip();
 		Expression exp = parseExpression();
-		match(Token.Type.SEMI);
 		return new BlockAssign(ident, exp);
-	    } else { //it is a non blocking assignment
-		match(Token.Type.LE);
+	    } else if(willMatch(Token.Type.LE)){ //it is a non blocking assignment
+		skip();
 		Expression exp = parseExpression();
-		match(Token.Type.SEMI);
 		return new NonBlockAssign(ident, exp);
+	    } else {
+		Token matched = peek();
+		errorLog.addItem(new ErrorItem("Unexpected Statement token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
+		errorLog.printLog();
+		System.exit(1);
+		return null;
 	    }
 	} 
     }
@@ -559,10 +582,16 @@ public class Parser{
     //StatementList -> Statement StatementList | NULL
     private StatementList parseStatementList(){
 	List<Statement> statList = new ArrayList<>();
-	
-	while(!willMatch(Token.Type.END)){
-	    Statement stat = parseStatement();
-	    statList.add(stat);
+
+	if(!willMatch(Token.Type.END)){
+	    do{
+		Statement stat = parseStatement();
+		statList.add(stat);
+		if(willMatch(Token.Type.SEMI)){
+		    skip();
+		    continue;
+		}
+	    } while(!willMatch(Token.Type.END));
 	}
 	
 	return new StatementList(statList);
@@ -583,15 +612,18 @@ public class Parser{
     //CaseItem -> DEFAULT : Statement | DEFAULT Statement | ExpressionList : Statement
     private CaseItem parseCaseItem(){
 	if(willMatch(Token.Type.DEFAULT)){
+	    skip();
 	    if(willMatch(Token.Type.COLON)){
 		skip();
 	    }
 	    Statement stat = parseStatementOrNull();
+	    match(Token.Type.SEMI);
 	    return new DefCaseItem(stat);
 	} else {
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.COLON);
 	    Statement stat = parseStatementOrNull();
+	    match(Token.Type.SEMI);
 	    return new ExprCaseItem(expList, stat);
 	}
     }
@@ -655,7 +687,7 @@ public class Parser{
 	Expression exp = parseExpression();
 	match(Token.Type.RPAR);
 	CaseItemList caseList = parseCaseItemList();
-	willMatch(Token.Type.ENDCASE); 
+	match(Token.Type.ENDCASE); 
 	return new CaseStatement(exp, caseList);
     }
 
@@ -672,7 +704,7 @@ public class Parser{
 
     //CaseXStatement -> CASEX ( Expression ) CaseItemList ENDCASE
     private Statement parseCaseXStatement(){
-	match(Token.Type.CASEZ);
+	match(Token.Type.CASEX);
 	match(Token.Type.LPAR);
 	Expression exp = parseExpression();
 	match(Token.Type.RPAR);
@@ -735,7 +767,7 @@ public class Parser{
 
     //Expression -> STRING | LOR_Expression
     
-    private Expression parseExpression(){
+    public Expression parseExpression(){
 	if(willMatch(Token.Type.STRING)){
 	    Token string = skip();
 	    return new StrValue(string);
@@ -833,7 +865,6 @@ public class Parser{
     // ExpressionListRest -> , Expression ExpressionListRest | null
     private ExpressionList parseExpressionList(){
 	List<Expression> expList = new ArrayList<>();
-	
 	expList.add(parseExpression());
 	
 	while(willMatch(Token.Type.COMMA)){
@@ -1009,7 +1040,7 @@ public class Parser{
 
     // UNARY_Expression -> UnOp Primary | Primary
     private Expression parseUNARY_Expression(){
-	if(willMatch(Token.Type.PLUS) || willMatch(Token.Type.MINUS)){
+	if(willMatch(Token.Type.PLUS) || willMatch(Token.Type.MINUS) || willMatch(Token.Type.BNEG) || willMatch(Token.Type.LNEG) || willMatch(Token.Type.BAND) || willMatch(Token.Type.BNAND) || willMatch(Token.Type.BOR) || willMatch(Token.Type.BXOR) || willMatch(Token.Type.BXNOR)){
 	    Token op = skip();
 	    UnOp unop = new UnOp(op);
 	    Expression right = parsePrimary();
@@ -1019,7 +1050,7 @@ public class Parser{
 	}
     }
 
-    // Primary -> NumValue | IDENT | Concatenation | SystemCall
+    // Primary -> NumValue | IDENT | Concatenation | SystemCall | ( Expression )
     private Expression parsePrimary(){
 	if(willMatch(Token.Type.NUM)){
 	    return parseNumValue();
@@ -1055,13 +1086,19 @@ public class Parser{
 	    }
 	} else if (willMatch(Token.Type.LCURL)){
 	    return parseConcatenation();
-	} else if (willMatch(Token.Type.LPAR)) {
+	} else if (willMatch(Token.Type.LPAR)){
 	    skip();
 	    Expression exp = parseExpression();
 	    match(Token.Type.RPAR);
 	    return exp;
-	} else {
+	} else if (willMatch(Token.Type.DOLLAR)){
 	    return parseSystemCall();
+	} else {
+	    Token matched = peek();
+	    errorLog.addItem(new ErrorItem("Unexpected Primary Expression token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return null;
 	}
     }
 

@@ -11,7 +11,7 @@ public class AssignmentList extends AstNode {
     private final List<Assignment> assignList;
     
     public AssignmentList(List<Assignment> assignList){
-        super(assignList.get(0).getPosition());
+        super(assignList.isEmpty() ? null : assignList.get(0).getPosition());
 	this.assignList = Collections.unmodifiableList(assignList);
     }
 
