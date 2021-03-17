@@ -18,6 +18,7 @@ import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils
 
 import org.junit.Test;
 import java.io.StringReader;
+import java.util.List;
 
 public class CheckpointTest{
         @Test
@@ -42,13 +43,20 @@ public class CheckpointTest{
 
 	    System.out.print(input);
 	    
-	    System.out.print("\n\n-----------Checkpoint 1 Indexer Test Results---------------\n\n");
+	    System.out.print("\n\n-----------Checkpoint 1 Tokenizer Test Results---------------\n\n");
 	    
 	    Destination display = new Destination(System.out);
 	    Source source = new Source(new StringReader(input));
 	    InfoLog errorLog = new InfoLog(display);
 	    Lexer lex = new Lexer(source, errorLog);
-	    Parser parse = new Parser(lex.tokenize(), errorLog);
+
+	    List<Token> tokens = lex.tokenize();
+	    for(Token i : tokens){
+		System.out.println(i.toString());
+	    }
+
+	    System.out.print("\n\n-----------Checkpoint 1 Indexer Test Results---------------\n\n");
+	    Parser parse = new Parser(tokens, errorLog);
 	    ModuleDeclaration moddec = parse.parseAST();
 	    IndexerVisitor idVisitor = new IndexerVisitor(moddec, display, errorLog);
 	    idVisitor.visitRoot();
