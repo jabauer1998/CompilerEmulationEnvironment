@@ -1,0 +1,20 @@
+//Check if Decoding is working
+//There are 10 instructions
+11110001001011111111111100010010 //BX on R2 allways
+11111010000000000000000000000000 //B with an offset of 0 allways
+11110010001110101000000000001111 //Data Processing Xor Instruction Source is R10 and 15 Destination is R8
+11110001000011110001000000000000 //MRS Transfer CPSR to R1
+11110001001010011111000000000001 //MSR Transfer R1 to CSPR
+11110000001101010000100110011100 //MLA Destination is R5 and Mult SRC Registers are R9 and R12 and Add Src Register is R0
+11110000101100000001100010011110 //MLAL with Destination being R0 and R1 with R14 and R8 being MULT registers and R0 and R1 being destination registers as well
+11110100110100000001000000000000 //LDR From memory location stored in R0 to register R1
+11110000000110000101000011010000 //LDRSB Load the Signed Byte the Memory at the memory address R8 + R0 to the register R5
+11111000000000000000011111111110 //STM Store all registers except R0 and R15 to the adress in RO...The incriment is going downward
+11110001010000000011000010011010 //SWP Swap MEMORY at R0 + R10 to the Memory Address in R2
+
+
+
+
+
+
+
