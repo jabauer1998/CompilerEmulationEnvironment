@@ -1,6 +1,6 @@
 module Arm();
 `define WIDTH 31
-`define MEMSIZE 1200
+`define MEMSIZE 3000000
 
    reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
    
@@ -87,13 +87,11 @@ module Arm();
 
    initial begin
       loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
-      while(fetch(R[15]) != 32'b11111111111111111111111111111111 && R[15] < `MEMSIZE) begin
+      while(fetch(R[15]) && R[15] < `MEMSIZE) begin
 	 INSTR = fetch(R[15]); //Fetch next memory
-	 $display("Instruction at Memory %d is equal to %b", R[15], INSTR);
 	 InstructionCode = decode(INSTR);
-	 $display("Decode number of the instruction is %d", InstructionCode);
 	 incriment; //increment the program counter by a word or 4 bytes
-	 //execute(InstructionCode);
+	 execute(InstructionCode);
       end
    end
 
@@ -182,13 +180,10 @@ module Arm();
 	  1: begin //BL | B
 	     if(INSTR[24]) //check if Link bit is set
 	       R[14] = R[15];
-
-	     R[15] = INSTR[23:0] << 2;
-	     if(INSTR[23]) //check if the value is negative
-	       R[15] |= ((1 << (`WIDTH - 23)) - 1) << 23; //if it is sign extend it so it is still negative
+	     R[15] =  INSTR[23:0];
 	  end
 	  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17: begin //AND Instruction
-	     op1 = INSTR[19:16];
+	     op1 = R[INSTR[19:16]];
 	     
 	     if(INSTR[25]) begin //Operand 2 is rotated
 		op2 = INSTR[7:0];
@@ -564,7 +559,7 @@ module Arm();
 	`LE : checkCC = `Z | (`N != `V);
 	`AL : checkCC = 1; //allways ignored
 	default: begin
-	   $display("Error: Unidentified intruction %b", code);
+	   $display("Error: Unidentified intsruction %b", code);
 	   $finish;
 	   checkCC = -1;
 	end

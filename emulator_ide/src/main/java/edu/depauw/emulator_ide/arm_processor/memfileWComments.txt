@@ -13,6 +13,16 @@
 11110001010000000011000010011010 //SWP Swap MEMORY at R0 + R10 to the Memory Address in R2
 
 
+//Second program unlimited branching with incrimenting number
+11110011101010000000000000000000 //MOV R0, #0
+11110011101010000001000000000001 //MOV R1, #1
+11111111000000000000000000000001 //SWI #1 //print what is in R0 register
+11110000100100000000000000000001 //ADD R0, R0, R1 //Ro is incrimented by 1
+11111010011111111111111111111110 //B 0x04 (CurAddr + (-0x02 << 2)) Branch -8 = adress 4
+
+
+
+
 
 
 
