@@ -2,7 +2,7 @@ module Arm();
 `define WIDTH 31
 `define MEMSIZE 1200
 
-reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
+   reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
    
 
    //Conditional codes
@@ -23,6 +23,7 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 `define AL 4'b1110
 
    //OpType
+`define STOP 32'b00000110000000000000000000010000 //32
 `define BX 32'bzzzz000100101111111111110001zzzz //24
 `define MRS 32'bzzzz00010z001111zzzz000000000000 //23
 `define MSR1 32'bzzzz00010z101001111100000000zzzz //23
@@ -31,6 +32,7 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 `define MULMLA 32'bzzzz000000zzzzzzzzzzzzzz1001zzzz //10
 `define MULLMLAL 32'bzzzz00001zzzzzzzzzzzzzzz1001zzzz //9
 `define LDRHSTRHLDRSBLDRSH 32'bzzzz000zz0zzzzzzzzzzzzzz1zz1zzzz //6
+`define SWI 32'bzzzz1111zz0zzzzzzzzzzzzzzzzzzzzz //4
 `define BBL 32'bzzzz101zzzzzzzzzzzzzzzzzzzzzzzzz //3
 `define LDMSTM 32'bzzzz100zzzzzzzzzzzzzzzzzzzzzzzzz //3
 `define DATAPROC 32'bzzzz00zzzzzzzzzzzzzzzzzzzzzzzzzz //2
@@ -93,14 +95,12 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	 incriment; //increment the program counter by a word or 4 bytes
 	 //execute(InstructionCode);
       end
-      $display("Code done!!!");
-      $finish;
    end
 
    task loadProgram;
       input [31:0] address;
-      integer status, handler;
-      reg [0:31] binaryLine;
+      integer 	   status, handler;
+      reg [0:31]   binaryLine;
       begin
 	 R[15] = address; // initialize stack pointer to address 0
 	 handler = $fopen("./memfile.txt", "r");
@@ -123,11 +123,11 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
    endfunction // fetch
 
    /*
-   task displayMemory;
-      integer   index;
-      begin
-         for(index = 0; index < `MEMSIZE; index = index + 1)
-	   $display("memory[%d] = %b", index, MEM[index]);
+    task displayMemory;
+    integer   index;
+    begin
+    for(index = 0; index < `MEMSIZE; index = index + 1)
+    $display("memory[%d] = %b", index, MEM[index]);
       end
    endtask // readmemory
     */
@@ -144,6 +144,8 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	   `MULMLA : decode = 21;
 	   `MULLMLAL : decode = 22;
 	   `LDRHSTRHLDRSBLDRSH : decode = 24;
+	   `SWI : decode = 27;
+	   `STOP : decode = 28;
 	   `BBL : decode = 1;
 	   `LDMSTM : decode = 25;
 	   `DATAPROC: decode = instruction[24:21] + 2; // 2 to 17
@@ -188,46 +190,46 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17: begin //AND Instruction
 	     op1 = INSTR[19:16];
 	     
-	     if(INSTR[25]) begin
+	     if(INSTR[25]) begin //Operand 2 is rotated
 		op2 = INSTR[7:0];
 		for(i=0; i <= `WIDTH; i = i + 1)
 		  copy[i] = op2[(i + INSTR[11:8] * 2) % (`WIDTH+1)];
-		op2 = copy;
-	     end else begin
-	       op2 = R[INSTR[3:0]];
-	       if(INSTR[4])
-		 case(INSTR[6:5])
-		   2'b00: op2 = op2 << (R[INSTR[11:8]] & 8'b11111111); //Logical left
-		   2'b01: op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111); //Logical right
-		   2'b10: begin 
-			op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111);
-			if(op2[`WIDTH] == 1)
-			  op2 |= ((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111)); //Arithmetic Right						
-		   end							 
-		   2'b11: begin
-		      for(i = 0; i <= `WIDTH; i = i + 1)
-			copy[i] = op2[(i + (R[INSTR[11:8]] & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
-		      op2 = copy;
-		   end
-		 endcase
-	       else
-		 case(INSTR[6:5])
-		   2'b00: op2 = op2 << INSTR[11:7]; //Logical left
-		   2'b01: op2 = op2 >> INSTR[11:7]; //Logical right
-		   2'b10: begin //Arithmetic right
-		      op2 = op2 >> INSTR[11:7];
-		      if(op2[`WIDTH]) //Aritmetic right
-			op2 |= ((1 << INSTR[11:7]) - 1) << (`WIDTH + 1 - INSTR[11:7]);
-		   end
-		   2'b11: begin
-		      for(i=0; i <= `WIDTH; i = i + 1)
-			copy[i] = op2[((i + INSTR[11:7]) % (`WIDTH + 1))]; //Rotate Right
-		      op2 = copy;
-		   end
-		 endcase
+		op2 = copy; 
+	     end else begin //Operand 2 is shifted
+		op2 = R[INSTR[3:0]];
+		if(INSTR[4]) //shift is stored in register value
+		  case(INSTR[6:5])
+		    2'b00: op2 = op2 << (R[INSTR[11:8]] & 8'b11111111); //Logical left
+		    2'b01: op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111); //Logical right
+		    2'b10: begin 
+		       op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111);
+		       if(op2[`WIDTH] == 1)
+			 op2 |= ((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111)); //Arithmetic Right						
+		    end							 
+		    2'b11: begin
+		       for(i = 0; i <= `WIDTH; i = i + 1)
+			 copy[i] = op2[(i + (R[INSTR[11:8]] & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
+		       op2 = copy;
+		    end
+		  endcase
+		else //shift is immediate
+		  case(INSTR[6:5])
+		    2'b00: op2 = op2 << INSTR[11:7]; //Logical left
+		    2'b01: op2 = op2 >> INSTR[11:7]; //Logical right
+		    2'b10: begin //Arithmetic right
+		       op2 = op2 >> INSTR[11:7];
+		       if(op2[`WIDTH]) //Aritmetic right
+			 op2 |= ((1 << INSTR[11:7]) - 1) << (`WIDTH + 1 - INSTR[11:7]);
+		    end
+		    2'b11: begin
+		       for(i=0; i <= `WIDTH; i = i + 1)
+			 copy[i] = op2[((i + INSTR[11:7]) % (`WIDTH + 1))]; //Rotate Right
+		       op2 = copy;
+		    end
+		  endcase
 	     end // else
 	     
-	     case(code)
+	     case(code) //perform the specified operation
 	       2, 10: solution32 = op1 & op2;
 	       3, 11: solution32 = op1 ^ op2;
 	       4, 12: solution32 = op1 - op2;
@@ -242,35 +244,35 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	       17: solution32 = ~op2;
 	     endcase // case (code)
 	     
-	     if(INSTR[20]) begin
-		     `C = solution32[32];
-		     `Z = (solution32 == 0) ? 1 : 0;
-		     `N = (solution32[31] == 1) ? 1 : 0;
-                     `V = (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]);
+	     if(INSTR[20]) begin //set the status bits if necessary
+		`C = solution32[32];
+		`Z = (solution32 == 0) ? 1 : 0;
+		`N = (solution32[31] == 1) ? 1 : 0;
+                `V = (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]);
 	     end
 
-	     if(code >= 2 && code <= 9 || code >= 14 && code <= 17) //If it is a destination instruction write back to the destination
-		R[INSTR[15:12]] = solution32[31:0];
+	     if(code >= 2 && code <= 9 || code >= 14 && code <= 17) //If the instruction wants a result return it
+	       R[INSTR[15:12]] = solution32[31:0];
 	     
 	  end
 	  18: begin //MRS Instruction
 	     if(INSTR[22]) begin 
-	       $display("Error: there is no SPSR on this machine");
-	       $finish;	
+		$display("Error: there is no SPSR on this machine");
+		$finish;	
 	     end
 	     R[INSTR[15:12]] = CSPR; 
 	  end 
 	  19:  begin //MSR1 Instruction
 	     if(INSTR[22]) begin 
-	       $display("Error: there is no SPSR on this machine");
-	       $finish;	
+		$display("Error: there is no SPSR on this machine");
+		$finish;	
 	     end
 	     CSPR = R[INSTR[3:0]];
 	  end  
 	  20: begin //MSR2 Instruction
 	     if(INSTR[22]) begin
-	       $display("Error: there is no SPSR on this machine");
-	       $finish;	
+		$display("Error: there is no SPSR on this machine");
+		$finish;	
 	     end
 
 	     if(INSTR[11:4] == 0)
@@ -289,12 +291,12 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	     solution32 = op1 * op2;
 	     if(INSTR[21])
 	       solution32 = solution32 + R[INSTR[15:12]];
-		      
+	     
 	     if(INSTR[20])
 	       `C = solution32[32];
-	       `Z = (solution32 == 0) ? 1 : 0;
-	       `N = (solution32[`WIDTH] == 1) ? 1 : 0;
-               `V = (solution32[`WIDTH] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[`WIDTH] & op1[`WIDTH] & op2[`WIDTH]);
+	     `Z = (solution32 == 0) ? 1 : 0;
+	     `N = (solution32[`WIDTH] == 1) ? 1 : 0;
+             `V = (solution32[`WIDTH] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[`WIDTH] & op1[`WIDTH] & op2[`WIDTH]);
 	  end
 	  22: begin //MULL | MLAL
 	     op1 = R[INSTR[3:0]]; //first op
@@ -305,227 +307,242 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 
              if(INSTR[20])
 	       `C = solution64[64];
-	       `Z = (solution64 == 0) ? 1 : 0;
-	       `N = (solution64[63] == 1) ? 1 : 0;
-               `V = (solution64[63] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution64[63] & op1[`WIDTH] & op2[`WIDTH]);
+	     `Z = (solution64 == 0) ? 1 : 0;
+	     `N = (solution64[63] == 1) ? 1 : 0;
+             `V = (solution64[63] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution64[63] & op1[`WIDTH] & op2[`WIDTH]);
              
 	     if(INSTR[19:16] != INSTR[15:12] && INSTR[19:16] != 15 && INSTR[15:12] != 15) begin
 		R[INSTR[19:16]] = solution64[63:32];
 		R[INSTR[15:12]] = solution64[31:0];
 	     end
 	  end 
-	  23: begin //LD | STR
-	     op1 = R[INSTR[19:16]];
-	     if(INSTR[25])//I bit
-	       offset = shift(INSTR);//register shifted
+	  23: begin //LDR | STR
+	     if(INSTR[25])
+	       if(INSTR[4])
+		 case(INSTR[6:5])
+		   2'b00: offset = R[INSTR[3:0]] << (R[INSTR[11:8]] & 8'b11111111); //Logical left
+		   2'b01: offset = R[INSTR[3:0]] >> (R[INSTR[11:8]] & 8'b11111111); //Logical right
+		   2'b10: begin 
+		      offset = R[INSTR[3:0]] >> (R[INSTR[11:8]] & 8'b11111111);
+		      if(offset[`WIDTH] == 1)
+			offset |= ((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111)); //Arithmetic Right						
+		   end							 
+		   2'b11: begin
+		      offset = R[INSTR[3:0]];
+		      for(i = 0; i <= `WIDTH; i = i + 1)
+			copy[i] = offset[(i + (R[INSTR[11:8]] & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
+		      offset = copy;
+		   end
+		 endcase // case (INSTR[6:5])
+	       else
+		 case(INSTR[6:5])
+		   2'b00: offset = R[INSTR[3:0]] << INSTR[11:7]; //Logical left
+		   2'b01: offset = R[INSTR[3:0]] >> INSTR[11:7]; //Logical right
+		   2'b10: begin 
+		      offset = R[INSTR[3:0]] >> INSTR[11:7];
+		      if(offset[`WIDTH] == 1)
+			offset = offset | ((1 << (INSTR[11:7]) - 1) << (`WIDTH + 1 - INSTR[11:7])); //Arithmetic Right						
+		   end							 
+		   2'b11: begin
+		      offset = R[INSTR[3:0]];
+		      for(i = 0; i <= `WIDTH; i = i + 1)
+			copy[i] = offset[(i + (INSTR[11:7])) % (`WIDTH+1)]; //Rotate Right
+		      offset = copy;
+		   end
+		 endcase // case (INSTR[6:5])
 	     else
 	       offset = INSTR[11:0]; //immediate
 	     
-	     if(INSTR[24])//U bit
-	       if(INSTR[23])
-		 R[INSTR[19:16]] = R[INSTR[19:16]] + offset;	        
+	     
+	     if(INSTR[24])//Pre indexed
+	       if(INSTR[23]) //up or down
+		 address = R[INSTR[19:16]] + offset;	        
 	       else
-		 R[INSTR[19:16]] = R[INSTR[19:16]] - offset;
+		 address = R[INSTR[19:16]] - offset;
+	     else
+	       address = R[INSTR[19:16]];
+
+	     if(INSTR[21])//Write back enabled
+	       R[INSTR[19:16]] = address;
 	     
 	     if(INSTR[20])// load
 	       if(INSTR[22]) begin //In byte mode
-		  op2 = MEM[R[INSTR[19:16]]];
-		  R[INSTR[15:12]] = op2[7:0];
+		  R[INSTR[15:12]] = MEM[address];
 	       end else begin //In word mode
-		  R[INSTR[15:12]] = MEM[R[INSTR[19:16]]];
+		  R[INSTR[15:12]] = {MEM[address], MEM[address + 1]};
 	       end
 	     else //store
 	       if(INSTR[22])begin //In byte mode
 		  op2 = R[INSTR[15:12]];
-		  MEM[op1] = op2[7:0];
-	       end else begin //In word mode (Big endian notation)
-		  op2 = R[INSTR[15:12]];
-		  op1 = R[INSTR[19:16]];
-		  MEM[R[INSTR[19:16]]] = op2[31:24]; //1st byte in memory is highest order byte
-		  MEM[R[INSTR[19:16]] + 1] = op2[23:16];
-		  MEM[R[INSTR[19:16]] + 2] = op2[15:8];
-		  MEM[R[INSTR[19:16]] + 3] = op2[7:0];
+		  MEM[address] = R[INSTR[15:12]] & 8'b11111111;
+	       end else begin //In word mode
+		  {MEM[address], MEM[address + 1], MEM[address + 2], MEM[address + 3]} = R[INSTR[15:12]]; //Set word in memory to value
 	       end
 
-	     if(!INSTR[24])//U bit
-	       if(INSTR[23])
+	     if(!INSTR[24])//Post Indexed
+	       if(INSTR[23])//U bit
 		 R[INSTR[19:16]] = R[INSTR[19:16]] + offset;	        
 	       else
 		 R[INSTR[19:16]] = R[INSTR[19:16]] - offset;
-
-	     if(INSTR[21] && INSTR[24])
-	       R[INSTR[19:16]] = op1;
 	     
-	  end // case: 22
+	  end // case: 23
 	  24: begin //LDRH | STRH | LDRSB | LDRSH
-	     op1 = R[INSTR[19:16]];
 	     
 	     if(INSTR[11:8] == 0)
-	       offset = R[INSTR[3:0]];
+	       offset = R[INSTR[3:0]]; //register offset
 	     else
 	       offset = {INSTR[11:8],INSTR[3:0]}; //immediate
 	     
-	     if(INSTR[24])//U bit
-	       if(INSTR[23])
-		 R[INSTR[19:16]] = R[INSTR[19:16]] + offset;	        
+	     if(INSTR[24])// Pre indexed
+	       if(INSTR[23])//Add of subtract offset
+		 address = R[INSTR[19:16]] + offset;	        
 	       else
-		 R[INSTR[19:16]] = R[INSTR[19:16]] - offset;
+		 address = R[INSTR[19:16]] - offset;
+	     else
+	       address = R[INSTR[19:16]];
+
+	     if(INSTR[21])
+	       R[INSTR[19:16]] = address;
 	     
 	     if(INSTR[20])// load
 	       case(INSTR[6:5])
-		 2'b00: begin //SWP
-		    op2 = MEM[R[INSTR[19:16]]];
-		    MEM[R[INSTR[19:16]]] = R[INSTR[15:12]];
-		    R[INSTR[15:12]] = op2;
+		 2'b00: begin //SWP instruction
+		    op1 = MEM[address];
+		    op2 = R[INSTR[15:12]];
+		    MEM[address] = op2;
+		    R[INSTR[15:12]] = op1;
 		 end
 		 2'b01: begin //Unsigned Halfwords
-		    op2 = MEM[R[INSTR[19:16]]];
-		    R[INSTR[15:12]] = op2[15:0];
+		    R[INSTR[15:12]] = {MEM[address], MEM[address + 1]};
 		 end
 		 2'b10: begin //Signed Bytes
-		    op2 = MEM[R[INSTR[19:16]]];
-		    R[INSTR[15:12]] = op2[7:0];
+		    R[INSTR[15:12]] = MEM[address];
+		    if(R[INSTR[15:12]] & 8'b10000000)
+		      R[INSTR[15:12]] = R[INSTR[15:12]] | 32'b11111111111111111111111100000000;
 		 end
 		 2'b11: begin //Signed Halfwords
-		    op2 = MEM[R[INSTR[19:16]]];
-		    R[INSTR[15:12]] = op2[15:0];
+		    R[INSTR[15:12]] = {MEM[address], MEM[address + 1]};
+		    if(R[INSTR[15:12]] & 16'b1000000000000000)
+		      R[INSTR[15:12]] = R[INSTR[15:12]] | 32'b11111111111111110000000000000000;   
 		 end
 	       endcase // case (INSTR[6:5])
 	     else //store
 	       case(INSTR[6:5])
 		 2'b00: begin //SWP
+		    op1 = MEM[address];
 		    op2 = R[INSTR[15:12]];
-		    R[INSTR[15:12]] = MEM[op1];
-		    MEM[op1] = op2;
+		    MEM[address] = op2;
+		    R[INSTR[15:12]] = op1;
 		 end
 		 2'b01: begin //Unsigned Halfwords
-		    op2 = R[INSTR[15:12]];
-		    MEM[op1] = 0;
-		    MEM[op1 + 1] = 0;
-		    MEM[op1 + 2] = op2[15:0];
+		    {MEM[address], MEM[address + 1]} = R[INSTR[15:12]] & 16'b1111111111111111;
 		 end
 		 2'b10: begin //Signed Bytes
-		    op2 = R[INSTR[15:12]];
-		    MEM[op1] = op2[7:0];
+		    MEM[address] = R[INSTR[15:12]] & 8'b11111111;
 		 end
 		 2'b11: begin //Signed Halfwords
-		    op2 = R[INSTR[15:12]];
-		    MEM[op1] = 0;
-		    MEM[op1 + 1] = 0;
-		    MEM[op1 + 2] = op2[15:0];
+		    {MEM[address], MEM[address + 1]} = R[INSTR[15:12]] & 16'b1111111111111111;
 		 end
 	       endcase // case (INSTR[6:5])
 
-	     if(!INSTR[24])//U bit
-	       if(INSTR[23])
+	     if(!INSTR[24])//post indexed
+	       if(INSTR[23]) //Ubit offset
 		 R[INSTR[19:16]] = R[INSTR[19:16]] + offset;	        
 	       else
 		 R[INSTR[19:16]] = R[INSTR[19:16]] - offset;
 	     
-	     if(INSTR[21] && INSTR[24])
-	       R[INSTR[19:16]] = op1;
 	  end // case: 24
-	  25: begin
+	  25: begin //LDM | STM
 	     address = R[INSTR[19:16]];
 	     regList = INSTR[15:0];
-	     if(INSTR[20])begin
-		if(INSTR[23]) begin
-		   if(INSTR[24])
-		     address = address + 4;
-		   
-		   for(i = 0; i < 16; i++)
-		     if(regList[i] == 1) begin
-			R[i] = MEM[address];
-			address = address + 4;
-		     end
-		   
-		end else begin
-		   if(INSTR[24])
-		     address = address - 4;
-		   
-		   for(i = 15; i >= 0; i--)
-		     if(regList[i] == 1) begin
-			R[i] = MEM[address];
-			address = address - 4;
-		     end
-		   
-		end // else: !if(INSTR[23])
-	     end else begin
-		
-		if(INSTR[23]) begin
-		   if(INSTR[24])
-		     address = address + 4;
-		   
-		   for(i = 0; i < 16; i++)
-		     if(regList[i] == 1) begin
-			MEM[address] = R[i];
-			address = address + 4;
-		     end
-		   
-		end else begin
-		   if(INSTR[24])
-		     address = address - 4;
-		   
-		   for(i = 15; i >= 0; i--)
-		     if(regList[i] == 1) begin
-			MEM[address] = R[i];
-			address = address - 4;
-		     end
-		   
-		end // else: !if(INSTR[23])
-		
 
-		if(INSTR[21] && INSTR[24])
-		  R[INSTR[19:16]] = op1;
+	     if(INSTR[20])begin //load
+		if(INSTR[23]) begin //up or down (up)
+		   if(INSTR[24]) //pre indexing
+		     address = address + 4;
+		   
+		   for(i = 0; i < 16; i++)
+		     if(regList[i] == 1) begin
+			R[i] = MEM[address];
+			address = address + 4;
+		     end
+		   
+		end else begin 
+		   if(INSTR[24])
+		     address = address - 4;
+		   
+		   for(i = 15; i >= 0; i--)
+		     if(regList[i] == 1) begin
+			R[i] = MEM[address];
+			address = address - 4;
+		     end
+		   
+		end // else: !if(INSTR[23])
+	     end else begin //store
+		
+		if(INSTR[23]) begin
+		   if(INSTR[24])
+		     address = address + 4;
+		   
+		   for(i = 0; i < 16; i++)
+		     if(regList[i] == 1) begin
+			MEM[address] = R[i];
+			address = address + 4;
+		     end
+		   
+		end else begin
+		   if(INSTR[24])
+		     address = address - 4;
+		   
+		   for(i = 15; i >= 0; i--)
+		     if(regList[i] == 1) begin
+			MEM[address] = R[i];
+			address = address - 4;
+		     end
+		   
+		end // else: !if(INSTR[23])
 	     end // else: !if(INSTR[20])
 	     
 	  end // case: 25
 	  26: begin //data swap
-	     if(INSTR[21]) begin
-		op1 = MEM[R[INSTR[19:16]]];
-		R[INSTR[15:12]] = op1[8:0];
-		op1 = R[INSTR[3:0]];
-		MEM[R[INSTR[19:16]]] = op1[7:0];
-	     end else begin
-		R[INSTR[15:12]] = MEM[R[INSTR[19:16]]];
-		MEM[R[INSTR[19:16]]] = R[INSTR[3:0]];
+	     if(INSTR[22]) begin //swap byte
+		address = R[INSTR[19:16]];
+		op1 = MEM[address];
+		op2 = R[INSTR[3:0]];
+		R[INSTR[15:12]] = op1;
+		MEM[address] = op2;
+	     end else begin //swap word
+		address = R[INSTR[19:16]];
+		op1 = {MEM[address], MEM[address + 1], MEM[address + 2], MEM[address + 3]};
+		op2 = R[INSTR[3:0]];
+		R[INSTR[15:12]] = op1;
+		MEM[address] = op2;
 	     end
-	  end // case: 25
+	  end // case: 26
+
+	  27: begin //software interupt
+	     case(INSTR[23:0])
+	       //0: R[0] = $input;
+	       1: $display(R[0]); //displays value in RO
+	       default: begin
+		  $display("Error: invalid interupt vector number");
+		  $finish;
+	       end
+	     endcase // case (INSTR[])
+	  end // case: 27
+
+	  28: begin //stop
+	     $display("Code is done!!!");
+             $finish;
+	  end // case: 28
 
 	  default: begin
-	    $display("Unknown opcode %b", code);
-	    $finish;
+	     $display("Unknown Instruction with opcode  %b", code);
+	     $finish;
 	  end
 	  
 	endcase // case (code)
    endtask // execute
-
-   function reg[31:0] shift;
-      input [31:0] INSTR;
-      reg [4:0]    AMOUNT;
-      reg [1:0]    TYPE;
-      begin 
-	 if(INSTR[4])
-	   AMOUNT = R[INSTR[11:8]];
-	 else
-	   AMOUNT = INSTR[11:7];
-	 TYPE = INSTR[6:5];
-	 case(TYPE)
-	   2'b00: shift = R[INSTR[3:0]] << AMOUNT;
-	   2'b01: shift = R[INSTR[3:0]] >> AMOUNT;
-	   2'b10: if(INSTR[3])
-	     shift = {1'b1, R[INSTR[3:0]]} >> AMOUNT;
-	   else
-	     shift = INSTR[3:0] >> AMOUNT;
-	   2'b11: shift = {R[INSTR[3:0]], R[INSTR[3:0]]} >> AMOUNT;
-	   default: begin
-	      $display("Error: Unidentified Shift Type %b", TYPE);
-	      shift = -1;
-	      $finish;
-	   end
-	 endcase // case (TYPE)
-      end
-   endfunction // shift
    
    
    function checkCC;
@@ -553,19 +570,5 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	end
       endcase // case (code)
    endfunction // checkCC
-
-   task setCC;
-      input [31:0] op1;
-      input [31:0] op2;
-      input [31:0] result;
-      begin
-	 `C = result[`WIDTH];
-	 `Z = result == 0;
-	 `N = result[`WIDTH - 1];
-	 `V = (result[`WIDTH - 1] & ~op1[`WIDTH - 1] & ~op2[`WIDTH - 1]) | (~result[`WIDTH - 1] & op1[`WIDTH - 1] & op2[`WIDTH - 1]);
-      end
-   endtask // setCC
-   
-   
    
 endmodule // Arm
