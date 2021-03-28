@@ -74,7 +74,7 @@ module Arm();
 `define Q CSPR[27]
 `define IT1 CSPR[26:25]
 `define J CSPR[24]
-`define GE CSPR[19:16]
+`define GEE CSPR[19:16]
 `define IT2 CSPR[15:10]
 `define E CSPR[9]
 `define A CSPR[8]
@@ -134,6 +134,7 @@ module Arm();
       input reg [`WIDTH:0] instruction;
       begin
 	 casez(instruction)
+	   `STOP : decode = 28;
 	   `BX : decode = 0;
 	   `MRS : decode = 18;
 	   `MSR2 : decode = 20;
@@ -143,7 +144,6 @@ module Arm();
 	   `MULLMLAL : decode = 22;
 	   `LDRHSTRHLDRSBLDRSH : decode = 24;
 	   `SWI : decode = 27;
-	   `STOP : decode = 28;
 	   `BBL : decode = 1;
 	   `LDMSTM : decode = 25;
 	   `DATAPROC: decode = instruction[24:21] + 2; // 2 to 17
@@ -241,8 +241,8 @@ module Arm();
 	     
 	     if(INSTR[20]) begin //set the status bits if necessary
 		`C = solution32[32];
-		`Z = (solution32 == 0) ? 1 : 0;
-		`N = (solution32[31] == 1) ? 1 : 0;
+		`Z = !solution32;
+		`N = solution32[31];
                 `V = (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]);
 	     end
 
@@ -541,7 +541,7 @@ module Arm();
    
    
    function checkCC;
-      input [4:0] code;
+      input [3:0] code;
       case(code)
 	`EQ : checkCC = `Z;
 	`NE : checkCC = ~`Z;
