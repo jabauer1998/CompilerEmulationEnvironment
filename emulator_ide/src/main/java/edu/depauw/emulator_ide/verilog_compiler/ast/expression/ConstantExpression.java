@@ -9,7 +9,7 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
  */
 public class ConstantExpression extends Expression{
 
-    private final Expression expression; //expression determined to be const
+    private Expression expression; //expression determined to be const
 
     /** The const expression constructor takes in a single expression 
      * determined to be const
@@ -25,6 +25,13 @@ public class ConstantExpression extends Expression{
      */
     public Expression getExpression(){
 	return expression;
+    }
+
+    /** Sets expression to a new expression
+     * @param none
+     */
+    public void  setExpression(Expression expression){
+	this.expression = expression;
     }
 
     /** This accept method is needed to visit const expressions

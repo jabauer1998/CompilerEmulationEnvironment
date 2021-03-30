@@ -310,6 +310,13 @@ public interface AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType>{
      public StatVisitType visit(TaskStatement task);
 
     /**
+     * This is used to visit a taskcall in verilog
+     * @param stat
+     */
+     
+     public StatVisitType visit(SystemTaskStatement task);
+
+    /**
      * This is used to visit a wait statement in verilog
      * @param stat
      */
@@ -379,6 +386,13 @@ public interface AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType>{
      */
     
     public ExprVisitType visit(FunctionCall call);
+
+    /**
+     * This is the code for visiting Function Calls
+     * @param call
+     */
+    
+    public ExprVisitType visit(SystemFunctionCall call);
 
     /**
      * This is the code for visiting an Identifier

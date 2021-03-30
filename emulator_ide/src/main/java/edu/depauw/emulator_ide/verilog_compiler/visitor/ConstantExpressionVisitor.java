@@ -17,11 +17,9 @@ import edu.depauw.emulator_ide.common.debug.item.*;
     
 public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Object>{
     
-    private AstNode node;
-    private Destination dest;
     private InfoLog errorLog;
     
-    public ConstantExpressionVisitor(AstNode node, Destination dest, InfoLog errorLog){
+    public ConstantExpressionVisitor(InfoLog errorLog){
 	this.dest = dest;
 	this.errorLog = errorLog;
 	this.node = node;
@@ -402,6 +400,15 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
     }
 
     /**
+     * This is used to visit a systemtaskcall in verilog
+     * @param stat
+     */
+     
+    public Void visit(SystemTaskStatement task){
+	return null;
+    }
+
+    /**
      * This is used to visit a wait statement in verilog
      * @param stat
      */
@@ -603,6 +610,9 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
      * @param concat
      */
 
+     public Object visit(Concatenation concat){
+	return null;
+     }
     /**
      * This is the code for visiting Constant Expressions
      * @param expr
@@ -628,6 +638,15 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
      */
     
     public Object visit(FunctionCall call){
+	return null;
+    }
+
+    /**
+     * This is the code for visiting Function Calls
+     * @param call
+     */
+    
+    public Object visit(SystemFunctionCall call){
 	return null;
     }
 
@@ -700,7 +719,4 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
 	return null;
     }
 
-     public Object visit(Concatenation concat){
-	return null;
-    }
 }

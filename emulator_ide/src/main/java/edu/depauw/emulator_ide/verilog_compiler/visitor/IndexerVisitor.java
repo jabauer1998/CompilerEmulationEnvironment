@@ -679,6 +679,19 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     }
 
     /**
+     * This is used to visit a system task statement in verilog
+     * @param stat
+     */
+     
+    public Void visit(SystemTaskStatement task){
+
+	for(int i = 0; i < task.numExpressions(); i++){
+	    task.getExpression(i).accept(this);
+	}
+	return null;
+    }
+
+    /**
      * This is used to visit a wait statement in verilog
      * @param stat
      */
@@ -785,6 +798,18 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	    errorLog.addItem(new ErrorItem("Function Entry " + fname.getLexeme() + " Doesnt Exist", fname.getPosition())); 
 	}
 
+	for(int i = 0; i < call.numExpressions(); i++){
+	    call.getExpression(i).accept(this);
+	}
+	return null;
+    }
+
+    /**
+     * This is the code for visiting Function Calls
+     * @param call
+     */
+    
+    public Void visit(SystemFunctionCall call){
 	for(int i = 0; i < call.numExpressions(); i++){
 	    call.getExpression(i).accept(this);
 	}

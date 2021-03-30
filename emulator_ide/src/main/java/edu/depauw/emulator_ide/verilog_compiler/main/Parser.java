@@ -485,16 +485,16 @@ public class Parser{
 	    Identifier ident = parseIdentifier();
 	    if(willMatch(Token.Type.SEMI)){
 		skip();
-		return new TaskStatement(ident);
+		return new SystemTaskStatement(ident);
 	    } else {
 		match(Token.Type.LPAR);
 		if(willMatch(Token.Type.RPAR)){
 		    skip();
-		    return new TaskStatement(ident);
+		    return new SystemTaskStatement(ident);
 		} else {
 		    ExpressionList expList = parseExpressionList();
 		    match(Token.Type.RPAR);
-		    return new TaskStatement(ident, expList);
+		    return new SystemTaskStatement(ident, expList);
 		}
 	    }
 	} else if (willMatch(Token.Type.LCURL)){
@@ -1111,9 +1111,9 @@ public class Parser{
 	    skip();
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.RPAR);
-	    return new FunctionCall(ident, expList);
+	    return new SystemFunctionCall(ident, expList);
 	} else {
-	    return new FunctionCall(ident);
+	    return new SystemFunctionCall(ident);
 	}
     }
 
