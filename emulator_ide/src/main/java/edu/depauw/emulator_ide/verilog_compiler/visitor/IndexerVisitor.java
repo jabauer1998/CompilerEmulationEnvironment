@@ -110,40 +110,35 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	varEnv.addScope();
 	if(funcName instanceof IntegerDeclaration){
 	    IntegerDeclaration intDec = (IntegerDeclaration)funcName;
-	    name = intDec.getIdentifier(0);
-	    if(funcEnv.entryExists(name.getLexeme())){
-		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    Expression regVal = intDec.getRegValue(0);
+	    if(regVal instanceof Identifier){
+		name = (Identifier)regVal;
 	    } else {
-		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+		name = ((VectorCall)regVal).getIdentifier();
 	    }
 	} else if(funcName instanceof RegScalarDeclaration){
-	    name = (Identifier)(((RegScalarDeclaration)funcName).getRegValue(0));
-	    if(funcEnv.entryExists(name.getLexeme())){
-		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    RegVectorDeclaration regvdec = (RegVectorDeclaration)funcName;
+	    Expression regVal = regvdec.getRegValue(0);
+	    if(regVal instanceof Identifier){
+		name = (Identifier)regVal;
 	    } else {
-		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+		name = ((VectorCall)regVal).getIdentifier();
 	    }
 	} else if(funcName instanceof RegVectorDeclaration){
 	    RegVectorDeclaration regvdec = (RegVectorDeclaration)funcName;
-	    Expression ragval = regvdec.getRegValue(0);
-	    name = ragval.getIdentifier();
-	    if(funcEnv.entryExists(name.getLexeme())){
-		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
-	    } else {
-		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
-	    }
+	    Expression regVal = regvdec.getRegValue(0);
+	    name = (Identifier)regVal;
 	} else if(funcName instanceof RealDeclaration){
 	    RealDeclaration realDec = (RealDeclaration)funcName;
 	    name = realDec.getIdentifier(0);
-	    if(funcEnv.entryExists(name.getLexeme())){
-		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
-	    } else {
-		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
-	    }
-	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected type for " + name.getLexeme() + " return type " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
 	}
 	funcName.accept(this);
+	if(!funcEnv.entryExists(name.getLexeme())){
+	    dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    funcEnv.addEntry(name.getLexeme(), varEnv.getEntry(name.getLexeme()));
+	} else {
+	    errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme())));
+	}
 	for(int i = 0; i < function.numDeclarations(); i++){
 	    function.getDeclaration(i).accept(this);
 	}

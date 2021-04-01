@@ -20,9 +20,7 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
     private InfoLog errorLog;
     
     public ConstantExpressionVisitor(InfoLog errorLog){
-	this.dest = dest;
 	this.errorLog = errorLog;
-	this.node = node;
     }
     /**
      *This is the top level visit statement used to visit a Verilog Module which should allways be the root of the

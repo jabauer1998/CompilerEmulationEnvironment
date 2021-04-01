@@ -20,9 +20,10 @@ public class TypeCheckerVariableData{
 	OUTPUT,
 	INPUT,
 	OUTPUT_WIRE,
-	OUTPUT_REG,
+	OUTPUT_REGISTER,
 	INPUT_WIRE,
 	REGISTER_VECTOR,
+	WIRE_VECTOR,
 	OUTPUT_VECTOR,
 	INPUT_VECTOR,
 	OUTPUT_REGISTER_VECTOR,
@@ -33,7 +34,12 @@ public class TypeCheckerVariableData{
 	REGISTER_ARRAY,
 	REGISTER_VECTOR_ARRAY,
 	OUTPUT_REGISTER_VECTOR_ARRAY,
-	INTEGER_ARRAY
+	OUTPUT_REGISTER_ARRAY,
+	INTEGER_ARRAY,
+
+	//Other Types
+	UNDEFINED,
+	MIXED_VECTOR
     }
 
     public Type type;
@@ -54,6 +60,10 @@ public class TypeCheckerVariableData{
 
     public Position getPosition(){
 	return this.position;
+    }
+
+     public int getSize(){
+	return this.size;
     }
     
     

@@ -10,9 +10,9 @@ public class TypeCheckerFunctionData{
     private ArrayList<TypeCheckerVariableData> expressionTypes;
     private final Position position;
 
-    public TypeCheckerFunctionData(TypeCheckerVariableData type, Position position){
+    public TypeCheckerFunctionData(TypeCheckerVariableData returnType, Position position){
 	this.position = position;
-	this.type = type;
+	this.returnType = returnType;
 	this.expressionTypes = new ArrayList<>();
     }
     
@@ -20,8 +20,12 @@ public class TypeCheckerFunctionData{
 	expressionTypes.add(parType);
     }
 
-    public int numParamaterTypes(){
+    public int numParameterTypes(){
 	return expressionTypes.size();
+    }
+
+    public TypeCheckerVariableData getParameterType(int index){
+	return expressionTypes.get(index);
     }
 
     public TypeCheckerVariableData getReturnType(){

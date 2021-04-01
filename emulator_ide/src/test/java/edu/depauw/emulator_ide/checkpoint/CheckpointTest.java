@@ -13,6 +13,7 @@ import edu.depauw.emulator_ide.verilog_compiler.main.*;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.IndexerVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.TypeCheckerVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.ModuleDeclaration;
 
 import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils.*;
@@ -107,6 +108,46 @@ public class CheckpointTest{
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
+	System.out.print("\n\n-----------Checkpoint 2 Type Checking Program---------------\n\n");
+	String input = "module fulladder (//declare all of the inputs and output ports\n"
+	    + "\t\tinput wire [31:0] a,\n"
+	    + "\t\tinput wire [31:0] b,\n"
+	    + "\t\tinput wire cin,\n"
+	    + "\t\toutput wire cout,\n"
+	    + "\t\toutput [31:0] sum,\n"
+	    + "\t\tUNDECLARED_YET\n"
+            + "\t\t);\n"
+	    + "//assign the outputs of the module to the sum of each bit\n"
+	    + "assign {cout, sum} = a + b + UNDECLAREDYET;\n"
+	    + "allways begin\n"
+	    + "\ta = !a; //treating a like a clock signa usually you would ad a delay like #10 or #20 aswelll\n"
+	    + "end\n"
+	    + "initial begin\n"
+	    + "\tb = ~b;\n"
+	    + "\tb = -h;\n"
+	    + "end\n"
+	    + "endmodule\n";
+
+	System.out.print(input);
+	System.out.print("\n\n-----------Checkpoint 2 Type Checking Result---------------\n\n");
+	//tokenise the tokens
+	Destination display = new Destination(System.out);
+	Source source = new Source(new StringReader(input));
+	InfoLog errorLog = new InfoLog(display);
+	Lexer lex = new Lexer(source, errorLog);
+	
+	List<Token> tokens = lex.tokenize();
+
+	//parse the tokens
+	Parser parse = new Parser(tokens, errorLog);
+	ModuleDeclaration moddec = parse.parseAST();
+
+	//visit it with the type checker
+	TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(moddec, errorLog);
+	typeChecker.visitRoot();
+	errorLog.printLog();
+
+	
 	System.out.print("\n\n---------------------------------------------------------\n\n");
     }
 }

@@ -107,11 +107,11 @@ public class Parser{
 	    match(Token.Type.SEMI);
 	    if(willMatch(Token.Type.ENDMODULE)){
 		skip();
-		return new ModuleDeclaration(ident, identList);
+		return new ModuleDeclaration(ident, declList);
 	    } else {
 		ModItemList modList = parseModItemList();
 		match(Token.Type.ENDMODULE);
-		return new ModuleDeclaration(ident, identList, modList);
+		return new ModuleDeclaration(ident, declList, modList);
 	    }
 	} else {
 	    match(Token.Type.SEMI);
@@ -196,12 +196,12 @@ public class Parser{
 		    Expression exp = parseIdentifier();
 		    ArrayList<Expression> expList = new ArrayList<>();
 		    expList.add(exp);
-		    return new OutputRegVectorDeclaration(exp1, exp2, new ExpressionList(expList));
+		    return new OutputRegVectorDeclaration(exp1, exp2, new RegValueList(expList));
 		} else {
 		    Expression exp = parseIdentifier();
 		    ArrayList<Expression> expList = new ArrayList<>();
 		    expList.add(exp);
-		    return new OutputRegScalarDeclaration(new ExpressionList(expList));
+		    return new OutputRegScalarDeclaration(new RegValueList(expList));
 		}
 	    } else if(willMatch(Token.Type.WIRE)){
 		skip();
@@ -320,7 +320,7 @@ public class Parser{
 
     //FunctionName -> (REG | REG [ : ] | INTEGER | REAL) IDENT | UNIDENTIFIED
     private Declaration parseFunctionName(){
-	if(willMatch(Token.Type.REGISTER)){
+	if(willMatch(Token.Type.REG)){
 	    skip();
 	    if(willMatch(Token.Type.RBRACK)){
 		skip();
@@ -336,20 +336,20 @@ public class Parser{
 		Expression exp = parseIdentifier();
 		ArrayList<Expression> expList = new ArrayList<>();
 		expList.add(exp);
-		return new RegScalarDeclaration(new ExpressionList(expList));
+		return new RegScalarDeclaration(new RegValueList(expList));
 	    }
 	} else if (willMatch(Token.Type.INTEGER)){
 	    skip();
 	    Expression expr = parseIdentifier();
 	    ArrayList<Expression> exprList = new ArrayList<>();
-	    exprList.add(ident);
-	    return new IntegerDeclaration(exprList);
+	    exprList.add(expr);
+	    return new IntegerDeclaration(new RegValueList(exprList));
 	} else if (willMatch(Token.Type.REAL)){
 	    skip();
 	    Identifier ident = parseIdentifier();
 	    ArrayList<Identifier> identList = new ArrayList<>();
 	    identList.add(ident);
-	    return new RealDeclaration(identList);
+	    return new RealDeclaration(new IdentifierList(identList));
 	} else if (willMatch(Token.Type.RBRACK)){
 	    skip();
 	    ConstantExpression exp1 = parseConstantExpression();
@@ -364,7 +364,7 @@ public class Parser{
 	    Expression exp = parseIdentifier();
 	    ArrayList<Expression> expList = new ArrayList<>();
 	    expList.add(exp);
-	    return new RegScalarDeclaration(new ExpressionList(expList));
+	    return new RegScalarDeclaration(new RegValueList(expList));
 	}
     }
 
@@ -393,15 +393,13 @@ public class Parser{
 	    skip();
 	    if(willMatch(Token.Type.WIRE)){
 		return parseInputWireDeclaration();
-	    } else if (willMatch(Token.Type.REG)){
-		return parseInputRegDeclaration();
 	    } else {
 		return parseInputDeclaration();
 	    }
 	} else if (willMatch(Token.Type.OUTPUT)){
 	    skip();
 	    if(willMatch(Token.Type.REG)){
-		return parseOutputRegDeclaraton();
+		return parseOutputRegDeclaration();
 	    } else {
 		return parseOutputDeclaration();
 	    }
