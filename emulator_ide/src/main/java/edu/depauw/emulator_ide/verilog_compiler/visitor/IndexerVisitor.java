@@ -63,9 +63,7 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	    modEnv.addEntry(modName.getLexeme(), modName.getPosition());
 	}
 	for(int i = 0; i < mod.numParameters(); i++){
-	    Identifier param = mod.getParameter(i);
-	    dest.println("DECL MODULE PORT " + param.getLexeme() + " AT [" + param.getPosition() + ']');
-	    varEnv.addEntry(param.getLexeme(), param.getPosition());
+	    mod.getParameter(i).accept(this);
 	}
 	for(int i = 0; i < mod.numModItems(); i++){
 	    mod.getModItem(i).accept(this);
@@ -107,14 +105,45 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(FunctionDeclaration function){
-	Identifier funcName = function.getFunctionName();
-	if(funcEnv.entryExists(funcName.getLexeme())){
-	    errorLog.addItem(new ErrorItem("Function Entry " + funcName.getLexeme() + " Allready Exists", funcName.getPosition())); 
-	} else {
-	    dest.println("DECL FUNCTION " + funcName.getLexeme() + " AT [" + funcName.getPosition() + ']');
-	    funcEnv.addEntry(funcName.getLexeme(), funcName.getPosition());
-	}
+	Declaration funcName = function.getFunctionName();
+	Identifier name = null;
 	varEnv.addScope();
+	if(funcName instanceof IntegerDeclaration){
+	    IntegerDeclaration intDec = (IntegerDeclaration)funcName;
+	    name = intDec.getIdentifier(0);
+	    if(funcEnv.entryExists(name.getLexeme())){
+		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    } else {
+		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+	    }
+	} else if(funcName instanceof RegScalarDeclaration){
+	    name = (Identifier)(((RegScalarDeclaration)funcName).getRegValue(0));
+	    if(funcEnv.entryExists(name.getLexeme())){
+		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    } else {
+		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+	    }
+	} else if(funcName instanceof RegVectorDeclaration){
+	    RegVectorDeclaration regvdec = (RegVectorDeclaration)funcName;
+	    Expression ragval = regvdec.getRegValue(0);
+	    name = ragval.getIdentifier();
+	    if(funcEnv.entryExists(name.getLexeme())){
+		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    } else {
+		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+	    }
+	} else if(funcName instanceof RealDeclaration){
+	    RealDeclaration realDec = (RealDeclaration)funcName;
+	    name = realDec.getIdentifier(0);
+	    if(funcEnv.entryExists(name.getLexeme())){
+		dest.println("DECL FUNCTION " + name.getLexeme() + " AT [" + name.getPosition() + ']');
+	    } else {
+		errorLog.addItem(new ErrorItem("Redeclaration of function " + name.getLexeme() + " at " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Unexpected type for " + name.getLexeme() + " return type " + name.getPosition() + "originally declared at ", funcEnv.getEntry(name.getLexeme()).getPosition()));
+	}
+	funcName.accept(this);
 	for(int i = 0; i < function.numDeclarations(); i++){
 	    function.getDeclaration(i).accept(this);
 	}
@@ -244,6 +273,44 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	return null;
     }
 
+     /**
+     * This is used to visit any input wire scalar wire declaration in verilog.
+     * Ex. wire a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(InputWireScalarDeclaration decl){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL WIRE " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any wire scalar wire declaration in verilog.
+     * Ex. wire a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(OutputWireScalarDeclaration decl){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL WIRE " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
+	    }
+	}
+	return null;
+    }
+
     /**
      * This is used to visit any wire vector declaration in verilog.
      * Ex. wire [31:0] a, b, c ... ;
@@ -251,6 +318,44 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
      */
     
     public Void visit(WireVectorDeclaration decl){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any wire vector declaration in verilog.
+     * Ex. wire [31:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(OutputWireVectorDeclaration decl){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any input wire vector declaration in verilog.
+     * Ex. wire [31:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(InputWireVectorDeclaration decl){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
@@ -290,11 +395,61 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 
     /**
      * This is used to visit any reg scalar declaration in verilog.
+     * Ex. reg a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(OutputRegScalarDeclaration decl){
+	for(int i = 0; i < decl.numRegValues(); i++){
+	    Expression current = decl.getRegValue(i);
+	    Identifier cur = null;
+	    if(current instanceof Identifier){
+		cur = (Identifier)current;
+	    } else {
+		cur = ((VectorCall)current).getIdentifier();
+	    }
+	    if(varEnv.entryExists(cur.getLexeme())){
+		dest.println("USE OUTPUT REG " + cur.getLexeme() + " AT [" + cur.getPosition() + "] DECLARED AT [" + varEnv.getEntry(cur.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL OUTPUT REG " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
+		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any reg scalar declaration in verilog.
      * Ex. reg [2:0] a, b, c ... ;
      * @param decl
      */
     
     public Void visit(RegVectorDeclaration decl){
+	for(int i = 0; i < decl.numRegValues(); i++){
+	    Expression current = decl.getRegValue(i);
+	    Identifier cur = null;
+	    if(current instanceof Identifier){
+		cur = (Identifier)current;
+	    } else {
+		cur = ((VectorCall)current).getIdentifier();
+	    }
+	    if(varEnv.entryExists(cur.getLexeme())){
+		dest.println("USE REG " + cur.getLexeme() + " AT [" + cur.getPosition() + "] DECLARED AT [" + varEnv.getEntry(cur.getLexeme()) + ']'); 
+	    } else {
+		dest.println("DECL REG " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
+		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any reg scalar declaration in verilog.
+     * Ex. reg [2:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(OutputRegVectorDeclaration decl){
 	for(int i = 0; i < decl.numRegValues(); i++){
 	    Expression current = decl.getRegValue(i);
 	    Identifier cur = null;
@@ -373,6 +528,21 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 		dest.println("DECL INTEGER " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
 		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any integer declaration in verilog.
+     * Ex. integer a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(UnidentifiedDeclaration decl){
+	Identifier cur = decl.getIdentifier();
+	if(!varEnv.entryExists(cur.getLexeme())){
+	    dest.println("DECL " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
+	    varEnv.addEntry(cur.getLexeme(), cur.getPosition());
 	}
 	return null;
     }

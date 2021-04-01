@@ -8,20 +8,20 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.Declara
 
 public class FunctionDeclaration extends ModItem{
 
-    private final Identifier ident;
+    private final Declaration retVariable;
     private final DeclarationList declList;
     private final Statement stat;
-    
-    public FunctionDeclaration(Identifier ident, DeclarationList declList, Statement stat){
-	super(ident.getPosition());
-	this.ident = ident;
+
+    public FunctionDeclaration(Declaration retVariable, DeclarationList declList, Statement stat){
+	super(retVariable.getPosition());
+	this.retVariable = retVariable;
 	this.declList = declList;
 	this.stat = stat;
 	
     }
 
-    public Identifier getFunctionName(){
-	return ident;
+    public Declaration getFunctionName(){
+	return retVariable;
     }
 
     public int numDeclarations(){

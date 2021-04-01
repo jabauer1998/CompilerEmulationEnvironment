@@ -27,7 +27,6 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 	this.modEnv = new Environment<>();
 	this.funcEnv = new Environment<>();
 	this.varEnv = new Environment<>();
-	this.dest = dest;
 	this.errorLog = errorLog;
 	this.node = node;
     }
@@ -47,7 +46,6 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 	} else {
 	    visit((ModuleDeclaration)node);
 	}
-	this.dest.flush();
 	this.errorLog.printLog();
     }
 
@@ -63,12 +61,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 	    modEnv.addEntry(modName.getLexeme(), mod.getPosition());
 	}
 	for(int i = 0; i < mod.numParameters(); i++){
-	    Identifier param = mod.getParameter(i);
-	    if(varEnv.entryExists(param.getLexeme())){
-		errorLog.addItem(new ErrorItem("Redeclaration of port paramater {" + param.getLexeme() + "} in module declaration " + mod.getLexeme(), param.getPosition())); 
-	    } else {
-		varEnv.addEntry(param.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.UNDEFINED, -1, param.getPosition())); //size is undefined so it is negative 1
-	    }
+	    mod.getParameter(i).accept(this);
 	}
 	for(int i = 0; i < mod.numModItems(); i++){
 	    mod.getModItem(i).accept(this);
@@ -110,17 +103,34 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      */
     private boolean inFunction = false;
     private String topFunctionName = "";
+
     public Void visit(FunctionDeclaration function){
-	Identifier funcName = function.getFunctionName();
-	funcEnv.addEntry(funcName.getLexeme(), new TypeCheckerFunctionData(null, function.getPosition()));
+	Declaration funcDeclaration = function.getFunctionName();
+	Identifier funcName;
+	varEnv.addScope();
+	if(funcDeclaration instanceof IntegerDeclaration){
+	    IntegerDeclaration intDec = (IntegerDeclaration)funcDeclaration;
+	    funcName = intDec.getIdentifier(0);
+	} else if (funcDeclaration instanceof RealDeclaration){
+	    RealDeclaration realDec = (RealDeclaration)funcDeclaration;
+	    funcName = realDec.getIdentifier(0);
+	} else if (funcDeclaration instanceof RegVectorDeclaration){
+	    RegVectorDeclaration regVecDec = (RegVectorDeclaration)funcDeclaration;
+	    Expression regVal = regVecDec.getRegVal(0);
+	    funcName = regVal.getIdentifier(); 
+	} else if (funcDeclaration instanceof RegScalarDeclaration){
+	    RegScalarDeclaration regScalDec = (RegScalarDeclaration)funcDeclaration;
+	    Expression regVal = regScalDec.getRegVal(0);
+	    funcName = regVal.getIdentifier(); 
+	}
+	funcDeclaration.accept(this);
 	if(funcEnv.entryExists(funcName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Duplicate function " + funcName.getLexeme() + " allready exists ", funcName.getPosition())); 
 	} else {
-	    funcEnv.addEntry(funcName.getLexeme(), funcName.getPosition());
+	    funcEnv.addEntry(funcName.getLexeme(), new TypeCheckerFunctionData(varEnv.getEntry(funcName.getLexeme()), function.getPosition()));
 	}
 	inFunction = true;
 	topFunctionName = funcName.getLexeme();
-	varEnv.addScope();
 	for(int i = 0; i < function.numDeclarations(); i++){
 	    function.getDeclaration(i).accept(this);
 	}
@@ -177,7 +187,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
     
     public Void visit(TaskDeclaration task){
 	Identifier taskName = task.getTaskName();
-	funcEnv.addEntry(taskName.getLexeme(), new TypeCheckerFunctionData(null, function.getPosition()));
+	funcEnv.addEntry(taskName.getLexeme(), new TypeCheckerFunctionData(null, task.getPosition()));
 	if(funcEnv.entryExists(taskName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Task declaration by the name of " + taskName.getLexeme() + " found at [" + taskName.getPosition() + "] already exists at ", funcEnv.getEntry(taskName.getLexeme()))); 
 	} else {
@@ -225,11 +235,88 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
     }
 
     /**
+     * This is used to visit any input scalar declaration in verilog.
+     * Ex. input a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(InputWireScalarDeclaration decl){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		TypeCheckerVariableData entryData = varEnv.getEntry(current.getLexeme());
+		if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+		    entryData.type = TypeCheckerVariableData.Type.INPUT_WIRE;
+		} else {
+		    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.TYPE.INPUT_WIRE, current.getPosition()));
+		}
+		if(inFunction){
+		    funcEnv.getEntry(topFunctionName).addParamaterType(entryData); //add paramter to function
+		}
+	    } else {
+		TypeCheckerVariableData data =  new TypeCheckerVariableData(TypeCheckerVariableData.TYPE.INPUT_WIRE, current.getPosition());
+		varEnv.addEntry(current.getLexeme(), data);
+	    }
+	}
+	return null;
+    }
+
+    /**
      * This is used to visit any input vector declaration in verilog.
      * Ex. input [31:0] a, b, c ... ;
      * @param decl
      */
     
+    public Void visit(InputWireVectorDeclaration decl){
+	TypeCheckerVariableData.Type type1 = decl.getExpression1.accept(this); //check whether the expressions return ints
+	TypeCheckerVariableData.Type type2 = decl.getExpression2.accept(this);
+
+	if(type1 != TypeCheckerVariableData.Type.INTEGER || type2 != TypeCheckerVariableData.Type.INTEGER){   
+	    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+		errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", decl.getPosition()));
+	    }
+	    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+		errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", decl.getPosition()));
+	    }
+	} else {
+
+	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+
+	    int slice1 = (int)decl.getExpression1.accept(constantVisitor);
+	    int slice2 = (int)decl.getExpression2.accept(constantVisitor);
+
+	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
+	    
+	    for(int i = 0; i < decl.numIdentifiers(); i++){
+		Identifier current = decl.getIdentifier(i);
+		if(varEnv.entryExists(current.getLexeme())){
+		    TypeCheckerVariableData entryData = varEnv.getEntry(current.getLexeme());
+		    
+		    if(vectorSize != entryData.getSize()){
+			errorLog.addItem(new ErrorItem("Size mismatch with variable " + current.getLexeme() + "[Expected -> " + entryData.getSize() + " | Got -> " + vectorSize + "]", decl.getPosition()));
+		    }
+		    
+		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			entryData.type = TypeCheckerVariableData.TYPE.INPUT_WIRE_VECTOR;
+		    } else {
+			errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.TYPE.INPUT_WIRE_VECTOR, current.getPosition()));
+		    }
+		    if(inFunction){
+			funcEnv.getEntry(topFunctionName).addParamaterType(entryData); //add paramter to function
+		    }
+		} else {
+		   TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, vectorSize, current.getPosition());
+		    varEnv.addEntry(current.getLexeme(), data);
+		    if(inFunction){
+			funcEnv.getEntry(topFunctionName).addParamaterType(data); //add paramter to function
+		    }
+		}
+	    }
+	}
+	return null;
+    }
+
+
     public Void visit(InputVectorDeclaration decl){
 	TypeCheckerVariableData.Type type1 = decl.getExpression1.accept(this); //check whether the expressions return ints
 	TypeCheckerVariableData.Type type2 = decl.getExpression2.accept(this);
@@ -270,7 +357,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 			funcEnv.getEntry(topFunctionName).addParamaterType(entryData); //add paramter to function
 		    }
 		} else {
-		    TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_VECTOR, vectorSize, current.getPosition());
+		   TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_VECTOR, vectorSize, current.getPosition());
 		    varEnv.addEntry(current.getLexeme(), data);
 		    if(inFunction){
 			funcEnv.getEntry(topFunctionName).addParamaterType(data); //add paramter to function
@@ -472,7 +559,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_VECTOR, cur.getPosition()));
 			}
 		    } else {
-			varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.TYPE.REGISTER_VECTOR, vectorSize,  cur.getPosition()));
+			varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.TYPE.REGISTER_VECTOR, vectorSize,  ur.getPosition()));
 		    }
 		} else {
 		    cur = ((VectorCall)current).getIdentifier();
@@ -547,6 +634,91 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
     }
 
     /**
+     * This is used to visit any output scalar declaration in verilog.
+     * Ex. output a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(OutputWireScalarDeclaration decl){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		TypeCheckerVariableData.Type entryData = varEnv.getEntry(current.getLexeme());
+		if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+		    entryData.type = TypeCheckerVariableData.TYPE.OUTPUT_WIRE;
+		} else {
+		    errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.TYPE.OUTPUT_WIRE, current.getPosition()));
+		}
+	    } else {
+		varEnv.addEntry(current.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.TYPE.OUTPUT_WIRE, current.getPosition()));
+	    }
+	}
+	return null;
+    }
+
+    /** This is where I will declare the output Register Scalar declaration
+     * @param Jacob Bauer
+     */
+
+    public Void visit(OutputRegScalarDeclaration decl){
+	for(int i = 0; i < decl.numRegValues(); i++){
+	    Expression current = decl.getRegValue(i);
+	    if(current instanceof Identifier){
+		Identifier cur = (Identifier)current;
+		if(varEnv.entryExists(cur.getLexeme())){
+		    TypeCheckerVariableData entryData = varEnv.getEntry(current.getLexeme());
+		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			entryData.type = TypeCheckerVariableData.TYPE.OUTPUT_REGISTER;
+		    } else {
+			errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.OUTPUT_REGISTER, cur.getPosition()));
+		    }
+		} else {
+		    varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.TYPE.OUTPUT_REGISTER, cur.getPosition()));
+		}
+	    } else {
+		VectorCall cur = (VectorCall)current;
+		String lexeme = cur.getIdentifier().getLexeme();
+
+		if(cur.getExpression2() == null){
+		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
+		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
+		    } else {
+			ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(cur.getExpression1(), errorLog);
+		    }
+		} else {
+		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
+		    TypeCheckerVariableData.Type type2 = cur.getExpression2().accept(this);
+		    
+		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
+		    } else {
+			ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(cur.getExpression1(), errorLog);
+		    }
+		    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+			errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", cur.getPosition()));
+		    } else {
+			ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(cur.getExpression2(), errorLog);
+		    }
+		}
+		
+		if(varEnv.entryExists(lexeme)){
+		    TypeCheckerVariableData entryData = varEnv.getEntry(lexeme);
+		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY;
+		    } else {
+			errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_ARRAY, cur.getPosition()));
+		    }
+		} else {
+		    varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY, vectorSize, cur.getPosition()));
+		}
+		
+	    }
+	}
+	return null;
+    }
+
+    /**
      * This is used to visit any output vector declaration in verilog.
      * Ex. output [2:0] a, b, c ... ;
      * @param decl
@@ -599,6 +771,135 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 	return null;
     }
 
+    
+
+    public Void visit(OutputWireVectorDeclaration decl){
+	TypeCheckerVariableData.Type type1 = decl.getExpression1.accept(this); //check whether the expressions return ints
+	TypeCheckerVariableData.Type type2 = decl.getExpression2.accept(this);
+
+	if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER || type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){   
+	    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+		errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", decl.getPosition()));
+	    }
+	    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+		errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", decl.getPosition()));
+	    }
+	} else {
+
+	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+
+	    int slice1 = (int)decl.getExpression1.accept(constantVisitor);
+	    int slice2 = (int)decl.getExpression2.accept(constantVisitor);
+
+	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
+	    
+	    for(int i = 0; i < decl.numIdentifiers(); i++){
+		Identifier current = decl.getIdentifier(i);
+		if(varEnv.entryExists(current.getLexeme())){
+		    TypeCheckerVariableData.Type entryData = varEnv.getEntry(current.getLexeme());
+		    
+		    if(vectorSize != entryData.getSize()){
+			errorLog.addItem(new ErrorItem("Size mismatch with variable " + current.getLexeme() + "[Expected -> " + entryData.getSize() + " | Got -> " + vectorSize + "]", decl.getPosition()));
+		    }
+		    
+		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			entryData.type = TypeCheckerVariableData.TYPE.OUTPUT_WIRE_VECTOR;
+		    } else {
+			errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.TYPE.OUTPUT_VECTOR, current.getPosition()));
+		    }
+		    
+		} else {
+		    varEnv.addEntry(current.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_WIRE_VECTOR, vectorSize, current.getPosition()));
+		}
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any reg scalar declaration in verilog.
+     * Ex. reg [2:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(OutputRegVectorDeclaration decl){
+
+	TypeCheckerVariableData.Type type1 = decl.getExpression1.accept(this); //check whether the expressions return ints
+	TypeCheckerVariableData.Type type2 = decl.getExpression2.accept(this);
+
+	if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER || type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){   
+	    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+		errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", decl.getPosition()));
+	    }
+	    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+		errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", decl.getPosition()));
+	    }
+	} else {
+
+	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+
+	    int slice1 = (int)decl.getExpression1.accept(constantVisitor);
+	    int slice2 = (int)decl.getExpression2.accept(constantVisitor);
+
+	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
+	    
+	    for(int i = 0; i < decl.numRegValues(); i++){
+		Expression current = decl.getRegValue(i);
+		Identifier cur = null;
+		if(current instanceof Identifier){
+		    cur = (Identifier)current;
+		    Identifier cur = (Identifier)current;
+		    if(varEnv.entryExists(cur.getLexeme())){
+			TypeCheckerVariableData entryData = varEnv.getEntry(current.getLexeme());
+			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			    entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR;
+			} else {
+			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_VECTOR, cur.getPosition()));
+			}
+		    } else {
+			varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR, vectorSize,  ur.getPosition()));
+		    }
+		} else {
+		    cur = ((VectorCall)current).getIdentifier();
+		    String lexeme = cur.getIdentifier().getLexeme();
+		    if(cur.getExpression2() == null){
+			TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
+			if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+			    errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
+			} else {
+			    ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(cur.getExpression1(), errorLog);
+			}
+		    } else {
+			TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
+			TypeCheckerVariableData.Type type2 = cur.getExpression2().accept(this);
+		    
+			if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+			    errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
+			} else {
+			    ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(cur.getExpression1(), errorLog);
+			}
+			if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+			    errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", cur.getPosition()));
+			} else {
+			    ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(cur.getExpression2(), errorLog);
+			}
+		    }
+
+		    if(varEnv.entryExists(lexeme)){
+			TypeCheckerVariableData entryData = varEnv.getEntry(lexeme);
+			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			    entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY;
+			} else {
+			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY, cur.getPosition()));
+			}
+		    } else {
+			varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY, vectorSize, cur.getPosition()));
+		    } 
+		}
+	    }
+	}
+	return null;
+    }
     /**
      * This is used to visit any integer declaration in verilog.
      * Ex. integer a, b, c ... ;
@@ -667,6 +968,23 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 	    } else {
 		varEnv.addEntry(current.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REAL, current.getPosition()));
 	    }
+	}
+	return null;
+    }
+
+     /**
+     * This is used to visit any Unidentified declaration in verilog.
+     * Ex. real a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(UnidentifiedDeclaration decl){
+	Identifier current = decl.getIdentifier();
+	if(varEnv.entryExists(current.getLexeme())){
+	    TypeCheckerVariableData.Type dataType = varEnv.getEntry(current.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable " + current.getLexeme() + " allready defined at " + dataType.getPosition() + " declared again at ", current.getPosition()));
+	} else {
+	    varEnv.addEntry(current.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.UNIDENTIFIED, current.getPosition()));
 	}
 	return null;
     }

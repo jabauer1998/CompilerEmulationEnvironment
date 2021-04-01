@@ -30,9 +30,9 @@ public class TypeCheckerVariableData{
 	INPUT_WIRE_VECTOR,
 
 	//Array Types
-	REG_ARRAY,
-	REG_VECTOR_ARRAY,
-	OUTPUT_REG_VECTOR_ARRAY,
+	REGISTER_ARRAY,
+	REGISTER_VECTOR_ARRAY,
+	OUTPUT_REGISTER_VECTOR_ARRAY,
 	INTEGER_ARRAY
     }
 
@@ -46,7 +46,7 @@ public class TypeCheckerVariableData{
 	size = 1;
     }
 
-    public TypeCheckerData(Type type, int size, Position position){
+    public TypeCheckerVariableData(Type type, int size, Position position){
 	this.position = position;
 	this.type = type;
 	this.size = size;

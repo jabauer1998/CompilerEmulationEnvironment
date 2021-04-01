@@ -81,12 +81,28 @@ public interface AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType>{
     public ModVisitType visit(InputScalarDeclaration decl);
 
     /**
+     * This is used to visit any input wire scalar declaration in verilog.
+     * Ex. input a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(InputWireScalarDeclaration decl);
+
+    /**
      * This is used to visit any input vector declaration in verilog.
      * Ex. input [31:0] a, b, c ... ;
      * @param decl
      */
     
     public ModVisitType visit(InputVectorDeclaration decl);
+
+    /**
+     * This is used to visit any wire scalar wire declaration in verilog.
+     * Ex. wire a, b, c ... ;
+     * @param decl
+     */
+
+    public ModVisitType visit(InputWireVectorDeclaration decl);
 
     /**
      * This is used to visit any wire scalar wire declaration in verilog.
@@ -130,12 +146,52 @@ public interface AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType>{
     public ModVisitType visit(OutputScalarDeclaration decl);
 
     /**
+     * This is used to visit any output wire scalar declaration in verilog.
+     * Ex. output a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(OutputWireScalarDeclaration decl);
+
+    /**
+     * This is used to visit any output reg scalar declaration in verilog.
+     * Ex. output a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(OutputRegScalarDeclaration decl);
+
+    /**
      * This is used to visit any output vector declaration in verilog.
      * Ex. output [2:0] a, b, c ... ;
      * @param decl
      */
     
     public ModVisitType visit(OutputVectorDeclaration decl);
+
+     /**
+     * This is used to visit any output wire vector declaration in verilog.
+     * Ex. output [2:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(OutputWireVectorDeclaration decl);
+
+     /**
+     * This is used to visit any output reg vector declaration in verilog.
+     * Ex. output [2:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(OutputRegVectorDeclaration decl);
+
+     /**
+     * This is used to visit any unidentified declaration in verilog.
+     * Ex. output [2:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(UnidentifiedDeclaration decl);
 
     /**
      * This is used to visit any integer declaration in verilog.
