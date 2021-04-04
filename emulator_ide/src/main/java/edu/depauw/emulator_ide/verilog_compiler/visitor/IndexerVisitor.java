@@ -212,44 +212,6 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
     }
 
     /**
-     * This is used to visit any input scalar declaration in verilog.
-     * Ex. input a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(InputScalarDeclaration decl){
-	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		dest.println("USE INPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']'); 
-	    } else {
-		dest.println("DECL INPUT " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-		varEnv.addEntry(current.getLexeme(), current.getPosition());
-	    }
-	}
-	return null;
-    }
-
-    /**
-     * This is used to visit any input vector declaration in verilog.
-     * Ex. input [31:0] a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(InputVectorDeclaration decl){
-	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		dest.println("USE INPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
-	    } else {
-		dest.println("DECL INPUT " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-		varEnv.addEntry(current.getLexeme(), current.getPosition());
-	    }
-	}
-	return null;
-    }
-
-    /**
      * This is used to visit any wire scalar wire declaration in verilog.
      * Ex. wire a, b, c ... ;
      * @param decl
@@ -458,45 +420,6 @@ public class IndexerVisitor implements AstNodeVisitor<Void, Void, Void>{
 	    } else {
 		dest.println("DECL REG " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
 		varEnv.addEntry(cur.getLexeme(), cur.getPosition());
-	    }
-	}
-	return null;
-    }
-
-
-    /**
-     * This is used to visit any output scalar declaration in verilog.
-     * Ex. output a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(OutputScalarDeclaration decl){
-	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		dest.println("USE OUTPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
-	    } else {
-		dest.println("DECL OUTPUT " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-		varEnv.addEntry(current.getLexeme(), current.getPosition());
-	    }
-	}
-	return null;
-    }
-
-    /**
-     * This is used to visit any output vector declaration in verilog.
-     * Ex. output [2:0] a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(OutputVectorDeclaration decl){
-	for(int i = 0; i < decl.numIdentifiers(); i++){
-	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		dest.println("USE OUTPUT " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
-	    } else {
-		dest.println("DECL OUTPUT " + current.getLexeme() + " AT " + current.getPosition());
-		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}
 	return null;

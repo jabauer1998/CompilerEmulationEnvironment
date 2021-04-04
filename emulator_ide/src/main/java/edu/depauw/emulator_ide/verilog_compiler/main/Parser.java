@@ -149,39 +149,22 @@ public class Parser{
 	    skip();
 	    if(willMatch(Token.Type.WIRE)){
 		skip();
-		if(willMatch(Token.Type.LBRACK)){
-		    skip();
-		    ConstantExpression exp1 = parseConstantExpression();
-		    match(Token.Type.COLON);
-		    ConstantExpression exp2 = parseConstantExpression();
-		    match(Token.Type.RBRACK);
-		    Identifier ident = parseIdentifier();
-		    ArrayList<Identifier> identList = new ArrayList<>();
-		    identList.add(ident);
-		    return new InputWireVectorDeclaration(exp1, exp2, new IdentifierList(identList));
-		} else {
-		    Identifier ident = parseIdentifier();
-		    ArrayList<Identifier> identList = new ArrayList<>();
-		    identList.add(ident);
-		    return new InputWireScalarDeclaration(new IdentifierList(identList));
-		}
+	    }
+	    if(willMatch(Token.Type.LBRACK)){
+		skip();
+		ConstantExpression exp1 = parseConstantExpression();
+		match(Token.Type.COLON);
+		ConstantExpression exp2 = parseConstantExpression();
+		match(Token.Type.RBRACK);
+		Identifier ident = parseIdentifier();
+		ArrayList<Identifier> identList = new ArrayList<>();
+		identList.add(ident);
+		return new InputWireVectorDeclaration(exp1, exp2, new IdentifierList(identList));
 	    } else {
-		if(willMatch(Token.Type.LBRACK)){
-		    skip();
-		    ConstantExpression exp1 = parseConstantExpression();
-		    match(Token.Type.COLON);
-		    ConstantExpression exp2 = parseConstantExpression();
-		    match(Token.Type.RBRACK);
-		    Identifier ident = parseIdentifier();
-		    ArrayList<Identifier> identList = new ArrayList<>();
-		    identList.add(ident);
-		    return new InputVectorDeclaration(exp1, exp2, new IdentifierList(identList));
-		} else {
-		    Identifier ident = parseIdentifier();
-		    ArrayList<Identifier> identList = new ArrayList<>();
-		    identList.add(ident);
-		    return new InputScalarDeclaration(new IdentifierList(identList));
-		}
+		Identifier ident = parseIdentifier();
+		ArrayList<Identifier> identList = new ArrayList<>();
+		identList.add(ident);
+		return new InputWireScalarDeclaration(new IdentifierList(identList));
 	    }
 	} else if(willMatch(Token.Type.OUTPUT)){
 	    skip();
@@ -231,12 +214,12 @@ public class Parser{
 		    Identifier ident = parseIdentifier();
 		    ArrayList<Identifier> identList = new ArrayList<>();
 		    identList.add(ident);
-		    return new OutputVectorDeclaration(exp1, exp2, new IdentifierList(identList));
+		    return new OutputWireVectorDeclaration(exp1, exp2, new IdentifierList(identList));
 		} else {
 		    Identifier ident = parseIdentifier();
 		    ArrayList<Identifier> identList = new ArrayList<>();
 		    identList.add(ident);
-		    return new OutputScalarDeclaration(new IdentifierList(identList));
+		    return new OutputWireScalarDeclaration(new IdentifierList(identList));
 		}
 	    }
 	} else {
@@ -554,11 +537,11 @@ public class Parser{
 	    match(Token.Type.RBRACK);
 	    IdentifierList identList = parseIdentifierList();
 	    match(Token.Type.SEMI);
-	    return new InputVectorDeclaration(exp1, exp2, identList);
+	    return new InputWireVectorDeclaration(exp1, exp2, identList);
 	} else {
 	    IdentifierList identList = parseIdentifierList();
 	    match(Token.Type.SEMI);
-	    return new InputScalarDeclaration(identList);
+	    return new InputWireScalarDeclaration(identList);
 	}
     }
     
@@ -572,11 +555,11 @@ public class Parser{
 	    match(Token.Type.RBRACK);
 	    IdentifierList identList = parseIdentifierList();
 	    match(Token.Type.SEMI);
-	    return new OutputVectorDeclaration(exp1, exp2, identList);
+	    return new OutputWireVectorDeclaration(exp1, exp2, identList);
 	} else {
 	    IdentifierList identList = parseIdentifierList();
 	    match(Token.Type.SEMI);
-	    return new OutputScalarDeclaration(identList);
+	    return new OutputWireScalarDeclaration(identList);
 	}
     }
 

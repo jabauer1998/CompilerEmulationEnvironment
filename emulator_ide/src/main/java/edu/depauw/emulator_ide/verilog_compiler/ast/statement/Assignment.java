@@ -37,10 +37,10 @@ public class Assignment extends Statement{
 	return exp;
     }
 
-    /** The accept method is used to the visitor design pattern can visit Assignments
-     *
+    /** The accept method makes it possible so that nodes know which visitor object to call the visit method from. This is needed because the Visitor method is an interface not a class. All of the classes implementing ASTnode visitor will not have the required dependencies. 
+     * @author Jacob Bauer
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> StatVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <ModVisitType, StatVisitType, ExprVisitType> StatVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
+	return astNodeVisitor.visit(this, argv);
     }
 }

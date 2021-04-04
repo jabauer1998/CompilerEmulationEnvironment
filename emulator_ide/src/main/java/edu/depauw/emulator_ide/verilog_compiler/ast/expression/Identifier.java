@@ -32,12 +32,11 @@ public class Identifier extends Expression{
 	return ident.getLexeme();
     }
 
-    /**
-     * The accept method was design so a visitor object can visit this type of node
-     * @param the visitor object to visit the Identifier
+    /**The accept method will make it so the visitor interface will work
+     * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
+	return astNodeVisitor.visit(this, argv);
     }
     
 }

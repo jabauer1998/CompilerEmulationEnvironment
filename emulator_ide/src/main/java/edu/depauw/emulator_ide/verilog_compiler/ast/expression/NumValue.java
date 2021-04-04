@@ -26,10 +26,11 @@ public class NumValue extends Expression{
     public String getLexeme(){
 	return number.getLexeme();
     }
-    /** The accept method was created so any NumValue can be visited
-     * @param astNodeVisitor the visitor object to visit the NumValue
+
+    /**The accept method will make it so the visitor interface will work
+     * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
+	return astNodeVisitor.visit(this, argv);
     }
 }

@@ -23,7 +23,10 @@ public class ContinuousAssignment extends ModItem{
 	return assignList.getSize();
     }
 
-    public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    /** The ast node visitor will allow the user to pass down data through the argument vector. The accept method is needed to know which visit method to run.
+     * @author Jacob Bauer
+     */
+    public <ModVisitType, StatVisitType, ExprVisitType> ModVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
+	return astNodeVisitor.visit(this, argv);
     }
 }

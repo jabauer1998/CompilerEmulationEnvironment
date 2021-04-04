@@ -101,26 +101,6 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
     }
 
     /**
-     * This is used to visit any input scalar declaration in verilog.
-     * Ex. input a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(InputScalarDeclaration decl){
-	return null;
-    }
-
-    /**
-     * This is used to visit any input vector declaration in verilog.
-     * Ex. input [31:0] a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(InputVectorDeclaration decl){
-	return null;
-    }
-
-    /**
      * This is used to visit any wire scalar wire declaration in verilog.
      * Ex. wire a, b, c ... ;
      * @param decl
@@ -217,27 +197,6 @@ public class ConstantExpressionVisitor implements AstNodeVisitor<Void, Void, Obj
      */
     
     public Void visit(OutputRegVectorDeclaration decl){
-	return null;
-    }
-
-
-    /**
-     * This is used to visit any output scalar declaration in verilog.
-     * Ex. output a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(OutputScalarDeclaration decl){
-	return null;
-    }
-
-    /**
-     * This is used to visit any output vector declaration in verilog.
-     * Ex. output [2:0] a, b, c ... ;
-     * @param decl
-     */
-    
-    public Void visit(OutputVectorDeclaration decl){
 	return null;
     }
 

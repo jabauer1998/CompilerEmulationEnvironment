@@ -53,10 +53,10 @@ public class FunctionCall extends Expression{
 	return expList.getSize();
     }
 
-    /** This accept method is mandatory so the FunctionCall can be visited by a visitor object
-     * @param astNodeVisitor visitor obect to visit the node
+    /**The accept method will make it so the visitor interface will work
+     * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
+	return astNodeVisitor.visit(this, argv);
     }
 }

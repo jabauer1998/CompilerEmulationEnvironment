@@ -34,10 +34,10 @@ public class ConstantExpression extends Expression{
 	this.expression = expression;
     }
 
-    /** This accept method is needed to visit const expressions
-     * @param astNodeVisitor the visitor that is visiting the object
+    /**The accept method will make it so the visitor interface will work
+     * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
+	return astNodeVisitor.visit(this, argv);
     }
 }

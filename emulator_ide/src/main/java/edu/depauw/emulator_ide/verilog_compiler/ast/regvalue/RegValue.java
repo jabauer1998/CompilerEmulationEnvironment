@@ -4,18 +4,18 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
-/** The Expression class is an extention of the AstNode class
+/** The RegValue class is an extention of the AstNode class
  * This class is used as a supertype for all expression objects
  * @author Jacob Bauer
  */
-public abstract class Expression extends AstNode{
+public abstract class RegValue extends AstNode{
 
-    /** The expression constructor takes in a positionand passes it to the 
+    /** The RegValue constructor takes in a positionand passes it to the 
      * AstNode super consturctor
      * @param position the position obect to pass to the Astnode constuctor
      */
     
-    protected Expression(Position position){
+    protected RegValue(Position position){
 	super(position);
     }
 
@@ -24,6 +24,6 @@ public abstract class Expression extends AstNode{
      * @param astNodeVisitor visitor object to visit expression
      */
     
-    public abstract <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv);
+    public abstract <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor);
     
 }
