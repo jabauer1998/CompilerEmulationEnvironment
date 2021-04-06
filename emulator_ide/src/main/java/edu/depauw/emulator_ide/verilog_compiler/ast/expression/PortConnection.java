@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
 /** The port connection class is used for module instantiations
@@ -14,7 +14,7 @@ public class PortConnection extends Expression{
 
     /** The port connection constructor takes in an identifier 
      * @param ident name of the port connecting to
-     * @param exp expression representing what is being connected
+     * @param exp.expression representing what is being connected
      */
     public PortConnection(Identifier ident, Expression exp){
 	super(ident.getPosition());
@@ -22,7 +22,7 @@ public class PortConnection extends Expression{
 	this.exp = exp;
     }
 
-    /** Retrieves the expression that represents what is being connected
+    /** Retr.Eves the.expression that represents what is being connected
      * @param none
      */
     public Expression getExpression(){
@@ -36,11 +36,11 @@ public class PortConnection extends Expression{
 	return ident;
     }
 
-    /** The accept method is used to visit a node
-     *@param astNodeVisitor the visitor object to visit the Port Connection
+    /**The accept method will make it so the visitor interface will work
+     * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
+	return exprVisitor.visit(this, argv);
     }
     
 }

@@ -1,22 +1,22 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 
-/** The Ternary expression class was designed to parse Ternary expressions
+/** The Ternary.expression class was designed to par.E Ternary expressions
  * Ex: (i == x) ?  x : y it kind of works like an if else statement
  * @author Jacob Bauer
  */
 public class TernaryExpression extends Expression{
 
-    private final Expression condition; //the condition phrase of the ternary expression
-    private final Expression left; //the expression to the left of the colon
-    private final Expression right; //the expression to the right of the colon
+    private final Expression condition; //the condition phrase of the ternary Expression
+    private final Expression left; //the Expression to the left of the colon
+    private final Expression right; //the Expression to the right of the colon
 
-    /** Th ternary expression takes in 3 expressions only one of which it returns.
+    /** Th ternary.expression takes in 3 expressions only one of which it returns.
      * It can return the one on the left hand side if the colon or the right.
      * @param condition the condition to be evaluated
-     * @param left the expression to return if the condition is true
-     * @param right the expresson to evaluate if the condition is false
+     * @param left the.expression to return if the condition is tr.E
+     * @param right the exprVisitoresson to evaluate if the condition is false
      */
     public TernaryExpression(Expression condition, Expression left, Expression right){
 	super(condition.getPosition());
@@ -25,21 +25,21 @@ public class TernaryExpression extends Expression{
 	this.condition = condition;
     }
 
-    /** Returns the expression that is true
+    /** Returns the.expression that is tr.E
      * @param none
      */
     public Expression getLeft(){
 	return left;
     }
 
-    /** Returns the expression that is false
+    /** Returns the.expression that is false
      * @param none
      */
     public Expression getRight(){
 	return right;
     }
 
-    /** Returns the expression that is checked at the beginning of the ternary operation
+    /** Returns the.expression that is checked at the beginning of the ternary operation
      * @param none
      */
     public Expression getCondition(){
@@ -49,7 +49,7 @@ public class TernaryExpression extends Expression{
     /**The accept method will make it so the visitor interface will work
      * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
-	return astNodeVisitor.visit(this, argv);
+    public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
+	return exprVisitor.visit(this, argv);
     }
 }

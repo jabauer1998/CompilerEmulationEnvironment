@@ -3,28 +3,33 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
+
 import java.lang.String;
 
-/** The NumValue class is used to par.E different numbers in verilog
- * @author Jacob Bauer
+/** The Identifier class is used to define an Identifier
+ * An identifier is any set of characters that isnt considered a verilog keyword.
+ * This includes variable names, function names, module names Etc...
  */
-public class NumValue extends Expression{
 
-    private final Token number;//The token to use for the number value
+public class MacroIdentifier extends Expression{
 
-    /** The NumValue constructor takes in a token representing the number and generates the cor.Esponding num value for that token
-     *@param number the token to convert into a number
+    private final Token ident; //identifier Token to refererence identifier
+
+    /**The identifier constructor produces an identifier given an Identifier Token
+     * @param ident the ident token to base the token off of
      */
-    public NumValue(Token number){
-	super(number.getPosition());
-	this.number = number;
+    public MacroIdentifier(Token ident){
+	super(ident.getPosition());
+	this.ident = ident;
     }
 
-    /** The Lexeme of the number
+    /**
+     * Returns the lexeme of the identifier
+     * The lexeme is just the name of the variable
      * @param none
      */
     public String getLexeme(){
-	return number.getLexeme();
+	return ident.getLexeme();
     }
 
     /**The accept method will make it so the visitor interface will work
@@ -33,4 +38,5 @@ public class NumValue extends Expression{
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
 	return exprVisitor.visit(this, argv);
     }
+    
 }

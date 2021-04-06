@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.visitor;
+package edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry;
 
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 

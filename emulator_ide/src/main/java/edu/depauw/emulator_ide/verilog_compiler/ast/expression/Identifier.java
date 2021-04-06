@@ -1,14 +1,14 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
 import java.lang.String;
 
 /** The Identifier class is used to define an Identifier
  * An identifier is any set of characters that isnt considered a verilog keyword.
- * This includes variable names, function names, module names etc...
+ * This includes variable names, function names, module names Etc...
  */
 
 public class Identifier extends Expression{
@@ -35,8 +35,8 @@ public class Identifier extends Expression{
     /**The accept method will make it so the visitor interface will work
      * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
-	return astNodeVisitor.visit(this, argv);
+    public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
+	return exprVisitor.visit(this, argv);
     }
     
 }

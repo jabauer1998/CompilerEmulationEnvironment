@@ -1,13 +1,15 @@
-package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
+package edu.depauw.emulator_ide.verilog_compiler.ast.reg_value;
 
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.RegValueVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.ConstantExpression;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 
 /**The vectorslice class is used to parse a call to an array cell
  * @author Jacob Bauer
  */
 
-public class IntegerArray extends RegValue{
+public class RegVectorArray extends RegValue{
     
     private final ConstantExpression index1; //initial index to grap from the array
     private final ConstantExpression index2; //final index to grab from the array
@@ -18,7 +20,7 @@ public class IntegerArray extends RegValue{
      * @param index1 min index of the array
      * @param index2 max index of the array
      */
-    public IntegerArray(Identifier ident, Expression index1, Expression index2){
+    public RegVectorArray(Identifier ident, ConstantExpression index1, ConstantExpression index2){
 	super(ident.getPosition());
 	this.index1 = index1;
 	this.index2 = index2;
@@ -48,10 +50,10 @@ public class IntegerArray extends RegValue{
 
     /**
      * The accept method is used to visit VectorCalls
-     * @param astNodeVisitor the visitor object visiting the unary operation
+     * @param RegValueVisitor the visitor object visiting the unary operation
      */
     
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor){
-	return astNodeVisitor.visit(this);
+    public <RegValVisitType> RegValVisitType accept(RegValueVisitor<RegValVisitType> RegValueVisitor, Object... argv){
+	return RegValueVisitor.visit(this, argv);
     }
 }

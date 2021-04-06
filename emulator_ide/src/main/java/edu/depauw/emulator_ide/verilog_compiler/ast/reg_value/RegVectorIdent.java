@@ -1,13 +1,16 @@
-package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
+package edu.depauw.emulator_ide.verilog_compiler.ast.reg_value;
 
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
+import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
+
+import edu.depauw.emulator_ide.verilog_compiler.visitor.RegValueVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 
 /**The vectorslice class is used to parse a call to an array cell
  * @author Jacob Bauer
  */
 
-public class IntegerIdent extends RegValue{
+public class RegVectorIdent extends RegValue{
     
     private final Identifier ident; //name of the array
 
@@ -16,10 +19,8 @@ public class IntegerIdent extends RegValue{
      * @param index1 min index of the array
      * @param index2 max index of the array
      */
-    public IntegerArray(Identifier ident){
+    public RegVectorIdent(Identifier ident){
 	super(ident.getPosition());
-	this.index1 = index1;
-	this.index2 = index2;
 	this.ident = ident;
     }
 
@@ -32,10 +33,10 @@ public class IntegerIdent extends RegValue{
 
     /**
      * The accept method is used to visit VectorCalls
-     * @param astNodeVisitor the visitor object visiting the unary operation
+     * @param RegValueVisitor the visitor object visiting the unary operation
      */
     
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
-	return astNodeVisitor.visit(this, Object... argv);
+    public <RegValVisitType> RegValVisitType accept(RegValueVisitor<RegValVisitType> RegValueVisitor, Object... argv){
+	return RegValueVisitor.visit(this, argv);
     }
 }

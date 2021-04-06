@@ -26,7 +26,7 @@ public class Lexer{
     }
 
     private enum STATE{
-	INIT, REAL, IDENT, OP, STRING, SINGLECOMMENT, MULTICOMMENT, BIN, DEC, OCT, HEX, ERROR
+	INIT, REAL, IDENT, OP, STRING, SINGLECOMMENT, MULTICOMMENT, BIN, DEC, OCT, HEX, ERROR, MACRO
     }
 
     private Position getCurrentPosition(){
@@ -63,6 +63,13 @@ public class Lexer{
 		    source.advance();
 		    incrimentPosition();
 		    continue;
+		} else if(c == '`' && Character.isLetter(source.getNext())){
+		    state = state.MACRO;
+		    position = getCurrentPosition();
+		    lexeme.append(c);
+		    lexeme.append(source.getNext());
+		    source.advance(2);
+		    incrimentPosition(2);
 		} else if (c == '\"'){
 		    state = STATE.STRING;
 		    position = getCurrentPosition();
@@ -434,6 +441,15 @@ public class Lexer{
 			return Token.makeNumToken(lexeme.toString(), position);
 		    }
 		}
+	    case MACRO:
+		if(Character.isLetter(c) || c == '_' || Character.isDigit(c)){
+		    lexeme.append(c);
+		    source.advance();
+		    incrimentPosition();
+		    continue;
+		} else {
+		    return Token.makeMacroToken(lexeme.toString(), position);
+		}
 	    case ERROR:
 		if(!Character.isWhitespace(c)){
 		    source.advance();
@@ -466,6 +482,8 @@ public class Lexer{
 	case STRING:
 	    ErrorLog.addItem(new ErrorItem("Unexepected End of File Found in STRING state", null));
 	    return null;
+	case MACRO:
+	    return Token.makeMacroToken(lexeme.toString(), position);
 	default:
 	    return null;
 	}

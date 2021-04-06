@@ -1,5 +1,6 @@
-package edu.depauw.emulator_ide.verilog_compiler.visitor;
+package edu.depauw.emulator_ide.verilog_compiler.main;
 
+import edu.depauw.emulator_ide.verilog_compiler.visitor.*;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.*;
@@ -10,47 +11,30 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.reg_value.*;
+import edu.depauw.emulator_ide.verilog_compiler.main.util.NumberUtil;
 import edu.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry.TypeCheckerVariableData;
+import edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry.TypeCheckerFunctionData;
 import edu.depauw.emulator_ide.common.io.*;
 import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
     
-public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeCheckerVariableData.Type>{
+public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Type>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void>{
     
-    private Environment<String, Position> modEnv;
-    private Environment<String, TypeCheckerFunctionData> funcEnv;
-    private Environment<String, TypeCheckerVariableData> varEnv;
-    private AstNode node;
-    private InfoLog errorLog;
+    private final Environment<String, Position> modEnv;
+    private final Environment<String, TypeCheckerFunctionData> funcEnv;
+    private final Environment<String, TypeCheckerVariableData> varEnv;
+    private final InfoLog errorLog;
     
-    public TypeCheckerVisitor(AstNode node, InfoLog errorLog){
+    public TypeChecker(InfoLog errorLog){
 	this.modEnv = new Environment<>();
 	this.funcEnv = new Environment<>();
 	this.varEnv = new Environment<>();
 	this.errorLog = errorLog;
-	this.node = node;
     }
     
-    /**
-     *This is the top level visit statement used to visit a Verilog Module which should allways be the root of the
-     *AST
-     *@param mod
-     *@author Jacob bauer
-     */
-
-    public void visitRoot(){
-	if(node instanceof Expression){
-	    ((Expression)node).accept(this);
-	} else if(node instanceof Statement){
-	    ((Statement)node).accept(this);
-	} else {
-	    visit((ModuleDeclaration)node);
-	}
-	this.errorLog.printLog();
-    }
-
-    
-    public void visit(ModuleDeclaration mod){
+    public Void visit(ModuleDeclaration mod, Object... argv){
 	modEnv.addScope();
 	funcEnv.addScope();
 	varEnv.addScope();
@@ -80,7 +64,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
     
-    public Void visit(AllwaysStatement stat){
+    public Void visit(AllwaysStatement stat, Object... argv){
 	stat.getStatement().accept(this);
 	return null;
     }
@@ -90,7 +74,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(ContinuousAssignment assign){
+    public Void visit(ContinuousAssignment assign, Object... argv){
 	for(int i = 0; i < assign.numAssignments(); i++){
 	    assign.getAssignment(i).accept(this);
 	}
@@ -104,7 +88,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
     private boolean inFunction = false;
     private String topFunctionName = "";
 
-    public Void visit(FunctionDeclaration function){
+    public Void visit(FunctionDeclaration function, Object... argv){
 	Declaration funcDeclaration = function.getFunctionName();
 	Identifier funcName = null;
 	varEnv.addScope();
@@ -154,7 +138,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
     
-    public Void visit(InitialStatement stat){
+    public Void visit(InitialStatement stat, Object... argv){
 	varEnv.addScope();
 	stat.getStatement().accept(this);
 	varEnv.removeScope();
@@ -166,7 +150,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param mod
      */
     
-    public Void visit(ModInstantiation mod){
+    public Void visit(ModInstantiation mod, Object... argv){
 	for(int i = 0; i < mod.numModInstances(); i++){
 	    mod.getModInstance(i).accept(this);
 	}
@@ -178,7 +162,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param mod
      */
     
-    public Void visit(ModInstance mod){
+    public Void visit(ModInstance mod, Object... argv){
 	Identifier modName = mod.getIdentifier();
 	if(!modEnv.entryExists(modName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Module with the name " + modName.getLexeme() + " not found ", modName.getPosition()));
@@ -194,7 +178,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param task
      */
     
-    public Void visit(TaskDeclaration task){
+    public Void visit(TaskDeclaration task, Object... argv){
 	Identifier taskName = task.getTaskName();
 	if(funcEnv.entryExists(taskName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Task declaration by the name of " + taskName.getLexeme() + " found at [" + taskName.getPosition() + "] already exists at ", funcEnv.getEntry(taskName.getLexeme()).getPosition())); 
@@ -219,7 +203,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(InputWireScalarDeclaration decl){
+    public Void visit(InputWireScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
@@ -246,7 +230,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(InputWireVectorDeclaration decl){
+    public Void visit(InputWireVectorDeclaration decl, Object... argv){
 	TypeCheckerVariableData.Type type1 = decl.getExpression1().accept(this); //check whether the expressions return ints
 	TypeCheckerVariableData.Type type2 = decl.getExpression2().accept(this);
 
@@ -301,7 +285,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(WireScalarDeclaration decl){
+    public Void visit(WireScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
@@ -328,7 +312,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(WireVectorDeclaration decl){
+    public Void visit(WireVectorDeclaration decl, Object... argv){
 	TypeCheckerVariableData.Type type1 = decl.getExpression1().accept(this); //check whether the expressions return ints
 	TypeCheckerVariableData.Type type2 = decl.getExpression2().accept(this);
 
@@ -381,7 +365,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(RegScalarDeclaration decl){
+    public Void visit(RegScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numRegValues(); i++){
 	    Expression current = decl.getRegValue(i);
 	    if(current instanceof Identifier){
@@ -453,7 +437,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(RegVectorDeclaration decl){
+    public Void visit(RegVectorDeclaration decl, Object... argv){
 
 	TypeCheckerVariableData.Type type1 = decl.getExpression1().accept(this); //check whether the expressions return ints
 	TypeCheckerVariableData.Type type2 = decl.getExpression2().accept(this);
@@ -542,7 +526,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(OutputWireScalarDeclaration decl){
+    public Void visit(OutputWireScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
@@ -563,7 +547,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param Jacob Bauer
      */
 
-    public Void visit(OutputRegScalarDeclaration decl){
+    public Void visit(OutputRegScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numRegValues(); i++){
 	    Expression current = decl.getRegValue(i);
 	    if(current instanceof Identifier){
@@ -623,7 +607,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
 	return null;
     }
 
-    public Void visit(OutputWireVectorDeclaration decl){
+    public Void visit(OutputWireVectorDeclaration decl, Object... argv){
 	TypeCheckerVariableData.Type type1 = decl.getExpression1().accept(this); //check whether the expressions return ints
 	TypeCheckerVariableData.Type type2 = decl.getExpression2().accept(this);
 
@@ -672,7 +656,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(OutputRegVectorDeclaration decl){
+    public Void visit(OutputRegVectorDeclaration decl, Object... argv){
 
 	TypeCheckerVariableData.Type type1 = decl.getExpression1().accept(this); //check whether the expressions return ints
 	TypeCheckerVariableData.Type type2 = decl.getExpression2().accept(this);
@@ -757,7 +741,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(IntegerDeclaration decl){
+    public Void visit(IntegerDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numRegValues(); i++){
 	    Expression current = decl.getRegValue(i);
 	    if(current instanceof Identifier){
@@ -812,7 +796,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(RealDeclaration decl){
+    public Void visit(RealDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
@@ -831,7 +815,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(UnidentifiedDeclaration decl){
+    public Void visit(UnidentifiedDeclaration decl, Object... argv){
 	Identifier current = decl.getIdentifier();
 	if(varEnv.entryExists(current.getLexeme())){
 	    TypeCheckerVariableData dataType = varEnv.getEntry(current.getLexeme());
@@ -848,7 +832,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(AndGateDeclaration decl){
+    public Void visit(AndGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -864,7 +848,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(OrGateDeclaration decl){
+    public Void visit(OrGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -880,7 +864,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(NandGateDeclaration decl){
+    public Void visit(NandGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -896,7 +880,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(NorGateDeclaration decl){
+    public Void visit(NorGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -912,7 +896,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(XorGateDeclaration decl){
+    public Void visit(XorGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -928,7 +912,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(XnorGateDeclaration decl){
+    public Void visit(XnorGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -944,7 +928,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param decl
      */
     
-    public Void visit(NotGateDeclaration decl){
+    public Void visit(NotGateDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numExpressions(); i++){
 	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
 	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
@@ -968,7 +952,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(Assignment assign){
+    public Void visit(Assignment assign, Object... argv){
 	TypeCheckerVariableData.Type type1 = assign.getLValue().accept(this);
 	TypeCheckerVariableData.Type type2 = assign.getExpression().accept(this);
 	if (type1 == TypeCheckerVariableData.Type.UNDEFINED || type2 == TypeCheckerVariableData.Type.UNDEFINED){
@@ -988,7 +972,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(BlockAssign assign){
+    public Void visit(BlockAssign assign, Object... argv){
 	TypeCheckerVariableData.Type type1 = assign.getLValue().accept(this);
 	TypeCheckerVariableData.Type type2 = assign.getExpression().accept(this);
 	if (type1 == TypeCheckerVariableData.Type.UNDEFINED || type2 == TypeCheckerVariableData.Type.UNDEFINED){
@@ -1008,7 +992,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(CaseStatement stat){
+    public Void visit(CaseStatement stat, Object... argv){
 	TypeCheckerVariableData.Type numType = stat.getExpression().accept(this);
 	if(numType == TypeCheckerVariableData.Type.STRING || numType == TypeCheckerVariableData.Type.BOOLEAN){
 	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + numType, stat.getExpression().getPosition()));
@@ -1034,7 +1018,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(CaseXStatement stat){
+    public Void visit(CaseXStatement stat, Object... argv){
 	TypeCheckerVariableData.Type numType = stat.getExpression().accept(this);
 	if(numType == TypeCheckerVariableData.Type.STRING || numType == TypeCheckerVariableData.Type.BOOLEAN || numType == TypeCheckerVariableData.Type.REAL){
 	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + numType, stat.getExpression().getPosition()));
@@ -1060,7 +1044,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(CaseZStatement stat){
+    public Void visit(CaseZStatement stat, Object... argv){
 	TypeCheckerVariableData.Type numType = stat.getExpression().accept(this);
 	if(numType == TypeCheckerVariableData.Type.STRING || numType == TypeCheckerVariableData.Type.BOOLEAN || numType == TypeCheckerVariableData.Type.REAL){
 	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + numType, stat.getExpression().getPosition()));
@@ -1086,7 +1070,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param forLoop
      */
     
-    public Void visit(ForStatement forLoop){
+    public Void visit(ForStatement forLoop, Object... argv){
 	forLoop.getInit().accept(this);
 	TypeCheckerVariableData.Type type = forLoop.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN || type != TypeCheckerVariableData.Type.INTEGER || type != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
@@ -1111,7 +1095,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param ifElseStatement
      */
     
-    public Void visit(IfElseStatement ifElseStatement){
+    public Void visit(IfElseStatement ifElseStatement, Object... argv){
 	TypeCheckerVariableData.Type type  = ifElseStatement.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN || type != TypeCheckerVariableData.Type.INTEGER || type != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
 	    errorLog.addItem(new ErrorItem("Unexpected Expression Type for if Statement " + type, ifElseStatement.getExpression().getPosition()));
@@ -1126,7 +1110,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param ifElseStatement
      */
     
-    public Void visit(IfStatement ifStatement){
+    public Void visit(IfStatement ifStatement, Object... argv){
 	TypeCheckerVariableData.Type type = ifStatement.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN || type != TypeCheckerVariableData.Type.INTEGER || type != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
 	    errorLog.addItem(new ErrorItem("Unexpected Expression Type for if Statement" + type, ifStatement.getExpression().getPosition()));
@@ -1140,7 +1124,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param assign
      */
     
-    public Void visit(NonBlockAssign assign){
+    public Void visit(NonBlockAssign assign, Object... argv){
 	TypeCheckerVariableData.Type type1 = assign.getLValue().accept(this);
 	TypeCheckerVariableData.Type type2 = assign.getExpression().accept(this);
 	if (type1 == TypeCheckerVariableData.Type.UNDEFINED || type2 == TypeCheckerVariableData.Type.UNDEFINED){
@@ -1160,7 +1144,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
     
-    public Void visit(RepeatStatement stat){
+    public Void visit(RepeatStatement stat, Object... argv){
 	TypeCheckerVariableData.Type type = stat.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN && type != TypeCheckerVariableData.Type.CONSTANT_INTEGER && type != TypeCheckerVariableData.Type.INTEGER){
 	    errorLog.addItem(new ErrorItem("Unknown Type for While loop expression " + type, stat.getExpression().getPosition()));
@@ -1174,7 +1158,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
      
-    public Void visit(SeqBlockStatement stat){
+    public Void visit(SeqBlockStatement stat, Object... argv){
 	for(int i = 0; i < stat.numStatements(); i++){
 	    stat.getStatement(i).accept(this);
 	}
@@ -1186,7 +1170,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
      
-    public Void visit(TaskStatement task){
+    public Void visit(TaskStatement task, Object... argv){
 	Identifier tname = task.getTaskName();
 	if(funcEnv.entryExists(tname.getLexeme())){
 	    TypeCheckerFunctionData funcData = funcEnv.getEntry(tname.getLexeme());
@@ -1214,7 +1198,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
      
-    public Void visit(SystemTaskStatement task){
+    public Void visit(SystemTaskStatement task, Object... argv){
 	// These are not important for now I will handle those later
       	return null;
     }
@@ -1224,7 +1208,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param stat
      */
      
-    public Void visit(WaitStatement wait){
+    public Void visit(WaitStatement wait, Object... argv){
 	TypeCheckerVariableData.Type type = wait.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN && type != TypeCheckerVariableData.Type.CONSTANT_INTEGER && type != TypeCheckerVariableData.Type.INTEGER){
 	    errorLog.addItem(new ErrorItem("Unknown Type for While loop expression " + type, wait.getExpression().getPosition()));
@@ -1238,7 +1222,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param whileLoop
      */
      
-    public Void visit(WhileStatement whileLoop){
+    public Void visit(WhileStatement whileLoop, Object... argv){
 	TypeCheckerVariableData.Type type = whileLoop.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN && type != TypeCheckerVariableData.Type.CONSTANT_INTEGER && type != TypeCheckerVariableData.Type.INTEGER){
 	    errorLog.addItem(new ErrorItem("Unknown Type for While loop expression " + type, whileLoop.getExpression().getPosition()));
@@ -1253,7 +1237,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param none
      */
     
-    public Void visit(EmptyStatement stat){
+    public Void visit(EmptyStatement stat, Object... argv){
 	//this is empty it is just a placeholder
 	return null;
     }
@@ -1269,7 +1253,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param op
      */
     
-    public TypeCheckerVariableData.Type visit(BinaryOperation op){
+    public TypeCheckerVariableData.Type visit(BinaryOperation op, Object... argv){
 	TypeCheckerVariableData.Type left = op.getLeft().accept(this);
 	TypeCheckerVariableData.Type right = op.getRight().accept(this);
 
@@ -1282,7 +1266,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param op
      */
     
-    public TypeCheckerVariableData.Type visit(UnaryOperation op){
+    public TypeCheckerVariableData.Type visit(UnaryOperation op, Object... argv){
 	TypeCheckerVariableData.Type right = op.getRight().accept(this);
 	if(right == TypeCheckerVariableData.Type.UNDEFINED){
 	   errorLog.addItem(new ErrorItem("Cant have an undefined value in expression [Type -> " + right + "]", op.getPosition()));
@@ -1302,7 +1286,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param concat
      */
     
-    public TypeCheckerVariableData.Type visit(Concatenation concat){
+    public TypeCheckerVariableData.Type visit(Concatenation concat, Object... argv){
 	return TypeCheckerVariableData.Type.MIXED_VECTOR;
     }
 
@@ -1311,7 +1295,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param expr
      */
     
-    public TypeCheckerVariableData.Type visit(ConstantExpression expr){
+    public TypeCheckerVariableData.Type visit(ConstantExpression expr, Object... argv){
 	return expr.getExpression().accept(this);
     }
 
@@ -1320,7 +1304,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param expr
      */
     
-    public TypeCheckerVariableData.Type visit(EmptyExpression  expr){
+    public TypeCheckerVariableData.Type visit(EmptyExpression  expr, Object... argv){
 	//this is just a placeholder we do not need to put anything here
 	return null;
     }
@@ -1330,7 +1314,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param call
      */
     
-    public TypeCheckerVariableData.Type visit(FunctionCall call){
+    public TypeCheckerVariableData.Type visit(FunctionCall call, Object... argv){
 	Identifier tname = call.getFunctionName();
 	if(funcEnv.entryExists(tname.getLexeme())){
 	    TypeCheckerFunctionData funcData = funcEnv.getEntry(tname.getLexeme());
@@ -1359,7 +1343,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param call
      */
     
-    public TypeCheckerVariableData.Type visit(SystemFunctionCall call){
+    public TypeCheckerVariableData.Type visit(SystemFunctionCall call, Object... argv){
 	//I will do this later
 	return TypeCheckerVariableData.Type.UNDEFINED;
     }
@@ -1369,7 +1353,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param ident
      */
     
-    public TypeCheckerVariableData.Type visit(Identifier ident){
+    public TypeCheckerVariableData.Type visit(Identifier ident, Object... argv){
 	if(varEnv.entryExists(ident.getLexeme())){
 	    TypeCheckerVariableData entry = varEnv.getEntry(ident.getLexeme());
 	    if(entry.type == TypeCheckerVariableData.Type.UNDEFINED){
@@ -1389,7 +1373,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param number
      */
     
-    public TypeCheckerVariableData.Type visit(NumValue number){
+    public TypeCheckerVariableData.Type visit(NumValue number, Object... argv){
 	if(number.getLexeme().contains(".")){
 	    return TypeCheckerVariableData.Type.CONSTANT_REAL;
 	} else {
@@ -1402,7 +1386,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param connection
      */
     
-    public TypeCheckerVariableData.Type visit(PortConnection connection){
+    public TypeCheckerVariableData.Type visit(PortConnection connection, Object... argv){
 	return connection.getExpression().accept(this);
     }
 
@@ -1411,7 +1395,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param string
      */
     
-    public TypeCheckerVariableData.Type visit(StrValue string){
+    public TypeCheckerVariableData.Type visit(StrValue string, Object... argv){
 	// do nothing
 	return TypeCheckerVariableData.Type.STRING;
     }
@@ -1421,7 +1405,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param expr
      */
     
-    public TypeCheckerVariableData.Type visit(TernaryExpression expr){
+    public TypeCheckerVariableData.Type visit(TernaryExpression expr, Object... argv){
 	TypeCheckerVariableData.Type cond = expr.getCondition().accept(this);
 	if(cond != TypeCheckerVariableData.Type.BOOLEAN && cond != TypeCheckerVariableData.Type.INTEGER && cond != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
 	    errorLog.addItem(new ErrorItem("Expected condition to result in type boolean but got " + cond, expr.getPosition()));
@@ -1439,7 +1423,7 @@ public class TypeCheckerVisitor implements AstNodeVisitor<Void, Void, TypeChecke
      * @param string
      */
     
-    public TypeCheckerVariableData.Type visit(VectorCall vector){
+    public TypeCheckerVariableData.Type visit(VectorCall vector, Object... argv){
 	Identifier ident = vector.getIdentifier();
 	if(!varEnv.entryExists(ident.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Identifier " + ident.getLexeme() + " not found", ident.getPosition()));

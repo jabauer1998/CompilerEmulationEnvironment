@@ -1,6 +1,6 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
@@ -18,6 +18,6 @@ public abstract class Statement extends AstNode{
 	super(position);
     }
 
-    public abstract <ModVisitType, StatVisitType, ExprVisitType> StatVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv);
+    public abstract <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv);
     
 }

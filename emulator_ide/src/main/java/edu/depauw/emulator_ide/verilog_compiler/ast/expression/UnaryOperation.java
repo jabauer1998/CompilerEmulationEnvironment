@@ -1,10 +1,10 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 /**
- * The Unary Operation class is used to parse unary operations
- * unary operations are operations with one operator and an expression
- * ex: - (1 + 5) the Expression is 1 + 5 and the negation is the unary operation
+ * The Unary Operation class is used to par.E unary operations
+ * unary operations are operations with one operator and an.expression
+ * ex: - (1 + 5) the.expression is 1 + 5 and the negation is the unary operation
  * @author Jacob Bauer
  */
 
@@ -15,7 +15,7 @@ public class UnaryOperation extends Expression{
 
     /** The UnaryOperation constuctor is used to create a Unary operation
      *  @param op operator to use
-     *  @param right expression to apply the operator to
+     *  @param right.expression to apply the operator to
      */
     
     public UnaryOperation(UnOp op, Expression right){
@@ -24,7 +24,7 @@ public class UnaryOperation extends Expression{
 	this.op = op;
     }
 
-    /** The right operator is used to get the right hand side of an expression
+    /** The right operator is used to get the right hand side of an.expression
      * @param none
      */
     
@@ -33,7 +33,7 @@ public class UnaryOperation extends Expression{
     }
 
     /**
-     * Expression used to get the operator used in the Operation
+     *.expression used to get the operator used in the Operation
      * @param none
      */
     
@@ -44,7 +44,7 @@ public class UnaryOperation extends Expression{
     /**The accept method will make it so the visitor interface will work
      * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
-	return astNodeVisitor.visit(this, argv);
+    public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
+	return exprVisitor.visit(this, argv);
     }
 }

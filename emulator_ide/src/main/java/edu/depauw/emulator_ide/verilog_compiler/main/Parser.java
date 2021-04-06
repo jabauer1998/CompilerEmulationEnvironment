@@ -14,6 +14,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.gate_declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
+import edu.depauw.emulator_ide.verilog_compiler.ast.reg_value.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -176,15 +177,15 @@ public class Parser{
 		    match(Token.Type.COLON);
 		    ConstantExpression exp2 = parseConstantExpression();
 		    match(Token.Type.RBRACK);
-		    Expression exp = parseIdentifier();
-		    ArrayList<Expression> expList = new ArrayList<>();
-		    expList.add(exp);
-		    return new OutputRegVectorDeclaration(exp1, exp2, new RegValueList(expList));
+		    Identifier ident = parseIdentifier();
+		    ArrayList<RegValue> regValList = new ArrayList<>();
+		    regValList.add(new RegVectorIdent(ident));
+		    return new OutputRegVectorDeclaration(exp1, exp2, new RegValueList(regValList));
 		} else {
-		    Expression exp = parseIdentifier();
-		    ArrayList<Expression> expList = new ArrayList<>();
-		    expList.add(exp);
-		    return new OutputRegScalarDeclaration(new RegValueList(expList));
+		    Identifier ident = parseIdentifier();
+		    ArrayList<RegValue> regList = new ArrayList<>();
+		    regList.add(new RegScalarIdent(ident));
+		    return new OutputRegScalarDeclaration(new RegValueList(regList));
 		}
 	    } else if(willMatch(Token.Type.WIRE)){
 		skip();
@@ -233,6 +234,8 @@ public class Parser{
     private ModItem parseModItem(){
 	if(willMatch(Token.Type.FUNCTION)){
 	    return parseFunctionDeclaration();
+	} else if (willMatch(Token.Type.MACRODEF)){
+	    return parseMacroDefinition();
 	} else if (willMatch(Token.Type.TASK)){
 	    return parseTaskDeclaration();
 	} else if(willMatch(Token.Type.INTEGER)){
@@ -289,6 +292,14 @@ public class Parser{
 
 	return new ModItemList(modList);
     }
+
+    //MacroDefinition -> `define IDENT Expression
+    private ModItem parseMacroDefinition(){
+	match(Token.Type.MACRODEF);
+	Identifier ident = parseIdentifier();
+	Expression exp = parseExpression();
+	return new MacroDefinition(ident, exp);
+    }
     
     //Function -> Function FunctionName DeclarationList Statement ENDFUNCTION
     private ModItem parseFunctionDeclaration(){
@@ -305,27 +316,27 @@ public class Parser{
     private Declaration parseFunctionName(){
 	if(willMatch(Token.Type.REG)){
 	    skip();
-	    if(willMatch(Token.Type.RBRACK)){
+	    if(willMatch(Token.Type.LBRACK)){
 		skip();
 		ConstantExpression exp1 = parseConstantExpression();
 		match(Token.Type.COLON);
 		ConstantExpression exp2 = parseConstantExpression();
 		match(Token.Type.RBRACK);
 		Identifier ident = parseIdentifier();
-		ArrayList<Expression> exprList = new ArrayList<>();
-		exprList.add(ident);
+		ArrayList<RegValue> exprList = new ArrayList<>();
+		exprList.add(new RegVectorIdent(ident));
 		return new RegVectorDeclaration(exp1, exp2, new RegValueList(exprList));
 	    } else {
-		Expression exp = parseIdentifier();
-		ArrayList<Expression> expList = new ArrayList<>();
-		expList.add(exp);
+		Identifier ident = parseIdentifier();
+		ArrayList<RegValue> expList = new ArrayList<>();
+		expList.add(new RegScalarIdent(ident));
 		return new RegScalarDeclaration(new RegValueList(expList));
 	    }
 	} else if (willMatch(Token.Type.INTEGER)){
 	    skip();
-	    Expression expr = parseIdentifier();
-	    ArrayList<Expression> exprList = new ArrayList<>();
-	    exprList.add(expr);
+	    Identifier ident = parseIdentifier();
+	    ArrayList<RegValue> exprList = new ArrayList<>();
+	    exprList.add(new IntegerIdent(ident));
 	    return new IntegerDeclaration(new RegValueList(exprList));
 	} else if (willMatch(Token.Type.REAL)){
 	    skip();
@@ -333,20 +344,20 @@ public class Parser{
 	    ArrayList<Identifier> identList = new ArrayList<>();
 	    identList.add(ident);
 	    return new RealDeclaration(new IdentifierList(identList));
-	} else if (willMatch(Token.Type.RBRACK)){
+	} else if(willMatch(Token.Type.LBRACK)){
 	    skip();
 	    ConstantExpression exp1 = parseConstantExpression();
 	    match(Token.Type.COLON);
 	    ConstantExpression exp2 = parseConstantExpression();
 	    match(Token.Type.RBRACK);
 	    Identifier ident = parseIdentifier();
-	    ArrayList<Expression> exprList = new ArrayList<>();
-	    exprList.add(ident);
+	    ArrayList<RegValue> exprList = new ArrayList<>();
+	    exprList.add(new RegVectorIdent(ident));
 	    return new RegVectorDeclaration(exp1, exp2, new RegValueList(exprList));
 	} else {
-	    Expression exp = parseIdentifier();
-	    ArrayList<Expression> expList = new ArrayList<>();
-	    expList.add(exp);
+	    Identifier ident = parseIdentifier();
+	    ArrayList<RegValue> expList = new ArrayList<>();
+	    expList.add(new RegScalarIdent(ident));
 	    return new RegScalarDeclaration(new RegValueList(expList));
 	}
     }
@@ -441,11 +452,11 @@ public class Parser{
 	    match(Token.Type.COLON);
 	    ConstantExpression exp2 = parseConstantExpression();
 	    match(Token.Type.RBRACK);
-	    RegValueList identList = parseRegValueList();
+	    RegValueList identList = parseRegVectorValueList();
 	    match(Token.Type.SEMI);
 	    return new RegVectorDeclaration(exp1, exp2, identList);
 	} else {
-	    RegValueList identList = parseRegValueList();
+	    RegValueList identList = parseRegScalarValueList();
 	    match(Token.Type.SEMI);
 	    return new RegScalarDeclaration(identList);
 	}
@@ -460,11 +471,11 @@ public class Parser{
 	    match(Token.Type.COLON);
 	    ConstantExpression exp2 = parseConstantExpression();
 	    match(Token.Type.RBRACK);
-	    RegValueList identList = parseRegValueList();
+	    RegValueList identList = parseRegVectorValueList();
 	    match(Token.Type.SEMI);
 	    return new OutputRegVectorDeclaration(exp1, exp2, identList);
 	} else {
-	    RegValueList identList = parseRegValueList();
+	    RegValueList identList = parseRegScalarValueList();
 	    match(Token.Type.SEMI);
 	    return new OutputRegScalarDeclaration(identList);
 	}
@@ -574,7 +585,7 @@ public class Parser{
     //IntegerDeclaration -> INTEGER IdentifierList ;
     private Declaration parseIntegerDeclaration(){
 	match(Token.Type.INTEGER);
-	RegValueList identList = parseRegValueList();
+	RegValueList identList = parseIntegerValueList();
 	match(Token.Type.SEMI);
 	return new IntegerDeclaration(identList);
     }
@@ -765,9 +776,9 @@ public class Parser{
 		    }
 		} else {
 		    match(Token.Type.COLON);
-		    Expression exp2 = parseExpression();
+		    ConstantExpression exp2 = parseConstantExpression();
 		    match(Token.Type.RBRACK);
-		    Expression vec = new VectorCall(ident, exp1, exp2);
+		    Expression vec = new VectorSlice(ident, new ConstantExpression(exp1), exp2);
 		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
@@ -1035,9 +1046,9 @@ public class Parser{
 		    return new VectorCall(new Identifier(ident), exp);
 		} else {
 		    match(Token.Type.COLON);
-		    Expression exp2 = parseExpression();
+		    ConstantExpression exp2 = parseConstantExpression();
 		    match(Token.Type.RBRACK);
-		    return new VectorCall(new Identifier(ident), exp, exp2);
+		    return new VectorSlice(new Identifier(ident), new ConstantExpression(exp), exp2);
 		}
 	    } else {
 		return new Identifier(ident);
@@ -1045,36 +1056,89 @@ public class Parser{
 	}
     }
 
-    //RegValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
-    private Expression parseRegValue(){
+    //RegIntegerValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
+    private RegValue parseIntegerValue(){
 	Token ident = match(Token.Type.IDENT);
 	if(willMatch(Token.Type.LBRACK)){
 	    skip();
-	    Expression exp = parseExpression();
-	    if(willMatch(Token.Type.RBRACK)){
-		skip();
-		return new VectorCall(new Identifier(ident), exp);
-	    } else {
-		match(Token.Type.COLON);
-		Expression exp2 = parseExpression();
-		match(Token.Type.RBRACK);
-		return new VectorCall(new Identifier(ident), exp, exp2);
-	    }
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    return new IntegerArray(new Identifier(ident), exp1, exp2);
 	} else {
-	    return new Identifier(ident);
+	    return new IntegerIdent(new Identifier(ident));
+	}
+    }
+
+    //RegVectorValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
+    private RegValue parseRegVectorValue(){
+	Token ident = match(Token.Type.IDENT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    return new RegVectorArray(new Identifier(ident), exp1, exp2);
+	} else {
+	    return new RegVectorIdent(new Identifier(ident));
+	}
+    }
+
+    //RegScalarValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
+    private RegValue parseRegScalarValue(){
+	Token ident = match(Token.Type.IDENT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    return new RegScalarArray(new Identifier(ident), exp1, exp2);
+	} else {
+	    return new RegScalarIdent(new Identifier(ident));
 	}
     }
     
     //RegValueList -> RegValue RegValueRest
     //RegValueRest -> , RegValue RegValueRest | NULL
-    private RegValueList parseRegValueList(){
-	List<Expression> expList = new ArrayList<>();
+    private RegValueList parseIntegerValueList(){
+	List<RegValue> expList = new ArrayList<>();
 	
-	expList.add(parseRegValue());
+	expList.add(parseIntegerValue());
 	
 	while(willMatch(Token.Type.COMMA)){
 	    skip();
-	    Expression exp = parseRegValue();
+	    RegValue exp = parseIntegerValue();
+	    expList.add(exp);
+	}
+	
+	return new RegValueList(expList);
+    }
+
+    private RegValueList parseRegScalarValueList(){
+	List<RegValue> expList = new ArrayList<>();
+	
+	expList.add(parseRegScalarValue());
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    RegValue exp = parseRegScalarValue();
+	    expList.add(exp);
+	}
+	
+	return new RegValueList(expList);
+    }
+
+    private RegValueList parseRegVectorValueList(){
+	List<RegValue> expList = new ArrayList<>();
+	
+	expList.add(parseRegVectorValue());
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    RegValue exp = parseRegVectorValue();
 	    expList.add(exp);
 	}
 	
@@ -1276,10 +1340,12 @@ public class Parser{
 	}
     }
 
-    // Primary -> NumValue | IDENT | Concatenation | SystemCall | ( Expression )
+    // Primary -> NumValue | IDENT | Concatenation | SystemCall | ( Expression ) | MACROIDENT
     private Expression parsePrimary(){
 	if(willMatch(Token.Type.NUM)){
 	    return parseNumValue();
+	} else if (willMatch(Token.Type.MACROIDENT)) {
+	    return parseMacroIdentifier();
 	} else if (willMatch(Token.Type.IDENT)){
 	    Token identToken = skip();
 	    if(willMatch(Token.Type.LBRACK)){
@@ -1288,9 +1354,9 @@ public class Parser{
 		Expression index1 = parseExpression();
 		if(willMatch(Token.Type.COLON)){
 		    skip();
-		    Expression index2 = parseExpression();
+		    ConstantExpression index2 = parseConstantExpression();
 		    match(Token.Type.RBRACK);
-		    return new VectorCall(ident, index1, index2);
+		    return new VectorSlice(ident, new ConstantExpression(index1), index2);
 		} else {
 		    match(Token.Type.RBRACK);
 		    return new VectorCall(ident, index1);
@@ -1349,6 +1415,12 @@ public class Parser{
 	ExpressionList expList = parseExpressionList();
 	match(Token.Type.RCURL);
 	return new Concatenation(expList);
+    }
+
+    //Identifier -> IDENT
+    private MacroIdentifier parseMacroIdentifier(){
+	Token token = match(Token.Type.MACROIDENT);
+	return new MacroIdentifier(token);
     }
 
     //Identifier -> IDENT

@@ -6,6 +6,8 @@ public class Token{
 	    IDENT, //identifiers
 	    NUM, //Numbers
 	    STRING, //String constants
+	    MACRODEF,
+	    MACROIDENT,
 	    
 	    //Operators
 	    LPAR,   // (
@@ -220,6 +222,14 @@ public class Token{
 	    return makeToken(lexeme, position, KEY.get(lexeme));
 	} else {
 	    return makeToken(lexeme, position, Type.IDENT);
+	}
+    }
+
+    public static Token makeMacroToken(String lexeme, Position position){
+	if(lexeme.equals("`define")){
+	    return makeToken(lexeme, position, Type.MACRODEF);
+	} else {
+	    return makeToken(lexeme, position, Type.MACROIDENT);
 	}
     }
 

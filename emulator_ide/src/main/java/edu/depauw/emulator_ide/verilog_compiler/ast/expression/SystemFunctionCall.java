@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.visitor.AstNodeVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ExpressionList;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class SystemFunctionCall extends Expression{
 
     private final Identifier functionName; //name of the function
-    private final ExpressionList expList; //parameter expressions
+    private final ExpressionList expList; //parameter Expressions
 
     /** The FunctionCall constructor takes two arguments:
      * @param functionName name of the function
@@ -39,14 +39,14 @@ public class SystemFunctionCall extends Expression{
 	return this.functionName;
     }
 
-    /** This function returns an expression from the expression list at the specified index 
-     * @param index of the expression
+    /** This function returns an.expression from the expression list at the s Ecified index 
+     * @param index of the.expression
      */
     public Expression getExpression(int index){
 	return expList.getExpression(index);
     }
 
-    /** This function returns the expression List size
+    /** This function returns the.expression List size
      * @param none
      */
     public int numExpressions(){
@@ -56,7 +56,7 @@ public class SystemFunctionCall extends Expression{
     /**The accept method will make it so the visitor interface will work
      * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */
-    public <ModVisitType, StatVisitType, ExprVisitType> ExprVisitType accept(AstNodeVisitor<ModVisitType, StatVisitType, ExprVisitType> astNodeVisitor, Object... argv){
-	return astNodeVisitor.visit(this, argv);
+    public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
+	return exprVisitor.visit(this, argv);
     }
 }

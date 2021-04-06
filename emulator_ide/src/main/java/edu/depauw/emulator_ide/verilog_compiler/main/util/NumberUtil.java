@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.verilog_compiler.visitor;
+package edu.depauw.emulator_ide.verilog_compiler.main.util;
 
 /** The number utils class was designed to keep track of methods to help with the conversion from String to numerical values
  * @author Jacob Bauer
