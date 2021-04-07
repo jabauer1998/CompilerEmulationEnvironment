@@ -22,17 +22,15 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
     private Environment<String, Position> modEnv;
     private Environment<String, Position> funcEnv;
     private Environment<String, Position> varEnv;
-    private AstNode node;
     private Destination dest;
     private InfoLog errorLog;
     
-    public Indexer(AstNode node, Destination dest, InfoLog errorLog){
+    public Indexer(Destination dest, InfoLog errorLog){
 	this.modEnv = new Environment<>();
 	this.funcEnv = new Environment<>();
 	this.varEnv = new Environment<>();
 	this.dest = dest;
 	this.errorLog = errorLog;
-	this.node = node;
     }
     /**
      *This is the top level visit statement used to visit a Verilog Module which should allways be the root of the

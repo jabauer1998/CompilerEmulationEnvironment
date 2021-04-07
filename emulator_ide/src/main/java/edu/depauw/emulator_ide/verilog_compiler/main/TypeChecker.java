@@ -53,6 +53,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	varEnv.removeScope();
 	funcEnv.removeScope();
 	modEnv.removeScope();
+	return null;
     }
 
     /*
@@ -92,30 +93,6 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	Declaration funcDeclaration = function.getFunctionName();
 	Identifier funcName = null;
 	varEnv.addScope();
-	if(funcDeclaration instanceof IntegerDeclaration){
-	    IntegerDeclaration intDec = (IntegerDeclaration)funcDeclaration;
-	    Expression regVal = intDec.getRegValue(0);
-	    if(regVal instanceof Identifier){
-		funcName = (Identifier)regVal; 
-	    } else {
-		funcName = ((VectorCall)regVal).getIdentifier();
-	    }
-	} else if (funcDeclaration instanceof RealDeclaration){
-	    RealDeclaration realDec = (RealDeclaration)funcDeclaration;
-	    funcName = realDec.getIdentifier(0);
-	} else if (funcDeclaration instanceof RegVectorDeclaration){
-	    RegVectorDeclaration regVecDec = (RegVectorDeclaration)funcDeclaration;
-	    Expression regVal = regVecDec.getRegValue(0);
-	    funcName = (Identifier)regVal; 
-	} else if (funcDeclaration instanceof RegScalarDeclaration){
-	    RegScalarDeclaration regScalDec = (RegScalarDeclaration)funcDeclaration;
-	    Expression regVal = regScalDec.getRegValue(0);
-	    if(regVal instanceof Identifier){
-		funcName = (Identifier)regVal; 
-	    } else {
-		funcName = ((VectorCall)regVal).getIdentifier();
-	    }
-	}
 	funcDeclaration.accept(this);
 	if(funcEnv.entryExists(funcName.getLexeme())){
 	    errorLog.addItem(new ErrorItem("Duplicate function " + funcName.getLexeme() + " allready exists ", funcName.getPosition())); 
@@ -196,6 +173,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	inFunction = false;
 	return null;
     }
+
+    /**
+     * This is used to visit a task declaration in verilog
+     * @param task
+     */
+    
+    public Void visit(MacroDefinition macro, Object... argv){
+	return null; //this should allready be handled at this point
+    }
     
     /**
      * This is used to visit any input scalar declaration in verilog.
@@ -243,7 +229,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    }
 	} else {
 
-	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+	    ConstantExpressionEvaluator constantVisitor = new ConstantExpressionEvaluator(errorLog);
 
 	    int slice1 = (int)decl.getExpression1().accept(constantVisitor);
 	    int slice2 = (int)decl.getExpression2().accept(constantVisitor);
@@ -325,7 +311,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    }
 	} else {
 
-	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+	    ConstantExpressionEvaluator constantVisitor = new ConstantExpressionEvaluator(errorLog);
 
 	    int slice1 = (int)decl.getExpression1().accept(constantVisitor);
 	    int slice2 = (int)decl.getExpression2().accept(constantVisitor);
@@ -367,66 +353,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     
     public Void visit(RegScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numRegValues(); i++){
-	    Expression current = decl.getRegValue(i);
-	    if(current instanceof Identifier){
-		Identifier cur = (Identifier)current;
-		if(varEnv.entryExists(cur.getLexeme())){
-		    TypeCheckerVariableData entryData = varEnv.getEntry(cur.getLexeme());
-		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			entryData.type = TypeCheckerVariableData.Type.REGISTER;
-		    } else if (entryData.type == TypeCheckerVariableData.Type.OUTPUT) {
-			entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER;
-		    } else {
-			errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER, cur.getPosition()));
-		    }
-		} else {
-		    varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER, cur.getPosition()));
-		}
-	    } else {
-		VectorCall cur = (VectorCall)current;
-		String lexeme = cur.getIdentifier().getLexeme();
-
-		
-		if(cur.getExpression2() == null){
-		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
-		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-		    } else {
-			ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(errorLog);
-			cur.getExpression1().accept(constVisitor);
-		    }
-		} else {
-		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
-		    TypeCheckerVariableData.Type type2 = cur.getExpression2().accept(this);
-		    
-		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-		    } else {
-			ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(errorLog);
-			cur.getExpression1().accept(constVisitor);
-		    }
-		    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", cur.getPosition()));
-		    } else {
-			ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(errorLog);
-			cur.getExpression2().accept(constVisitor);
-		    }
-		}
-		
-		if(varEnv.entryExists(lexeme)){
-		    TypeCheckerVariableData entryData = varEnv.getEntry(lexeme);
-		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			entryData.type = TypeCheckerVariableData.Type.REGISTER_ARRAY;
-		    } else if (entryData.type == TypeCheckerVariableData.Type.OUTPUT) {
-			entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY;
-		    } else {
-			errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_ARRAY, cur.getPosition()));
-		    }
-		} else {
-		    varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_ARRAY, cur.getPosition()));
-		}
-		
-	    }
+	    decl.getRegValue(i).accept(this);
 	}
 	return null;
     }
@@ -451,7 +378,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    }
 	} else {
 
-	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+	    ConstantExpressionEvaluator constantVisitor = new ConstantExpressionEvaluator(errorLog);
 
 	    int slice1 = (int)decl.getExpression1().accept(constantVisitor);
 	    int slice2 = (int)decl.getExpression2().accept(constantVisitor);
@@ -459,62 +386,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
 	    
 	    for(int i = 0; i < decl.numRegValues(); i++){
-		Expression current = decl.getRegValue(i);
-		Identifier cur = null;
-		if(current instanceof Identifier){
-		    cur = (Identifier)current;
-		    if(varEnv.entryExists(cur.getLexeme())){
-			TypeCheckerVariableData entryData = varEnv.getEntry(cur.getLexeme());
-			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			    entryData.type = TypeCheckerVariableData.Type.REGISTER_VECTOR;
-			} else if (entryData.type == TypeCheckerVariableData.Type.OUTPUT) {
-			    entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR;
-			} else {
-			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_VECTOR, cur.getPosition()));
-			}
-		    } else {
-			varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_VECTOR, vectorSize,  cur.getPosition()));
-		    }
-		} else {
-		    VectorCall vecCall = (VectorCall)current;
-		    cur = vecCall.getIdentifier();
-		    String lexeme = cur.getLexeme();
-		    if(vecCall.getExpression2() == null){
-			TypeCheckerVariableData.Type type1Arr = vecCall.getExpression1().accept(this);
-			if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			    errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-			} else {
-			    vecCall.getExpression1().accept(constantVisitor);
-			}
-		    } else {
-			TypeCheckerVariableData.Type type1Arr = vecCall.getExpression1().accept(this);
-			TypeCheckerVariableData.Type type2Arr = vecCall.getExpression2().accept(this);
-		    
-			if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			    errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1Arr + "]", cur.getPosition()));
-			} else {
-			    vecCall.getExpression1().accept(constantVisitor);
-			}
-			if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			    errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2Arr + "]", cur.getPosition()));
-			} else {
-			    vecCall.getExpression2().accept(constantVisitor);
-			}
-		    }
-
-		    if(varEnv.entryExists(lexeme)){
-			TypeCheckerVariableData entryData = varEnv.getEntry(lexeme);
-			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			    entryData.type = TypeCheckerVariableData.Type.REGISTER_VECTOR_ARRAY;
-			} else if (entryData.type == TypeCheckerVariableData.Type.OUTPUT) {
-			    entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY;
-			} else {
-			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY, cur.getPosition()));
-			}
-		    } else {
-			varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_VECTOR_ARRAY, vectorSize, cur.getPosition()));
-		    } 
-		}
+		decl.getRegValue(i).accept(this);
 	    }
 	}
 	return null;
@@ -549,60 +421,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 
     public Void visit(OutputRegScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numRegValues(); i++){
-	    Expression current = decl.getRegValue(i);
-	    if(current instanceof Identifier){
-		Identifier cur = (Identifier)current;
-		if(varEnv.entryExists(cur.getLexeme())){
-		    TypeCheckerVariableData entryData = varEnv.getEntry(cur.getLexeme());
-		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER;
-		    } else {
-			errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.OUTPUT_REGISTER, cur.getPosition()));
-		    }
-		} else {
-		    varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER, cur.getPosition()));
-		}
-	    } else {
-		VectorCall cur = (VectorCall)current;
-		String lexeme = cur.getIdentifier().getLexeme();
-
-		ConstantExpressionVisitor constVisitor = new ConstantExpressionVisitor(errorLog);
-
-		if(cur.getExpression2() == null){
-		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
-		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-		    } else {
-			cur.getExpression1().accept(constVisitor);
-		    }
-		} else {
-		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
-		    TypeCheckerVariableData.Type type2 = cur.getExpression2().accept(this);
-		    
-		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-		    } else {
-			cur.getExpression1().accept(constVisitor);
-		    }
-		    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", cur.getPosition()));
-		    } else {
-			cur.getExpression2().accept(constVisitor);
-		    }
-		}
-		
-		if(varEnv.entryExists(lexeme)){
-		    TypeCheckerVariableData entryData = varEnv.getEntry(lexeme);
-		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY;
-		    } else {
-			errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_ARRAY, cur.getPosition()));
-		    }
-		} else {
-		    varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY, cur.getPosition()));
-		}
-		
-	    }
+	    decl.getRegValue(i).accept(this);
 	}
 	return null;
     }
@@ -620,7 +439,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    }
 	} else {
 
-	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+	    ConstantExpressionEvaluator constantVisitor = new ConstantExpressionEvaluator(errorLog);
 
 	    int slice1 = (int)decl.getExpression1().accept(constantVisitor);
 	    int slice2 = (int)decl.getExpression2().accept(constantVisitor);
@@ -670,7 +489,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    }
 	} else {
 
-	    ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
+	    ConstantExpressionEvaluator constantVisitor = new ConstantExpressionEvaluator(errorLog);
 
 	    int slice1 = (int)decl.getExpression1().accept(constantVisitor);
 	    int slice2 = (int)decl.getExpression2().accept(constantVisitor);
@@ -678,59 +497,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
 	    
 	    for(int i = 0; i < decl.numRegValues(); i++){
-		Expression current = decl.getRegValue(i);
-		Identifier cur = null;
-		if(current instanceof Identifier){
-		    cur = (Identifier)current;
-		    if(varEnv.entryExists(cur.getLexeme())){
-			TypeCheckerVariableData entryData = varEnv.getEntry(cur.getLexeme());
-			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			    entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR;
-			} else {
-			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.REGISTER_VECTOR, cur.getPosition()));
-			}
-		    } else {
-			varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR, vectorSize,  cur.getPosition()));
-		    }
-		} else {
-		    VectorCall vecCall = (VectorCall)current;
-		    cur = vecCall.getIdentifier();
-		    
-		    String lexeme = cur.getLexeme();
-		    if(vecCall.getExpression2() == null){
-			TypeCheckerVariableData.Type type1Call = vecCall.getExpression1().accept(this);
-			if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			    errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1Call + "]", cur.getPosition()));
-			} else {
-			    vecCall.getExpression1().accept(constantVisitor);
-			}
-		    } else {
-			TypeCheckerVariableData.Type type1Call = vecCall.getExpression1().accept(this);
-			TypeCheckerVariableData.Type type2Call = vecCall.getExpression2().accept(this);
-		    
-			if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			    errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1Call + "]", cur.getPosition()));
-			} else {
-			    vecCall.getExpression1().accept(constantVisitor);
-			}
-			if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			    errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2Call + "]", cur.getPosition()));
-			} else {
-			    vecCall.getExpression2().accept(constantVisitor);
-			}
-		    }
-
-		    if(varEnv.entryExists(lexeme)){
-			TypeCheckerVariableData entryData = varEnv.getEntry(lexeme);
-			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			    entryData.type = TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY;
-			} else {
-			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY, cur.getPosition()));
-			}
-		    } else {
-			varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY, vectorSize, cur.getPosition()));
-		    } 
-		}
+		decl.getRegValue(i).accept(this);
 	    }
 	}
 	return null;
@@ -743,49 +510,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     
     public Void visit(IntegerDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numRegValues(); i++){
-	    Expression current = decl.getRegValue(i);
-	    if(current instanceof Identifier){
-		Identifier cur = (Identifier)current;
-		if(varEnv.entryExists(cur.getLexeme())){
-		    errorLog.addItem(new ErrorItem("Redeclaration of Integer " + cur.getLexeme() + " originally declared at " + varEnv.getEntry(cur.getLexeme()).getPosition() + " declared at ", decl.getPosition()));
-		} else {
-		    varEnv.addEntry(cur.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.INTEGER, cur.getPosition()));
-		}
-	    } else {
-		VectorCall cur = (VectorCall)current;
-		String lexeme = cur.getIdentifier().getLexeme();
-
-		ConstantExpressionVisitor constantVisitor = new ConstantExpressionVisitor(errorLog);
-
-		if(cur.getExpression2() == null){
-		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
-		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-		    } else {
-			cur.getExpression1().accept(constantVisitor);
-		    }
-		} else {
-		    TypeCheckerVariableData.Type type1 = cur.getExpression1().accept(this);
-		    TypeCheckerVariableData.Type type2 = cur.getExpression2().accept(this);
-		    
-		    if(type1 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 1 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type1 + "]", cur.getPosition()));
-		    } else {
-			cur.getExpression1().accept(constantVisitor);
-		    }
-		    if(type2 != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-			errorLog.addItem(new ErrorItem("Slicing expression 2 in Input Declaration must result in an integer type[Exprected -> INTEGER | Got -> " + type2 + "]", cur.getPosition()));
-		    } else {
-			cur.getExpression2().accept(constantVisitor);
-		    }
-		}
-		
-		if(varEnv.entryExists(lexeme)){
-		    errorLog.addItem(new ErrorItem("Redeclaration of variable " + lexeme + " originally declared at " + varEnv.getEntry(lexeme).getPosition() + " declared at ", decl.getPosition()));
-		} else {
-		    varEnv.addEntry(lexeme, new TypeCheckerVariableData(TypeCheckerVariableData.Type.INTEGER_ARRAY, cur.getPosition()));
-		}
-	    }
+	    decl.getRegValue(i).accept(this);
 	}
 	return null;
     }
@@ -1085,7 +810,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      * @param foreverLoop
      */
     
-    public Void visit(ForeverStatement foreverLoop){
+    public Void visit(ForeverStatement foreverLoop, Object... argv){
 	foreverLoop.getStatement().accept(this);
 	return null;
     }
@@ -1368,6 +1093,10 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	}
     }
 
+    public TypeCheckerVariableData.Type visit(MacroIdentifier ident, Object... argv){
+	return null; //the preprocessor should have allready done its pass before this so this shoudnt exist
+    }
+
     /**
      * This is the code for visiting an Number in verilog
      * @param number
@@ -1459,5 +1188,98 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		return TypeCheckerVariableData.Type.UNDEFINED;
 	    }
 	}
+    }
+
+    public TypeCheckerVariableData.Type visit(VectorSlice vector, Object... argv){
+	Identifier ident = vector.getIdentifier();
+	if(!varEnv.entryExists(ident.getLexeme())){
+	    errorLog.addItem(new ErrorItem("Identifier " + ident.getLexeme() + " not found", ident.getPosition()));
+	    return TypeCheckerVariableData.Type.UNDEFINED;
+	} else {
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    vector.getExpression1().accept(this);
+	    vector.getExpression2().accept(this);
+	    return data.type;
+	}
+    }
+
+    /*
+     *Below are RegValue visitors. These are used in the declarations of Integers and Registers
+     */
+
+    public Void visit(RegVectorIdent regVector, Object... argv){
+	Identifier ident = regVector.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_VECTOR, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(RegScalarIdent regScalar, Object... argv){
+	Identifier ident = regScalar.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(IntegerIdent intIdent, Object... argv){
+	Identifier ident = intIdent.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.INTEGER, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(RegVectorArray regVector, Object... argv){
+	Identifier ident = regVector.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_VECTOR_ARRAY, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(RegScalarArray regScalar, Object... argv){
+	Identifier ident = regScalar.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_ARRAY, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(IntegerArray intIdent, Object... argv){
+	Identifier ident = intIdent.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.INTEGER_ARRAY, ident.getPosition()));
+	}
+	return null;
     }
 }

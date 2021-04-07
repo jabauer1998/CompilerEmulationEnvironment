@@ -12,8 +12,8 @@ import edu.depauw.emulator_ide.verilog_compiler.main.*;
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.visitor.IndexerVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.visitor.TypeCheckerVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.main.Indexer;
+import edu.depauw.emulator_ide.verilog_compiler.main.TypeChecker;
 import edu.depauw.emulator_ide.verilog_compiler.ast.ModuleDeclaration;
 
 import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils.*;
@@ -65,8 +65,8 @@ public class CheckpointTest{
 	System.out.print("\n\n-----------Checkpoint 1 Indexer Test Results---------------\n\n");
 	Parser parse = new Parser(tokens, errorLog);
 	ModuleDeclaration moddec = parse.parseAST();
-	IndexerVisitor idVisitor = new IndexerVisitor(moddec, display, errorLog);
-	idVisitor.visitRoot();
+	Indexer idVisitor = new Indexer(display, errorLog);
+	idVisitor.visit(moddec);
     }
 
     @Test
@@ -143,8 +143,8 @@ public class CheckpointTest{
 	ModuleDeclaration moddec = parse.parseAST();
 
 	//visit it with the type checker
-	TypeCheckerVisitor typeChecker = new TypeCheckerVisitor(moddec, errorLog);
-	typeChecker.visitRoot();
+	TypeChecker typeChecker = new TypeChecker(errorLog);
+	typeChecker.visit(moddec);
 	errorLog.printLog();
 
 	
