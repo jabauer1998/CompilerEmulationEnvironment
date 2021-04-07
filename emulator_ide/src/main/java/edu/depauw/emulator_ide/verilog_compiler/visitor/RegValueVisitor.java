@@ -43,5 +43,32 @@ public interface RegValueVisitor<RegValVisitType>{
 
      public RegValVisitType visit(RegVectorIdent arr, Object... argv);
 
+
+    //these are the output reg declarations
+
+    /**The code for visiting Integer Declarations
+     * 
+     */
+
+    public RegValVisitType visit(OutputRegScalarArray arr, Object... argv);
+
+    /**The code for visiting Integer Declarations
+     * the code for visiting register arrays
+     */
+
+     public RegValVisitType visit(OutputRegVectorArray arr, Object... argv);
+
+    /**The code for visiting Integer Declarations
+     * the code for visiting register arrays
+     */
+
+    public RegValVisitType visit(OutputRegScalarIdent arr, Object... argv);
+
+    /**The code for visiting Integer Declarations
+     * the code for visiting register arrays
+     */
+
+     public RegValVisitType visit(OutputRegVectorIdent arr, Object... argv);
+
     
 }

@@ -471,11 +471,11 @@ public class Parser{
 	    match(Token.Type.COLON);
 	    ConstantExpression exp2 = parseConstantExpression();
 	    match(Token.Type.RBRACK);
-	    RegValueList identList = parseRegVectorValueList();
+	    RegValueList identList = parseOutputRegVectorValueList();
 	    match(Token.Type.SEMI);
 	    return new OutputRegVectorDeclaration(exp1, exp2, identList);
 	} else {
-	    RegValueList identList = parseRegScalarValueList();
+	    RegValueList identList = parseOutputRegScalarValueList();
 	    match(Token.Type.SEMI);
 	    return new OutputRegScalarDeclaration(identList);
 	}
@@ -1086,6 +1086,23 @@ public class Parser{
 	}
     }
 
+    //RegVectorValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
+    private RegValue parseOutputRegVectorValue(){
+	Token ident = match(Token.Type.IDENT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    return new OutputRegVectorArray(new Identifier(ident), exp1, exp2);
+	} else {
+	    return new OutputRegVectorIdent(new Identifier(ident));
+	}
+    }
+
+    
+
     //RegScalarValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
     private RegValue parseRegScalarValue(){
 	Token ident = match(Token.Type.IDENT);
@@ -1098,6 +1115,21 @@ public class Parser{
 	    return new RegScalarArray(new Identifier(ident), exp1, exp2);
 	} else {
 	    return new RegScalarIdent(new Identifier(ident));
+	}
+    }
+
+    //RegScalarValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
+    private RegValue parseOutputRegScalarValue(){
+	Token ident = match(Token.Type.IDENT);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    return new OutputRegScalarArray(new Identifier(ident), exp1, exp2);
+	} else {
+	    return new OutputRegScalarIdent(new Identifier(ident));
 	}
     }
     
@@ -1125,6 +1157,34 @@ public class Parser{
 	while(willMatch(Token.Type.COMMA)){
 	    skip();
 	    RegValue exp = parseRegScalarValue();
+	    expList.add(exp);
+	}
+	
+	return new RegValueList(expList);
+    }
+
+    private RegValueList parseOutputRegScalarValueList(){
+	List<RegValue> expList = new ArrayList<>();
+	
+	expList.add(parseRegScalarValue());
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    RegValue exp = parseOutputRegScalarValue();
+	    expList.add(exp);
+	}
+	
+	return new RegValueList(expList);
+    }
+
+    private RegValueList parseOutputRegVectorValueList(){
+	List<RegValue> expList = new ArrayList<>();
+	
+	expList.add(parseRegVectorValue());
+	
+	while(willMatch(Token.Type.COMMA)){
+	    skip();
+	    RegValue exp = parseOutputRegVectorValue();
 	    expList.add(exp);
 	}
 	

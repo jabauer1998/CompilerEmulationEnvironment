@@ -971,6 +971,42 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
+    public Void visit(OutputRegScalarArray arr, Object... argv){
+	Identifier current = arr.getIdentifier();
+	if(varEnv.entryExists(current.getLexeme())){
+	    dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	} else {
+	    dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
+	    varEnv.addEntry(current.getLexeme(), current.getPosition());
+	}
+	arr.getExpression1().accept(this);
+	arr.getExpression2().accept(this);
+	return null;
+    }
+
+    /**
+     * This is the code for visiting and integer array using Java
+     * @param Jacob Bauer
+     */
+
+    public Void visit(OutputRegVectorArray arr, Object... argv){
+	Identifier current = arr.getIdentifier();
+	if(varEnv.entryExists(current.getLexeme())){
+	    dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	} else {
+	    dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
+	    varEnv.addEntry(current.getLexeme(), current.getPosition());
+	}
+	arr.getExpression1().accept(this);
+	arr.getExpression2().accept(this);
+	return null;
+    }
+
+    /**
+     * This is the code for visiting and integer array using Java
+     * @param Jacob Bauer
+     */
+
     public Void visit(IntegerIdent ident, Object... argv){
 	Identifier current = ident.getIdentifier();
 	if(varEnv.entryExists(current.getLexeme())){
@@ -1004,6 +1040,38 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(RegVectorIdent ident, Object... argv){
+	Identifier current = ident.getIdentifier();
+	if(varEnv.entryExists(current.getLexeme())){
+	    dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	} else {
+	    dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
+	    varEnv.addEntry(current.getLexeme(), current.getPosition());
+	}
+	return null;
+    }
+
+    /**
+     * This is the code for visiting and integer array using Java
+     * @param Jacob Bauer
+     */
+
+    public Void visit(OutputRegScalarIdent ident, Object... argv){
+	Identifier current = ident.getIdentifier();
+	if(varEnv.entryExists(current.getLexeme())){
+	    dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	} else {
+	    dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
+	    varEnv.addEntry(current.getLexeme(), current.getPosition());
+	}
+	return null;
+    }
+
+    /**
+     * This is the code for visiting and integer array using Java
+     * @param Jacob Bauer
+     */
+
+    public Void visit(OutputRegVectorIdent ident, Object... argv){
 	Identifier current = ident.getIdentifier();
 	if(varEnv.entryExists(current.getLexeme())){
 	    dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');

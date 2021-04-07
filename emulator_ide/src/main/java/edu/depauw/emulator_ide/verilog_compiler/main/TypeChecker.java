@@ -1233,6 +1233,32 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	return null;
     }
 
+    public Void visit(OutputRegVectorIdent regVector, Object... argv){
+	Identifier ident = regVector.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(OutputRegScalarIdent regScalar, Object... argv){
+	Identifier ident = regScalar.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER, size, ident.getPosition()));
+	}
+	return null;
+    }
+
     public Void visit(IntegerIdent intIdent, Object... argv){
 	Identifier ident = intIdent.getIdentifier();
 	
@@ -1267,6 +1293,32 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	} else {
 	    int size = (int)argv[0];
 	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_ARRAY, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(OutputRegVectorArray regVector, Object... argv){
+	Identifier ident = regVector.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY, size, ident.getPosition()));
+	}
+	return null;
+    }
+
+    public Void visit(OutputRegScalarArray regScalar, Object... argv){
+	Identifier ident = regScalar.getIdentifier();
+	
+	if(varEnv.inScope(ident.getLexeme())){
+	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
+	} else {
+	    int size = (int)argv[0];
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY, size, ident.getPosition()));
 	}
 	return null;
     }
