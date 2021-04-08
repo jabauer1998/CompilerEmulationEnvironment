@@ -19,6 +19,10 @@ public class ExpressionList extends AstNode {
 	return expList.get(index);
     }
 
+    public Expression setExpression(int index, Expression exp){
+	return expList.set(index, exp);
+    }
+
     public int getSize(){
 	return expList.size();
     }

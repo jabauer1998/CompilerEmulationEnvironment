@@ -28,6 +28,13 @@ public class Concatenation extends Expression{
 	return expList.getExpression(index);
     }
 
+    /** To get an.expression from a s Ecific index
+     *@param index index in exprVisitoresson list to fetch from
+     */
+    public void setExpression(int index, Expression exp){
+	this.expList.setExpression(index, exp);
+    }
+
     /** Get the size of the.expression list for which to concatenate
      * @param none
      */

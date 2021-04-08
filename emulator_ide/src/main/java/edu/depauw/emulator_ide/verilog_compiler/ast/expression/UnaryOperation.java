@@ -32,6 +32,14 @@ public class UnaryOperation extends Expression{
 	return right;
     }
 
+    /** The right operator is used to get the right hand side of an.expression
+     * @param none
+     */
+    
+    public void setRight(Expression expression){
+	this.right = expression;
+    }
+
     /**
      *.expression used to get the operator used in the Operation
      * @param none

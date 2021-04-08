@@ -46,6 +46,20 @@ public class VectorSlice extends Expression{
 	return index2;
     }
 
+     /** Returns the starting index
+     * @param none
+     */
+    public Expression setExpression1(Expression index1){
+	this.index1 = index1;
+    }
+
+    /** Returns the ending index
+     * @param none
+     */
+    public Expression setExpression2(Expression index2){
+	this.index2 = index2;
+    }
+
     /**The accept method will make it so the visitor interface will work
      * @param astNodeVisitor the visitor object we want to use to visit another member of a class
      */

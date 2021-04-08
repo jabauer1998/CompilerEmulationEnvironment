@@ -32,6 +32,10 @@ public class TernaryExpression extends Expression{
 	return left;
     }
 
+    public void setLeft(Expression left){
+	this.left = left;
+    }
+
     /** Returns the.expression that is false
      * @param none
      */
@@ -39,11 +43,22 @@ public class TernaryExpression extends Expression{
 	return right;
     }
 
+    public void setRight(Expression right){
+	this.right = right;
+    }
+
     /** Returns the.expression that is checked at the beginning of the ternary operation
      * @param none
      */
     public Expression getCondition(){
 	return condition;
+    }
+
+    /** Returns the.expression that is checked at the beginning of the ternary operation
+     * @param none
+     */
+    public void setCondition(Expression condition){
+        this.condition = condition;
     }
 
     /**The accept method will make it so the visitor interface will work

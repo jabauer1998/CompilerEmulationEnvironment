@@ -9,8 +9,8 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
  */
 public class BinaryOperation extends Expression{
 
-    private final Expression right; //Expression to the right of the operator
-    private final Expression left; //Expression to the left of the operator
+    private Expression right; //Expression to the right of the operator
+    private Expression left; //Expression to the left of the operator
     private final BinOp op; //operator of the binary.expression
 
     /** This is the consructor for creating Binary.expressions it has the 
@@ -42,6 +42,24 @@ public class BinaryOperation extends Expression{
 
     public Expression getRight(){
 	return right;
+    }
+
+    /**The getLeft method will retr.Eve the exprVisitoresson on the left side of the
+     * operator 
+     * @param none
+     */
+
+    public void setLeft(Expression left){
+	this.left = left;
+    }
+
+    /**The getRight method will retr.Eve the exprVisitoresson on the right side of the
+     * operator 
+     * @param none
+     */
+
+    public void setRight(Expression right){
+	this.right = right;
     }
 
     /**The getRight method will retr.Eve the operator in the midd E of the 

@@ -10,7 +10,7 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 public class PortConnection extends Expression{
 
     private final Identifier ident;// name of the port connection
-    private final Expression exp; //what the port connection equals
+    private Expression exp; //what the port connection equals
 
     /** The port connection constructor takes in an identifier 
      * @param ident name of the port connecting to
@@ -27,6 +27,13 @@ public class PortConnection extends Expression{
      */
     public Expression getExpression(){
 	return exp;
+    }
+
+    /** Retr.Eves the.expression that represents what is being connected
+     * @param none
+     */
+    public Expression setExpression(Expression exp){
+	this.exp = exp;
     }
 
     /** Returns the name of the identifier that we are connected to

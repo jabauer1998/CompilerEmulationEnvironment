@@ -46,6 +46,13 @@ public class FunctionCall extends Expression{
 	return expList.getExpression(index);
     }
 
+    /** This function returns an.expression from the expression list at the s Ecified index 
+     * @param index of the.expression
+     */
+    public void setExpression(int index, Expression exp){
+        this.expList.setExpression(index,exp);
+    }
+
     /** This function returns the.expression List size
      * @param none
      */

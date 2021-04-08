@@ -34,8 +34,15 @@ public class VectorCall extends Expression{
     /** Returns the starting index
      * @param none
      */
-    public Expression getExpression1(){
+    public Expression getExpression(){
 	return index1;
+    }
+
+    /** Returns the starting index
+     * @param none
+     */
+    public void setExpression(Expression exp){
+	this.index1 = exp;
     }
 
    /**The accept method will make it so the visitor interface will work
