@@ -11,8 +11,8 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
 public class BlockAssign extends Statement{
 
-    private final Expression lValue; //value on the left hand side of the assignment
-    private final Expression exp; //value on the right hand side of the assignment
+    private Expression lValue; //value on the left hand side of the assignment
+    private Expression exp; //value on the right hand side of the assignment
 
     /** The BlockAssign constuctor takes in two expressions:
      * @param lValue the value to be assigned to
@@ -30,6 +30,18 @@ public class BlockAssign extends Statement{
     public Expression getLValue(){
 	return lValue;
     }
+
+    /** The getLvalue method returns an expression representing an Identifer or a Vector or a Concatenation
+     * @param none
+     */
+    public void setLValue(Expression lValue){
+        this.lValue = lValue;
+    }
+
+    public void setExpression(Expression exp){
+        this.exp = exp;
+    }
+
 
     /** The get Expression method returns the expression on the right hand side od the =
      * @param none

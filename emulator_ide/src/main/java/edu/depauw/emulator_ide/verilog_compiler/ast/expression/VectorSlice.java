@@ -9,8 +9,8 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 
 public class VectorSlice extends Expression{
     
-    private final ConstantExpression index1; //initial index to grap from the array
-    private final ConstantExpression index2; //final index to grab from the array
+    private ConstantExpression index1; //initial index to grap from the array
+    private ConstantExpression index2; //final index to grab from the array
     private final Identifier ident; //name of the array
 
     /** The VectorCall constructor takes an identifier with up to twoindex to s Ecify the sub array that is desired
@@ -49,15 +49,15 @@ public class VectorSlice extends Expression{
      /** Returns the starting index
      * @param none
      */
-    public Expression setExpression1(Expression index1){
-	this.index1 = index1;
+    public void setExpression1(Expression index1){
+	this.index1 = new ConstantExpression(index1);
     }
 
     /** Returns the ending index
      * @param none
      */
-    public Expression setExpression2(Expression index2){
-	this.index2 = index2;
+    public void setExpression2(Expression index2){
+	this.index2 = new ConstantExpression(index2);
     }
 
     /**The accept method will make it so the visitor interface will work

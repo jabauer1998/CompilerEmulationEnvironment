@@ -879,7 +879,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 	} else {
 	    errorLog.addItem(new ErrorItem("Vector Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition())); 
 	}
-	vector.getExpression1().accept(this);
+	vector.getExpression().accept(this);
 	return null;
     }
 

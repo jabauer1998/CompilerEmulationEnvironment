@@ -7,7 +7,7 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 public class WaitStatement extends Statement{
     
     private final Statement stat; //Statement
-    private final Expression exp; //Expression
+    private Expression exp; //Expression
     
     public WaitStatement(Expression exp, Statement stat){
 	super(exp.getPosition());
@@ -21,6 +21,10 @@ public class WaitStatement extends Statement{
 
     public Expression getExpression(){
 	return exp;
+    }
+
+    public void setExpression(Expression exp){
+	this.exp = exp;
     }
 
     /** The accept method makes it possible so that nodes know which visitor object to call the visit method from. This is needed because the Visitor method is an interface not a class. All of the classes implementing ASTnode visitor will not have the required dependencies. 

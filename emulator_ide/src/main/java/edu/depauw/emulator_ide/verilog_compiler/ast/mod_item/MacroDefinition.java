@@ -10,7 +10,7 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor.ModuleVisitor;
 public class MacroDefinition extends ModItem{
 
     private final Identifier ident;
-    private final Expression exp;
+    private Expression exp;
     
     public MacroDefinition(Identifier ident, Expression exp){
 	super(ident.getPosition());
@@ -18,12 +18,16 @@ public class MacroDefinition extends ModItem{
 	this.exp = exp;
     }
 
-    public Identifier getMacroName(){
+    public Identifier getIdentifier(){
 	return ident;
     }
     
     public Expression getExpression(){
 	return exp;
+    }
+
+    public void setExpression(Expression exp){
+	this.exp = exp;
     }
 
     /** The ast node visitor will allow the user to pass down data through the argument vector. The accept method is needed to know which visit method to run.

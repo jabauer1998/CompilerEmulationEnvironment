@@ -8,9 +8,9 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
  */
 public class TernaryExpression extends Expression{
 
-    private final Expression condition; //the condition phrase of the ternary Expression
-    private final Expression left; //the Expression to the left of the colon
-    private final Expression right; //the Expression to the right of the colon
+    private Expression condition; //the condition phrase of the ternary Expression
+    private Expression left; //the Expression to the left of the colon
+    private Expression right; //the Expression to the right of the colon
 
     /** Th ternary.expression takes in 3 expressions only one of which it returns.
      * It can return the one on the left hand side if the colon or the right.

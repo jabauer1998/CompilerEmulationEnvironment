@@ -32,7 +32,7 @@ public class PortConnection extends Expression{
     /** Retr.Eves the.expression that represents what is being connected
      * @param none
      */
-    public Expression setExpression(Expression exp){
+    public void setExpression(Expression exp){
 	this.exp = exp;
     }
 

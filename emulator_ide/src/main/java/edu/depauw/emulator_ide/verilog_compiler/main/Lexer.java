@@ -70,6 +70,7 @@ public class Lexer{
 		    lexeme.append(source.getNext());
 		    source.advance(2);
 		    incrimentPosition(2);
+		    continue;
 		} else if (c == '\"'){
 		    state = STATE.STRING;
 		    position = getCurrentPosition();

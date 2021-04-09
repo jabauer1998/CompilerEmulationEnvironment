@@ -31,7 +31,11 @@ public class TaskStatement extends Statement{
     }
 
     public Expression getExpression(int index){
-	return expList.getExpression(index);
+	return this.expList.getExpression(index);
+    }
+
+    public void setExpression(int index, Expression exp){
+	this.expList.setExpression(index, exp);
     }
 
     public int numExpressions(){

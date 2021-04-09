@@ -10,8 +10,8 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
  */
 public class Assignment extends Statement{
 
-    private final Expression lValue; // the value on the left hand side of the expression
-    private final Expression exp; // the expresson on the right hand side of the equals
+    private Expression lValue; // the value on the left hand side of the expression
+    private Expression exp; // the expresson on the right hand side of the equals
 
     /** The Assignment constructor takes an lvalue expression and an expression to form an ssignment
      * @param lValue
@@ -30,11 +30,25 @@ public class Assignment extends Statement{
 	return lValue;
     }
 
+    /**The get Lvalue function returns the value of the thing being assigned to
+     * @param none
+     */
+    public void setLValue(Expression lValue){
+	this.lValue = lValue;
+    }
+
     /**This returns the expression on the right hand side of the equals
      *@param none
      */
     public Expression getExpression(){
 	return exp;
+    }
+
+    /**This returns the expression on the right hand side of the equals
+     *@param none
+     */
+    public void setExpression(Expression exp){
+	this.exp = exp;
     }
 
     /** The accept method makes it possible so that nodes know which visitor object to call the visit method from. This is needed because the Visitor method is an interface not a class. All of the classes implementing ASTnode visitor will not have the required dependencies. 

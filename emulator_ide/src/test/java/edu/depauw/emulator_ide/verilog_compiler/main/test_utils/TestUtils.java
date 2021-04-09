@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.main.test_utils;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.main.Lexer;
+import edu.depauw.emulator_ide.verilog_compiler.main.*;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 
@@ -52,6 +52,20 @@ public class TestUtils{
 	}
 	errorLogPrepared = false;
 	lexerPrepared = false;
+    }
+
+    /** 
+     * The test Lexer function is how I plan to test whether the Lexer is working correctly
+     * It works by prividing a Lexer object and it verifies the 
+     * @author Jacob Bauer
+     */
+    public static void testPreProcessor(PreProcessor myPreProcessor){
+	assertTrue("Error: expected prepareErrorLog statement before testLexer method", errorLogPrepared);
+	if(myPreProcessor.getErrorLog().size() > 0){
+	    myPreProcessor.getErrorLog().printLog();
+	}
+	assertTrue("Expected error log to have " + expectedErrorItems + " [found -> " + myPreProcessor.getErrorLog().size() +']', expectedErrorItems == myPreProcessor.getErrorLog().size());
+	errorLogPrepared = false;
     }
 }
 

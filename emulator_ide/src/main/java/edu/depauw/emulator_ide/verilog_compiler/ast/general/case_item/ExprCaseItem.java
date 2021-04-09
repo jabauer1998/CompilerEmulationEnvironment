@@ -20,6 +20,10 @@ public class ExprCaseItem extends CaseItem{
 	return expList.getExpression(index);
     }
 
+    public void setExpression(int index, Expression exp){
+	this.expList.setExpression(index, exp);
+    }
+
     public int numExpressions(){
 	return expList.getSize();
     }

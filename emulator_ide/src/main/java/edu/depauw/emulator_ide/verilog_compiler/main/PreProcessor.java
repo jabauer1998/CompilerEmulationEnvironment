@@ -20,7 +20,7 @@ import edu.depauw.emulator_ide.common.io.*;
 import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
     
-public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void>{
+public class PreProcessor implements ExpressionVisitor<Expression>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void>{
     
     private final Environment<String, Expression> macroEnv;
     private final InfoLog errorLog;
@@ -28,6 +28,10 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
     public PreProcessor(InfoLog errorLog){
 	this.macroEnv = new Environment<>();
 	this.errorLog = errorLog;
+    }
+
+    public InfoLog getErrorLog(){
+	return this.errorLog;
     }
     
     public Void visit(ModuleDeclaration mod, Object... argv){
@@ -420,7 +424,7 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
 	Expression exp = assign.getLValue().accept(this);
 	assign.setLValue(exp);
 	exp = assign.getExpression().accept(this);
-	assign.setExpresison(exp);
+	assign.setExpression(exp);
 	return null;
     }
 
@@ -433,7 +437,7 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
 	Expression exp = assign.getLValue().accept(this);
 	assign.setLValue(exp);
 	exp = assign.getExpression().accept(this);
-	assign.setExpresison(exp);
+	assign.setExpression(exp);
 	return null;
     }
 
@@ -487,8 +491,8 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
      */
     
     public Void visit(CaseZStatement stat, Object... argv){
-	Expresison exp = stat.getExpression().accept(this);
-	exp.setExpression(exp);
+	Expression exp = stat.getExpression().accept(this);
+	stat.setExpression(exp);
 	for(int i = 0; i < stat.numCaseItems(); i++){
 	    CaseItem item = stat.getCaseItem(i);
 	    if(item instanceof ExprCaseItem){
@@ -596,7 +600,6 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
 	for(int i = 0; i < task.numExpressions(); i++){
 	    task.getExpression(i).accept(this);
 	}
-	task.getStatement().accept(this);
 	return null;
     }
 
@@ -630,8 +633,8 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
      */
      
     public Void visit(WhileStatement whileLoop, Object... argv){
-	Expresison exp = whileLoop.getExpression().accept(this);
-	shileLoop.setExpression(exp);
+	Expression exp = whileLoop.getExpression().accept(this);
+	whileLoop.setExpression(exp);
 	whileLoop.getStatement().accept(this);
 	return null;
     }
@@ -690,7 +693,7 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
     public Expression visit(Concatenation concat, Object... argv){
 	for(int i = 0; i < concat.numExpressions(); i++){
 	    Expression exp = concat.getExpression(i).accept(this);
-	    concat.setExpression(exp);
+	    concat.setExpression(i, exp);
 	}
 	return concat;
     }
@@ -735,7 +738,7 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
     
     public Expression visit(SystemFunctionCall call, Object... argv){
 	for(int i = 0; i < call.numExpressions(); i++){
-	    Expresson exp = call.getExpression(i).accept(this);
+	    Expression exp = call.getExpression(i).accept(this);
 	    call.setExpression(i , exp);
 	}
 	return call;
@@ -747,16 +750,17 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
      */
     
     public Expression visit(Identifier ident, Object... argv){
-	return null;
+	return ident;
     }
 
     public Expression visit(MacroIdentifier ident, Object... argv){
-	if(macroEnv.entryExists(ident.getLexeme().substring(1))){
-	    
+	String lexeme = ident.getLexeme().substring(1);
+	if(macroEnv.entryExists(lexeme)){
+	    return macroEnv.getEntry(lexeme);
 	} else {
 	    errorLog.addItem(new ErrorItem("Macro by the name of " + ident.getLexeme() + " not found ", ident.getPosition()));
+	    return ident;
 	}
-	return null; //the preprocessor should have allready done its pass before this so this shoudnt exist
     }
 
     /**
@@ -765,7 +769,7 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
      */
     
     public Expression visit(NumValue number, Object... argv){
-	return null;
+	return number;
     }
 
     /**
@@ -775,8 +779,8 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
     
     public Expression visit(PortConnection connection, Object... argv){
 	Expression exp = connection.getExpression().accept(this);
-	conenction.setExpression(exp);
-	return null;
+	connection.setExpression(exp);
+	return connection;
     }
 
     /**
@@ -798,7 +802,7 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
 	expr.setCondition(exp);
 	expr.getLeft().accept(this);
 	expr.getRight().accept(this);
-	return null;
+	return expr;
     }
 
     /**
@@ -845,32 +849,42 @@ public class PreProcessor implements ExpressionVisitor<Void>, StatementVisitor<V
     }
 
     public Void visit(RegVectorArray regVector, Object... argv){
-	regVector.getExpression1().accept(this);
-	regVector.getExpression2().accept(this);
+	Expression exp = regVector.getExpression1().accept(this);
+	regVector.setExpression1(exp);
+	exp = regVector.getExpression2().accept(this);
+	regVector.setExpression2(exp);
 	return null;
     }
 
     public Void visit(RegScalarArray regScalar, Object... argv){
-	regScalar.getExpression1().accept(this);
-	regScalar.getExpression2().accept(this);
+	Expression exp = regScalar.getExpression1().accept(this);
+	regScalar.setExpression1(exp);
+	exp = regScalar.getExpression2().accept(this);
+	regScalar.setExpression2(exp);
 	return null;
     }
 
     public Void visit(OutputRegVectorArray regVector, Object... argv){
-	regScalar.getExpression1().accept(this);
-	regScalar.getExpression2().accept(this);
+	Expression exp = regVector.getExpression1().accept(this);
+	regVector.setExpression1(exp);
+	exp = regVector.getExpression2().accept(this);
+	regVector.setExpression2(exp);
 	return null;
     }
 
     public Void visit(OutputRegScalarArray regScalar, Object... argv){
-	regScalar.getExpression1().accept(this);
-	regScalar.getExpression2().accept(this);
+	Expression exp = regScalar.getExpression1().accept(this);
+	regScalar.setExpression1(exp);
+	exp = regScalar.getExpression2().accept(this);
+	regScalar.setExpression2(exp);
 	return null;
     }
 
     public Void visit(IntegerArray intIdent, Object... argv){
-	regScalar.getExpression1().accept(this);
-	regScalar.getExpression2().accept(this);
+	Expression exp = intIdent.getExpression1().accept(this);
+	intIdent.setExpression1(exp);
+	exp = intIdent.getExpression2().accept(this);
+	intIdent.setExpression2(exp);
 	return null;
     }
 }

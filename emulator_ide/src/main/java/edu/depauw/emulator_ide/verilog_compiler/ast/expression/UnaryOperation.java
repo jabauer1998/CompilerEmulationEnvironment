@@ -10,7 +10,7 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 
 public class UnaryOperation extends Expression{
 
-    private final Expression right; //the right hand side of the equation
+    private Expression right; //the right hand side of the equation
     private final UnOp op; // the operator
 
     /** The UnaryOperation constuctor is used to create a Unary operation

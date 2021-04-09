@@ -7,7 +7,7 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 public class IfStatement extends Statement{
 
     
-    private final Expression exp; //expression 
+    private Expression exp; //expression 
     private final Statement stat; //statement
     
     public IfStatement(Expression exp, Statement stat){
@@ -18,6 +18,10 @@ public class IfStatement extends Statement{
 
     public Expression getExpression(){
 	return exp;
+    }
+
+    public void setExpression(Expression exp){
+	this.exp = exp;
     }
 
     public Statement getStatement(){

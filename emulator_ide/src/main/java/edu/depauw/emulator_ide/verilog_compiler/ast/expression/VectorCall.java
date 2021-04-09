@@ -9,7 +9,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 
 public class VectorCall extends Expression{
     
-    private final Expression index1; //initial index to grap from the array
+    private Expression index1; //initial index to grap from the array
     private final Identifier ident; //name of the array
 
     /** The VectorCall constructor takes an identifier with up to twoindex to s Ecify the sub array that is desired

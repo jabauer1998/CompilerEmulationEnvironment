@@ -1036,6 +1036,9 @@ public class Parser{
     private Expression parseLValue(){
 	if(willMatch(Token.Type.LCURL)){
 	    return parseConcatenation();
+	} else if (willMatch(Token.Type.MACROIDENT)){
+	    Token macroIdent = skip();
+	    return new MacroIdentifier(macroIdent);
 	} else {
 	    Token ident = match(Token.Type.IDENT);
 	    if(willMatch(Token.Type.LBRACK)){

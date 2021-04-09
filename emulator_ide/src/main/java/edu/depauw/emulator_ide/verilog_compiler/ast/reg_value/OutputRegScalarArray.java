@@ -12,8 +12,8 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 
 public class OutputRegScalarArray extends RegValue{
     
-    private final ConstantExpression index1; //initial index to grap from the array
-    private final ConstantExpression index2; //final index to grab from the array
+    private ConstantExpression index1; //initial index to grap from the array
+    private ConstantExpression index2; //final index to grab from the array
     private final Identifier ident; //name of the array
 
     /** The VectorCall constructor takes an identifier with up to twoindex to specify the sub array that is desired
@@ -47,6 +47,20 @@ public class OutputRegScalarArray extends RegValue{
      */
     public Expression getExpression2(){
 	return index2;
+    }
+
+     /** Returns the starting index
+     * @param none
+     */
+    public void setExpression1(Expression exp){
+	this.index1 = new ConstantExpression(exp);
+    }
+
+    /** Returns the ending index
+     * @param none
+     */
+    public void setExpression2(Expression exp){
+	this.index2 = new ConstantExpression(exp);
     }
 
     /**

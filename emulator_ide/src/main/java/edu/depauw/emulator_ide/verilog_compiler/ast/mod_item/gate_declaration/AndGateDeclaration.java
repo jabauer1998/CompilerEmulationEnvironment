@@ -17,6 +17,10 @@ public class AndGateDeclaration extends GateDeclaration{
 	return super.getExpressionList().getExpression(index);
     }
 
+    public void setExpression(int index, Expression exp){
+	super.getExpressionList().setExpression(index, exp);
+    }
+
     public int numExpressions(){
 	return super.getExpressionList().getSize();
     }

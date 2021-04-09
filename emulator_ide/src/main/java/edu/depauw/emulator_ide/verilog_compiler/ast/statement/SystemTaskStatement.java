@@ -34,6 +34,10 @@ public class SystemTaskStatement extends Statement{
 	return expList.getExpression(index);
     }
 
+    public void setExpression(int index, Expression exp){
+	this.expList.setExpression(index, exp);
+    }
+
     public int numExpressions(){
 	return expList.getSize();
     }

@@ -31,6 +31,21 @@ public class LexerTest{
 		
 		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
 	}
+
+        @Test
+	public void testMacroIdentifiers() {
+	        System.err.println("-----MacroIdentifier Test----");
+		String input = "`define `COOL `cooler `define";
+		
+		prepareErrorLog(0);
+		prepareLexer(new Tuple(Token.Type.MACRODEF,
+				       Token.Type.MACROIDENT,
+				       Token.Type.MACROIDENT,
+				       Token.Type.MACRODEF)
+			     );
+		
+		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+	}
 	
 	@Test
 	public void testKeyWords() {

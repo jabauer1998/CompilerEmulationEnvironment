@@ -7,7 +7,7 @@ import edu.depauw.emulator_ide.verilog_compiler.token.Position;
 public class ForStatement extends Statement{
     
     private final Assignment init;
-    private final Expression exp;
+    private Expression exp;
     private final Assignment change;
     private final Statement stat;
     
@@ -25,6 +25,10 @@ public class ForStatement extends Statement{
 
     public Expression getExpression(){
 	return exp;
+    }
+
+    public void setExpression(Expression exp){
+	this.exp = exp;
     }
 
     public Assignment getChange(){
