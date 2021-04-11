@@ -201,7 +201,7 @@ module Arm();
 		    2'b10: begin 
 		       op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111);
 		       if(op2[`WIDTH] == 1)
-			 op2 |= ((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111)); //Arithmetic Right						
+			 op2 = op2 | (((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111))); //Arithmetic Right						
 		    end							 
 		    2'b11: begin
 		       for(i = 0; i <= `WIDTH; i = i + 1)
@@ -216,7 +216,7 @@ module Arm();
 		    2'b10: begin //Arithmetic right
 		       op2 = op2 >> INSTR[11:7];
 		       if(op2[`WIDTH]) //Aritmetic right
-			 op2 |= ((1 << INSTR[11:7]) - 1) << (`WIDTH + 1 - INSTR[11:7]);
+			 op2 = op2 | (((1 << INSTR[11:7]) - 1) << (`WIDTH + 1 - INSTR[11:7]));
 		    end
 		    2'b11: begin
 		       for(i=0; i <= `WIDTH; i = i + 1)

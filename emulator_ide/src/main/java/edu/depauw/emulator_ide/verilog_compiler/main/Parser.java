@@ -752,10 +752,12 @@ public class Parser{
 		match(Token.Type.LPAR);
 		if(willMatch(Token.Type.RPAR)){
 		    skip();
+		    match(Token.Type.SEMI);
 		    return new SystemTaskStatement(ident);
 		} else {
 		    ExpressionList expList = parseExpressionList();
 		    match(Token.Type.RPAR);
+		     match(Token.Type.SEMI);
 		    return new SystemTaskStatement(ident, expList);
 		}
 	    }
@@ -774,7 +776,28 @@ public class Parser{
 		match(Token.Type.SEMI);
 		return stat;
 	    }
-	} else { //lvalue or task_enable
+	} else if (willMatch(Token.Type.MACROIDENT)){ 
+	    MacroIdentifier ident = parseMacroIdentifier();
+	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+		skip();
+		Expression exp = parseExpression();
+		Statement stat = new BlockAssign(ident, exp);
+		match(Token.Type.SEMI);
+		return stat;
+	    } else if(willMatch(Token.Type.LE)){ //it is a non blocking assignment
+		skip();
+		Expression exp = parseExpression();
+		Statement stat = new NonBlockAssign(ident, exp);
+		match(Token.Type.SEMI);
+		return stat;
+	    } else {
+		Token matched = peek();
+		errorLog.addItem(new ErrorItem("Unexpected Statement token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
+		errorLog.printLog();
+		System.exit(1);
+		return null;
+	    }
+	} else{ //lvalue or task_enable
 	    Identifier ident = parseIdentifier();
 	    if(willMatch(Token.Type.LPAR)){
 		skip();
