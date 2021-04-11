@@ -310,13 +310,4 @@ public class ConstantExpressionEvaluator implements ExpressionVisitor<Object>{
 	return null;
     }
 
-    /**
-     * This is the code for visiting a Vector in verilog
-     * @param string
-     */
-    
-    public Object visit(MacroIdentifier value, Object... argv){
-	return null;
-    }
-
 }

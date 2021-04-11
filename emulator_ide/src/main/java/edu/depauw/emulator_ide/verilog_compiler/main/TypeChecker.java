@@ -86,27 +86,41 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      * This is the code that is used to visit a function declaration in java
      * @param function
      */
-    private boolean inFunction = false;
-    private String topFunctionName = "";
+    private boolean inFunctionParam = false;
+    private boolean inFunctionName = false;
+    private Identifier topFunctionName = null;
 
     public Void visit(FunctionDeclaration function, Object... argv){
 	Declaration funcDeclaration = function.getFunctionName();
-	Identifier funcName = null;
-	varEnv.addScope();
+	varEnv.addScope(); //add variable scope for function declarations and paramteters
+
+	/* In Verilog functions return via an assignment to the function name
+	 * To do this the function needs to be in the variable environment as well
+	 * This will allow the user to use assignment statements on the function name
+	 * However to return something the Function environment needs to keep track of the variable data too
+	 * The in function name makes it so the name of the function is returned to topFunctionName
+	 */
+	
+	inFunctionName = true;
 	funcDeclaration.accept(this);
-	if(funcEnv.entryExists(funcName.getLexeme())){
-	    errorLog.addItem(new ErrorItem("Duplicate function " + funcName.getLexeme() + " allready exists ", funcName.getPosition())); 
+	inFunctionName = false;
+	
+	if(funcEnv.entryExists(topFunctionName.getLexeme())){
+	    errorLog.addItem(new ErrorItem("Duplicate function " + topFunctionName.getLexeme() + " allready exists ", topFunctionName.getPosition())); 
 	} else {
-	    funcEnv.addEntry(funcName.getLexeme(), new TypeCheckerFunctionData(varEnv.getEntry(funcName.getLexeme()), function.getPosition()));
+	    funcEnv.addEntry(topFunctionName.getLexeme(), new TypeCheckerFunctionData(varEnv.getEntry(topFunctionName.getLexeme()), function.getPosition()));
 	}
-	inFunction = true;
-	topFunctionName = funcName.getLexeme();
+
+	
+	inFunctionParam = true;
 	for(int i = 0; i < function.numDeclarations(); i++){
 	    function.getDeclaration(i).accept(this);
 	}
+	inFunctionParam = false;
+	
 	function.getStatement().accept(this);
 	varEnv.removeScope();
-	inFunction = false;
+	
 	return null;
     }
 
@@ -162,25 +176,25 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	} else {
 	    funcEnv.addEntry(taskName.getLexeme(), new TypeCheckerFunctionData(null, task.getPosition()));
 	}
-	inFunction = true;
-	topFunctionName = taskName.getLexeme();
+	inFunctionParam = true;
+	topFunctionName = taskName;
 	varEnv.addScope();
 	for(int i = 0; i < task.numDeclarations(); i++){
 	    task.getDeclaration(i).accept(this);
 	}
+	inFunctionParam = false;
 	task.getStatement().accept(this);
 	varEnv.removeScope();
-	inFunction = false;
 	return null;
     }
 
     /**
-     * This is used to visit a task declaration in verilog
+     * This is used to visit a empty mod item in verilog
      * @param task
      */
     
-    public Void visit(MacroDefinition macro, Object... argv){
-	return null; //this should allready be handled at this point
+    public Void visit(EmptyModItem macro, Object... argv){
+	return null; //this class is just for completeness
     }
     
     /**
@@ -199,8 +213,8 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		} else {
 		    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.INPUT_WIRE, current.getPosition()));
 		}
-		if(inFunction){
-		    funcEnv.getEntry(topFunctionName).addParameterType(entryData); //add paramter to function
+		if(inFunctionParam){
+		    funcEnv.getEntry(topFunctionName.getLexeme()).addParameterType(entryData); //add paramter to function
 		}
 	    } else {
 		TypeCheckerVariableData data =  new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE, current.getPosition());
@@ -220,18 +234,18 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
 	    if(varEnv.entryExists(current.getLexeme())){
-		TypeCheckerVariableData entryData = varEnv.getEntry(current.getLexeme());
-		if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-		    entryData.type = TypeCheckerVariableData.Type.INPUT_WIRE;
-		} else {
-		    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.INPUT_WIRE, current.getPosition()));
-		}
-		if(inFunction){
-		    funcEnv.getEntry(topFunctionName).addParameterType(entryData); //add paramter to function
-		}
+			TypeCheckerVariableData entryData = varEnv.getEntry(current.getLexeme());
+			if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
+			    entryData.type = TypeCheckerVariableData.Type.INPUT_WIRE;
+			} else {
+			    errorLog.addItem(new ErrorItem("Cannot reassign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.INPUT_WIRE, current.getPosition()));
+			}
+			if(inFunctionParam){
+			    funcEnv.getEntry(topFunctionName.getLexeme()).addParameterType(entryData); //add paramter to function
+			}
 	    } else {
-		TypeCheckerVariableData data =  new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE, current.getPosition());
-		varEnv.addEntry(current.getLexeme(), data);
+			TypeCheckerVariableData data =  new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE, current.getPosition());
+			varEnv.addEntry(current.getLexeme(), data);
 	    }
 	}
 	return null;
@@ -277,14 +291,14 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		    } else {
 			errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, current.getPosition()));
 		    }
-		    if(inFunction){
-			funcEnv.getEntry(topFunctionName).addParameterType(entryData); //add paramter to function
+		    if(inFunctionParam){
+			funcEnv.getEntry(topFunctionName.getLexeme()).addParameterType(entryData); //add paramter to function
 		    }
 		} else {
 		    TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, vectorSize, current.getPosition());
 		    varEnv.addEntry(current.getLexeme(), data);
-		    if(inFunction){
-			funcEnv.getEntry(topFunctionName).addParameterType(data); //add paramter to function
+		    if(inFunctionParam){
+			funcEnv.getEntry(topFunctionName.getLexeme()).addParameterType(data); //add paramter to function
 		    }
 		}
 	    }
@@ -328,18 +342,18 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		    }
 		    
 		    if(entryData.type == TypeCheckerVariableData.Type.UNDEFINED){
-			entryData.type = TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR;
+			entryData.type = TypeCheckerVariableData.Type.INPUT_REGISTER_VECTOR;
 		    } else {
-			errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, current.getPosition()));
+			errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.type + " to type " + TypeCheckerVariableData.Type.INPUT_REGISTER_VECTOR, current.getPosition()));
 		    }
-		    if(inFunction){
-			funcEnv.getEntry(topFunctionName).addParameterType(entryData); //add paramter to function
+		    if(inFunctionParam){
+			funcEnv.getEntry(topFunctionName.getLexeme()).addParameterType(entryData); //add paramter to function
 		    }
 		} else {
-		    TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, vectorSize, current.getPosition());
+		    TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_REGISTER_VECTOR, vectorSize, current.getPosition());
 		    varEnv.addEntry(current.getLexeme(), data);
-		    if(inFunction){
-			funcEnv.getEntry(topFunctionName).addParameterType(data); //add paramter to function
+		    if(inFunctionParam){
+			funcEnv.getEntry(topFunctionName.getLexeme()).addParameterType(data); //add paramter to function
 		    }
 		}
 	    }
@@ -468,14 +482,14 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
 	    
 	    for(int i = 0; i < decl.numRegValues(); i++){
-		decl.getRegValue(i).accept(this);
+		decl.getRegValue(i).accept(this, vectorSize);
 	    }
 	}
 	return null;
     }
 
     /**
-     * This is used to visit any output scalar declaration in verilog.
+     * This is used to visit any output scalar declaration in Verilog.
      * Ex. output a, b, c ... ;
      * @param decl
      */
@@ -579,7 +593,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    int vectorSize = (slice1 > slice2) ? slice1 - slice2 + 1 : slice2 - slice1 + 1;
 	    
 	    for(int i = 0; i < decl.numRegValues(); i++){
-		decl.getRegValue(i).accept(this);
+		decl.getRegValue(i).accept(this, vectorSize);
 	    }
 	}
 	return null;
@@ -928,8 +942,8 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     
     public Void visit(IfElseStatement ifElseStatement, Object... argv){
 	TypeCheckerVariableData.Type type  = ifElseStatement.getExpression().accept(this);
-	if(type != TypeCheckerVariableData.Type.BOOLEAN || type != TypeCheckerVariableData.Type.INTEGER || type != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-	    errorLog.addItem(new ErrorItem("Unexpected Expression Type for if Statement " + type, ifElseStatement.getExpression().getPosition()));
+	if(type == TypeCheckerVariableData.Type.STRING || isArray(type)){
+	    errorLog.addItem(new ErrorItem("Unexpected expression type " + type + " for if-else statement ", ifElseStatement.getExpression().getPosition()));
 	}
 	ifElseStatement.getIfStatement().accept(this);
 	ifElseStatement.getElseStatement().accept(this);
@@ -943,8 +957,8 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     
     public Void visit(IfStatement ifStatement, Object... argv){
 	TypeCheckerVariableData.Type type = ifStatement.getExpression().accept(this);
-	if(type != TypeCheckerVariableData.Type.BOOLEAN || type != TypeCheckerVariableData.Type.INTEGER || type != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
-	    errorLog.addItem(new ErrorItem("Unexpected Expression Type for if Statement" + type, ifStatement.getExpression().getPosition()));
+	if(type == TypeCheckerVariableData.Type.STRING || isArray(type)){
+	    errorLog.addItem(new ErrorItem("Unexpected expression type " + type + " for if statement ", ifStatement.getExpression().getPosition()));
 	}
 	ifStatement.getStatement().accept(this);
 	return null;
@@ -1499,7 +1513,11 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public TypeCheckerVariableData.Type visit(ConstantExpression expr, Object... argv){
-	return expr.getExpression().accept(this);
+	TypeCheckerVariableData.Type type = expr.getExpression().accept(this);
+	if(!isConstant(type)){
+	    errorLog.addItem(new ErrorItem("Constant Expression must yeild constant result ", expr.getPosition()));
+	}
+	return type;
     }
 
     /**
@@ -1508,8 +1526,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public TypeCheckerVariableData.Type visit(EmptyExpression  expr, Object... argv){
-	//this is just a placeholder we do not need to put anything here
-	return null;
+	return TypeCheckerVariableData.Type.UNDEFINED;
     }
 
     /**
@@ -1547,8 +1564,11 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public TypeCheckerVariableData.Type visit(SystemFunctionCall call, Object... argv){
-	//I will do this later
-	return TypeCheckerVariableData.Type.UNDEFINED;
+	if(call.getSystemFunctionName().getLexeme().equals("feof")){
+	    return TypeCheckerVariableData.Type.BOOLEAN;
+	} else {
+	    return TypeCheckerVariableData.Type.UNDEFINED;
+	}
     }
 
     /**
@@ -1569,10 +1589,6 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition()));
 	    return TypeCheckerVariableData.Type.UNDEFINED;
 	}
-    }
-
-    public TypeCheckerVariableData.Type visit(MacroIdentifier ident, Object... argv){
-	return null; //the preprocessor should have allready done its pass before this so this shoudnt exist
     }
 
     /**
@@ -1694,6 +1710,9 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	} else {
 	    int size = (int)argv[0];
 	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_VECTOR, size, ident.getPosition()));
+	    if(inFunctionName){
+		topFunctionName = ident;
+	    }
 	}
 	return null;
     }
@@ -1705,8 +1724,10 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
 	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
 	} else {
-	    int size = (int)argv[0];
-	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER, size, ident.getPosition()));
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER, ident.getPosition()));
+	    if(inFunctionName){
+		topFunctionName = ident;
+	    }
 	}
 	return null;
     }
@@ -1731,8 +1752,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
 	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
 	} else {
-	    int size = (int)argv[0];
-	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER, size, ident.getPosition()));
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER, ident.getPosition()));
 	}
 	return null;
     }
@@ -1744,7 +1764,11 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
 	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
 	} else {
-	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.INTEGER, ident.getPosition()));
+	    TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INTEGER, ident.getPosition());
+	    varEnv.addEntry(ident.getLexeme(), data);
+	    if(inFunctionName){
+		topFunctionName = ident;
+	    }
 	}
 	return null;
     }
@@ -1769,8 +1793,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
 	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
 	} else {
-	    int size = (int)argv[0];
-	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_ARRAY, size, ident.getPosition()));
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.REGISTER_ARRAY, ident.getPosition()));
 	}
 	return null;
     }
@@ -1795,8 +1818,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    TypeCheckerVariableData data = varEnv.getEntry(ident.getLexeme());
 	    errorLog.addItem(new ErrorItem("Variable by the name of " + ident.getLexeme() + " allready exists at " + data.getPosition(), ident.getPosition()));
 	} else {
-	    int size = (int)argv[0];
-	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY, size, ident.getPosition()));
+	    varEnv.addEntry(ident.getLexeme(), new TypeCheckerVariableData(TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY, ident.getPosition()));
 	}
 	return null;
     }

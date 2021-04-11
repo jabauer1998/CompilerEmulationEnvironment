@@ -148,6 +148,15 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
     }
 
     /**
+     * This is the code to visit a Module instance in Verilog
+     * @param mod
+     */
+    
+    public Void visit(EmptyModItem mod, Object... argv){
+	return null;
+    }
+
+    /**
      * This is used to visit a task declaration in verilog
      * @param task
      */
@@ -166,15 +175,6 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 	}
 	task.getStatement().accept(this);
 	varEnv.removeScope();
-	return null;
-    }
-
-    /**
-     * This is used to visit a task declaration in verilog
-     * @param task
-     */
-    
-    public Void visit(MacroDefinition macro, Object... argv){
 	return null;
     }
 
@@ -937,18 +937,6 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 	vector.getExpression2().accept(this);
 	return null;
     }
-
-    /**
-     * This is the code for visiting a Macro identifier in verilog
-     * @param string
-     */
-    
-    public Void visit(MacroIdentifier ident, Object... argv){
-	return null;
-    }
-
-    /* Below is the code for handling Macro Identifiers
-     */
 
     /**
      * This is the code for visiting and integer array using Java

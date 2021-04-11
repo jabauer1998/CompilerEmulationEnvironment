@@ -87,16 +87,6 @@ module Arm();
 
    integer 	  InstructionCode;
 
-   initial begin
-      loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
-      while(fetch(R[15]) && R[15] < `MEMSIZE) begin
-	 INSTR = fetch(R[15]); //Fetch next memory
-	 InstructionCode = decode(INSTR);
-	 incriment; //increment the program counter by a word or 4 bytes
-	 execute(InstructionCode);
-      end
-   end
-
    task loadProgram;
       input [31:0] address;
       integer 	   status, handler;
@@ -158,6 +148,32 @@ module Arm();
 	 endcase // casez ()
       end
    endfunction // fetch
+
+   function checkCC;
+      input [3:0] code;
+      case(code)
+	`EQ : checkCC = `Z;
+	`NE : checkCC = ~`Z;
+	`CS : checkCC = `C;
+	`CC : checkCC = ~`C;
+	`MI : checkCC = `N;
+	`PL : checkCC = ~`N;
+	`VS : checkCC = `V;
+	`VC : checkCC = ~`V;
+	`HI : checkCC = `C & ~`Z;
+	`LS : checkCC = ~`C & `Z;
+	`GE : checkCC = `N == `V;
+	`LT : checkCC = `N != `V;
+	`GT : checkCC = ~`Z & (`N == `V);
+	`LE : checkCC = `Z | (`N != `V);
+	`AL : checkCC = 1; //allways ignored
+	default: begin
+	   $display("Error: Unidentified intsruction %b", code);
+	   $finish;
+	   checkCC = -1;
+	end
+      endcase // case (code)
+   endfunction // checkCC
    
 
    task incriment;
@@ -540,32 +556,15 @@ module Arm();
 	  
 	endcase // case (code)
    endtask // execute
-   
-   
-   function checkCC;
-      input [3:0] code;
-      case(code)
-	`EQ : checkCC = `Z;
-	`NE : checkCC = ~`Z;
-	`CS : checkCC = `C;
-	`CC : checkCC = ~`C;
-	`MI : checkCC = `N;
-	`PL : checkCC = ~`N;
-	`VS : checkCC = `V;
-	`VC : checkCC = ~`V;
-	`HI : checkCC = `C & ~`Z;
-	`LS : checkCC = ~`C & `Z;
-	`GE : checkCC = `N == `V;
-	`LT : checkCC = `N != `V;
-	`GT : checkCC = ~`Z & (`N == `V);
-	`LE : checkCC = `Z | (`N != `V);
-	`AL : checkCC = 1; //allways ignored
-	default: begin
-	   $display("Error: Unidentified intsruction %b", code);
-	   $finish;
-	   checkCC = -1;
-	end
-      endcase // case (code)
-   endfunction // checkCC
+
+   initial begin
+      loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
+      while(fetch(R[15]) && R[15] < `MEMSIZE) begin
+	 INSTR = fetch(R[15]); //Fetch next memory
+	 InstructionCode = decode(INSTR);
+	 incriment; //increment the program counter by a word or 4 bytes
+	 execute(InstructionCode);
+      end
+   end
    
 endmodule // Arm

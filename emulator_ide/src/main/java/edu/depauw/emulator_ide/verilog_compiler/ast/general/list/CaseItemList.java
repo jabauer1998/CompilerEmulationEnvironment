@@ -12,15 +12,15 @@ public class CaseItemList extends AstNode {
     
     public CaseItemList(List<CaseItem> caseItemList){
         super(caseItemList.isEmpty() ? null : caseItemList.get(0).getPosition());
-	this.caseItemList = Collections.unmodifiableList(caseItemList);
+        this.caseItemList = Collections.unmodifiableList(caseItemList);
     }
 
     public CaseItem  getCaseItem(int index){
-	return caseItemList.get(index);
+    	return caseItemList.get(index);
     }
 
     public int getSize(){
-	return caseItemList.size();
+    	return caseItemList.size();
     }
     
 }

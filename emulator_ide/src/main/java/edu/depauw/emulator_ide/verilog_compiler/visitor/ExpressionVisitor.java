@@ -103,12 +103,5 @@ public interface ExpressionVisitor<ExprVisitType>{
      */
     
     public ExprVisitType visit(VectorSlice string, Object... argv);
-
-    /**The code for visiting Macro Identifiers
-     * @param ident
-     * @param argv
-     */
-
-    public ExprVisitType visit(MacroIdentifier ident, Object... argv);
     
 }

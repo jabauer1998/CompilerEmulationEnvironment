@@ -53,19 +53,5 @@ public class TestUtils{
 	errorLogPrepared = false;
 	lexerPrepared = false;
     }
-
-    /** 
-     * The test Lexer function is how I plan to test whether the Lexer is working correctly
-     * It works by prividing a Lexer object and it verifies the 
-     * @author Jacob Bauer
-     */
-    public static void testPreProcessor(PreProcessor myPreProcessor){
-	assertTrue("Error: expected prepareErrorLog statement before testLexer method", errorLogPrepared);
-	if(myPreProcessor.getErrorLog().size() > 0){
-	    myPreProcessor.getErrorLog().printLog();
-	}
-	assertTrue("Expected error log to have " + expectedErrorItems + " [found -> " + myPreProcessor.getErrorLog().size() +']', expectedErrorItems == myPreProcessor.getErrorLog().size());
-	errorLogPrepared = false;
-    }
 }
 

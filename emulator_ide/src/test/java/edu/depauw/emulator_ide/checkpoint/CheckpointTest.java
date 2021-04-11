@@ -144,10 +144,12 @@ public class CheckpointTest{
 	Parser parse = new Parser(tokens, errorLog);
 	ModuleDeclaration moddec = parse.parseAST();
 
-	//visit it with the type checker
+
+	
 	TypeChecker typeChecker = new TypeChecker(errorLog);
 	typeChecker.visit(moddec);
 	errorLog.printLog();
+	
 
 	
 	System.out.print("\n\n---------------------------------------------------------\n\n");
@@ -172,12 +174,16 @@ public class CheckpointTest{
 	    Parser parse = new Parser(tokens, errorLog);
 	    ModuleDeclaration moddec = parse.parseAST();
 	    
+	    System.out.print("\n\n-----------Checkpoint 3 Full Program TypeChecker Test---------------\n\n");
+
+	    TypeChecker typeChecker = new TypeChecker(errorLog);
+	    typeChecker.visit(moddec);
+	    errorLog.printLog();
+
+	    System.out.print("\n\n---------------------------------------------------------\n\n");
+	    
 	} catch (FileNotFoundException e){
 	    e.printStackTrace();
 	}
-	System.out.print("\n\n-----------Checkpoint 3 Full Program TypeChecker Test---------------\n\n");
-
-	
-	System.out.print("\n\n---------------------------------------------------------\n\n");
     }
 }

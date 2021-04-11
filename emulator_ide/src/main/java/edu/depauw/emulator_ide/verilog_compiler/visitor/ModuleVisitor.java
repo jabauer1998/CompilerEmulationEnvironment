@@ -72,12 +72,7 @@ public interface ModuleVisitor<ModVisitType>{
     
     public ModVisitType visit(TaskDeclaration task, Object... argv);
 
-     /**
-     * This is used to visit a macro declaration in verilog
-     * @param macro
-     */
-    
-    public ModVisitType visit(MacroDefinition macro, Object... argv);
+    public ModVisitType visit(EmptyModItem modItem, Object... argv);
 
     /**
      * This is used to visit any input wire scalar declaration in verilog.

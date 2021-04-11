@@ -16,6 +16,8 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.gate_declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.reg_value.*;
 
+import edu.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +26,7 @@ public class Parser{
 
     private final List<Token> lexedTokens;
     private final InfoLog errorLog;
+    private Environment <String, Expression> macroEnv;
 
     /**
      * This is the consturctor to the parser class
@@ -34,6 +37,8 @@ public class Parser{
     public Parser(List<Token> tokens, InfoLog errorLog){
 	this.lexedTokens = tokens;
 	this.errorLog = errorLog;
+	this.macroEnv = new Environment<>();
+	this.macroEnv.addScope();
     }
 
     private boolean willMatch(Token.Type type){
@@ -84,7 +89,9 @@ public class Parser{
     }
 
     public ModuleDeclaration parseAST(){
-	return parseModuleDeclaration();
+	ModuleDeclaration modDec = parseModuleDeclaration();
+	this.macroEnv.removeScope();
+	return modDec;
     }
 
     /**
@@ -297,8 +304,16 @@ public class Parser{
     private ModItem parseMacroDefinition(){
 	match(Token.Type.MACRODEF);
 	Identifier ident = parseIdentifier();
-	Expression exp = parseExpression();
-	return new MacroDefinition(ident, exp);
+	if(macroEnv.entryExists(ident.getLexeme())){
+	    errorLog.addItem(new ErrorItem("Macro " + ident.getLexeme() + " allready exists ", ident.getPosition()));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return new EmptyModItem(ident.getPosition());
+	} else {
+	    Expression exp = parseExpression();
+	    macroEnv.addEntry(ident.getLexeme(), exp);
+	    return new EmptyModItem(ident.getPosition());
+	}
     }
     
     //Function -> Function FunctionName DeclarationList Statement ENDFUNCTION
@@ -777,7 +792,7 @@ public class Parser{
 		return stat;
 	    }
 	} else if (willMatch(Token.Type.MACROIDENT)){ 
-	    MacroIdentifier ident = parseMacroIdentifier();
+	    Expression ident = parseMacroIdentifier();
 	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 		skip();
 		Expression exp = parseExpression();
@@ -1098,8 +1113,7 @@ public class Parser{
 	if(willMatch(Token.Type.LCURL)){
 	    return parseConcatenation();
 	} else if (willMatch(Token.Type.MACROIDENT)){
-	    Token macroIdent = skip();
-	    return new MacroIdentifier(macroIdent);
+	    return parseMacroIdentifier();
 	} else {
 	    Token ident = match(Token.Type.IDENT);
 	    if(willMatch(Token.Type.LBRACK)){
@@ -1542,9 +1556,16 @@ public class Parser{
     }
 
     //Identifier -> IDENT
-    private MacroIdentifier parseMacroIdentifier(){
-	Token token = match(Token.Type.MACROIDENT);
-	return new MacroIdentifier(token);
+    private Expression parseMacroIdentifier(){
+	Token macroIdent = match(Token.Type.MACROIDENT);
+	if(macroEnv.entryExists(macroIdent.getLexeme().substring(1))){
+	    return macroEnv.getEntry(macroIdent.getLexeme().substring(1));
+	} else {
+	    errorLog.addItem(new ErrorItem("Macro " + macroIdent.getLexeme() + " not found", macroIdent.getPosition()));
+	    errorLog.printLog();
+	    System.exit(1);
+	    return new EmptyExpression(macroIdent.getPosition());
+	}
     }
 
     //Identifier -> IDENT
