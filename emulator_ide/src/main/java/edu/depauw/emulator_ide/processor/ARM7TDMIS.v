@@ -322,7 +322,7 @@ module Arm();
 		   2'b10: begin 
 		      offset = R[INSTR[3:0]] >> (R[INSTR[11:8]] & 8'b11111111);
 		      if(offset[`WIDTH] == 1)
-			offset |= ((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111)); //Arithmetic Right						
+			offset = offset | (((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111))); //Arithmetic Right						
 		   end							 
 		   2'b11: begin
 		      offset = R[INSTR[3:0]];
@@ -458,7 +458,7 @@ module Arm();
 		   if(INSTR[24]) //pre indexing
 		     address = address + 4;
 		   
-		   for(i = 0; i < 16; i++)
+		   for(i = 0; i < 16; i = i + 1)
 		     if(regList[i] == 1) begin
 			R[i] = MEM[address];
 			address = address + 4;
@@ -468,7 +468,7 @@ module Arm();
 		   if(INSTR[24])
 		     address = address - 4;
 		   
-		   for(i = 15; i >= 0; i--)
+		   for(i = 15; i >= 0; i = i - 1)
 		     if(regList[i] == 1) begin
 			R[i] = MEM[address];
 			address = address - 4;
@@ -481,7 +481,7 @@ module Arm();
 		   if(INSTR[24])
 		     address = address + 4;
 		   
-		   for(i = 0; i < 16; i++)
+		   for(i = 0; i < 16; i = i + 1)
 		     if(regList[i] == 1) begin
 			MEM[address] = R[i];
 			address = address + 4;
@@ -491,7 +491,7 @@ module Arm();
 		   if(INSTR[24])
 		     address = address - 4;
 		   
-		   for(i = 15; i >= 0; i--)
+		   for(i = 15; i >= 0; i = i - 1)
 		     if(regList[i] == 1) begin
 			MEM[address] = R[i];
 			address = address - 4;
