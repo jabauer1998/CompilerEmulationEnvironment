@@ -20,9 +20,11 @@ import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils
 
 import org.junit.Test;
 import java.io.StringReader;
+import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.concurrent.TimeUnit;
 import java.io.File;
 import java.util.List;
@@ -146,6 +148,34 @@ public class CheckpointTest{
 	TypeChecker typeChecker = new TypeChecker(errorLog);
 	typeChecker.visit(moddec);
 	errorLog.printLog();
+
+	
+	System.out.print("\n\n---------------------------------------------------------\n\n");
+    }
+
+    @Test
+    public void Checkpoint3(){
+	System.out.print("\n\n-----------Checkpoint 3 Full Program Parser Test---------------\n\n");
+	String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
+	
+	//tokenise the tokens
+	Destination display = new Destination(System.out);
+	try{
+	    Source source = new Source(new FileReader(path));
+	    InfoLog errorLog = new InfoLog(display);
+	    Lexer lex = new Lexer(source, errorLog);
+	
+	    List<Token> tokens = lex.tokenize();
+
+	    
+	    //parse the tokens
+	    Parser parse = new Parser(tokens, errorLog);
+	    ModuleDeclaration moddec = parse.parseAST();
+	    
+	} catch (FileNotFoundException e){
+	    e.printStackTrace();
+	}
+	System.out.print("\n\n-----------Checkpoint 3 Full Program TypeChecker Test---------------\n\n");
 
 	
 	System.out.print("\n\n---------------------------------------------------------\n\n");

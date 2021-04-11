@@ -41,7 +41,9 @@ module Arm();
    //Registers
    reg [`WIDTH:0] R[0:16]; //General Purpouse
 
-   /* //old register allocations
+   //old register allocations
+
+   /* 
     reg [WIDTH:0] R0; //general purpouse
     reg [WIDTH:0] R1; //general purpouse
     reg [WIDTH:0] R1; //General Purpouse
@@ -59,7 +61,7 @@ module Arm();
     reg [WIDTH:0] R13;//Stack Pointer
     reg [WIDTH:0] R14;//Link Register
     reg [WIDTH:0] R15;//Program Counter
-    */
+   */
    
    reg [`WIDTH:0] CSPR;//Status Register
    

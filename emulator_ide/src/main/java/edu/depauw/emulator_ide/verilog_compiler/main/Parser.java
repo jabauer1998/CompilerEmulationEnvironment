@@ -764,8 +764,9 @@ public class Parser{
 		skip();
 		Expression exp1 = parseExpression();
 		if(willMatch(Token.Type.RBRACK)){
-		     Expression vec = new VectorCall(ident, exp1);
-		     if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
+		    skip();
+		    Expression vec = new VectorCall(ident, exp1);
+		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
 			return new BlockAssign(vec, exp);

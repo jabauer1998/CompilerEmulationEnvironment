@@ -206,7 +206,7 @@ public class Token{
 
     @Override
     public String toString(){
-	return "Token " + this.lexeme + " at " + this.position.toString();
+	return "Token " + this.type + " (" + this.lexeme + ") at " + this.position.toString();
     }
 
     private static Token makeToken(String lexeme, Position position, Type type){

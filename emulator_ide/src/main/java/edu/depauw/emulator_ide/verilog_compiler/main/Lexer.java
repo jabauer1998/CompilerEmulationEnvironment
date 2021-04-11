@@ -16,8 +16,8 @@ public class Lexer{
     private final InfoLog ErrorLog;
 
     private Position position;
-    private int lineNumber = 0;
-    private int linePosition = 0;
+    private int lineNumber = 1;
+    private int linePosition = 1;
 
     public Lexer(Source source, InfoLog ErrorLog){
 	this.ErrorLog = ErrorLog;
@@ -43,7 +43,7 @@ public class Lexer{
 
     private void resetPositionToNewLine(){
 	lineNumber++;
-	linePosition = 0;
+	linePosition = 1;
     }
     
     private Token genNextToken(){
@@ -318,6 +318,10 @@ public class Lexer{
 		    count++;
 		    source.advance(2);
 		    incrimentPosition(2);
+		    continue;
+		} else if (c == '\n') {
+		    source.advance();
+		    resetPositionToNewLine();
 		    continue;
 		} else {
 		    source.advance();
