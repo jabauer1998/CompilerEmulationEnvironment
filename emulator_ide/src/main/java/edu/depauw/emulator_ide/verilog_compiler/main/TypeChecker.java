@@ -254,7 +254,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 			funcEnv.getEntry(topFunctionName).addParameterType(entryData); //add paramter to function
 		    }
 		} else {
-		   TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, vectorSize, current.getPosition());
+		    TypeCheckerVariableData data = new TypeCheckerVariableData(TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR, vectorSize, current.getPosition());
 		    varEnv.addEntry(current.getLexeme(), data);
 		    if(inFunction){
 			funcEnv.getEntry(topFunctionName).addParameterType(data); //add paramter to function
@@ -558,11 +558,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(AndGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() >= 3){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("And declaration must have atleast 3 paramteters (1 output, 2 inputs) however only " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -574,11 +578,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(OrGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() >= 3){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Or declaration must have atleast 3 paramteters (1 output, 2 inputs) however only " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -590,11 +598,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(NandGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() >= 3){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Nand declaration must have atleast 3 paramteters (1 output, 2 inputs) however only " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -606,11 +618,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(NorGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() >= 3){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Nor declaration must have atleast 3 paramteters (1 output, 2 inputs) however only " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -622,11 +638,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(XorGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() >= 3){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Xor declaration must have atleast 3 paramteters (1 output, 2 inputs) however only " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -638,11 +658,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(XnorGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() >= 3){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Xnor declaration must have atleast 3 paramteters (1 output, 2 inputs) however only " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -654,11 +678,15 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
     
     public Void visit(NotGateDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numExpressions(); i++){
-	    TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
-	    if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
-		errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+	if(decl.numExpressions() == 2){
+	    for(int i = 0; i < decl.numExpressions(); i++){
+		TypeCheckerVariableData.Type type = decl.getExpression(i).accept(this);
+		if(type != TypeCheckerVariableData.Type.REGISTER && type != TypeCheckerVariableData.Type.WIRE){
+		    errorLog.addItem(new ErrorItem("Unknown Type for Gate Expression: " + type, decl.getExpression(i).getPosition()));
+		}
 	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Not declaration must have exactly 2 paramteters (1 output, 1 input) however " + decl.numExpressions() + " were found", decl.getPosition()));
 	}
 	return null;
     }
@@ -680,9 +708,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     public Void visit(Assignment assign, Object... argv){
 	TypeCheckerVariableData.Type type1 = assign.getLValue().accept(this);
 	TypeCheckerVariableData.Type type2 = assign.getExpression().accept(this);
-	if (type1 == TypeCheckerVariableData.Type.UNDEFINED || type2 == TypeCheckerVariableData.Type.UNDEFINED){
-	    errorLog.addItem(new ErrorItem("Can not have undefined types in assignment statements [Left -> " + type1 + " | Right -> " + type2 + "]", assign.getPosition()));
-	} else if(type1 == TypeCheckerVariableData.Type.INTEGER && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
+	if(type1 == TypeCheckerVariableData.Type.INTEGER && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	} else if(type1 == TypeCheckerVariableData.Type.REAL && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
@@ -700,9 +726,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     public Void visit(BlockAssign assign, Object... argv){
 	TypeCheckerVariableData.Type type1 = assign.getLValue().accept(this);
 	TypeCheckerVariableData.Type type2 = assign.getExpression().accept(this);
-	if (type1 == TypeCheckerVariableData.Type.UNDEFINED || type2 == TypeCheckerVariableData.Type.UNDEFINED){
-	    errorLog.addItem(new ErrorItem("Can not have undefined types in assignment statements [Left -> " + type1 + " | Right -> " + type2 + "]", assign.getPosition()));
-	} else if(type1 == TypeCheckerVariableData.Type.INTEGER && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
+	if(type1 == TypeCheckerVariableData.Type.INTEGER && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	} else if(type1 == TypeCheckerVariableData.Type.REAL && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
@@ -798,7 +822,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     public Void visit(ForStatement forLoop, Object... argv){
 	forLoop.getInit().accept(this);
 	TypeCheckerVariableData.Type type = forLoop.getExpression().accept(this);
-	if(type != TypeCheckerVariableData.Type.BOOLEAN || type != TypeCheckerVariableData.Type.INTEGER || type != TypeCheckerVariableData.Type.CONSTANT_INTEGER){
+	if(type != TypeCheckerVariableData.Type.BOOLEAN){
 	    errorLog.addItem(new ErrorItem("Unexpected Expression Type for For loop" + type, forLoop.getExpression().getPosition()));
 	}
 	forLoop.getStatement().accept(this);
@@ -852,9 +876,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     public Void visit(NonBlockAssign assign, Object... argv){
 	TypeCheckerVariableData.Type type1 = assign.getLValue().accept(this);
 	TypeCheckerVariableData.Type type2 = assign.getExpression().accept(this);
-	if (type1 == TypeCheckerVariableData.Type.UNDEFINED || type2 == TypeCheckerVariableData.Type.UNDEFINED){
-	    errorLog.addItem(new ErrorItem("Can not have undefined types in assignment statements [Left -> " + type1 + " | Right -> " + type2 + "]", assign.getPosition()));
-	} else if(type1 == TypeCheckerVariableData.Type.INTEGER && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
+	if(type1 == TypeCheckerVariableData.Type.INTEGER && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	} else if(type1 == TypeCheckerVariableData.Type.REAL && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
@@ -905,7 +927,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		    TypeCheckerVariableData def = funcData.getParameterType(i);
 
 		    if(def.type == TypeCheckerVariableData.Type.UNDEFINED || call == TypeCheckerVariableData.Type.UNDEFINED){
-			errorLog.addItem(new ErrorItem("Can not have undefined types as parameters [Func -> " + def.type + " | Expr -> " + call + "]", task.getExpression(i).getPosition()));
+			errorLog.addItem(new ErrorItem("Can not have undefined types as parameters [FunctionDef -> " + def.type + " | FunctionCall -> " + call + "]", task.getExpression(i).getPosition()));
 		    }
 		    
 		}
@@ -913,7 +935,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		errorLog.addItem(new ErrorItem("Argument amount mismatch with " + tname.getLexeme() + " [Expected -> " + funcData.numParameterTypes() + " | Got -> " + task.numExpressions() + " ]", tname.getPosition())); 
 	    }
 	} else {
-	    errorLog.addItem(new ErrorItem("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition())); 
+	    errorLog.addItem(new ErrorItem("Function Entry " + tname.getLexeme() + " doesnt exist", tname.getPosition())); 
 	}
 	return null;
     }
@@ -950,7 +972,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
     public Void visit(WhileStatement whileLoop, Object... argv){
 	TypeCheckerVariableData.Type type = whileLoop.getExpression().accept(this);
 	if(type != TypeCheckerVariableData.Type.BOOLEAN && type != TypeCheckerVariableData.Type.CONSTANT_INTEGER && type != TypeCheckerVariableData.Type.INTEGER){
-	    errorLog.addItem(new ErrorItem("Unknown Type for While loop expression " + type, whileLoop.getExpression().getPosition()));
+	    errorLog.addItem(new ErrorItem("Unknown type " + type +" for while loop expression ", whileLoop.getExpression().getPosition()));
 	}
 	whileLoop.getStatement().accept(this);
 	return null;
@@ -973,6 +995,37 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
      */
 
 
+    private static boolean isArray(TypeCheckerVariableData.Type type){
+	return (type == TypeCheckerVariableData.Type.REGISTER_ARRAY || type == TypeCheckerVariableData.Type.REGISTER_VECTOR_ARRAY || type == TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR_ARRAY || type == TypeCheckerVariableData.Type.OUTPUT_REGISTER_ARRAY || type == TypeCheckerVariableData.Type.INTEGER_ARRAY);
+    }
+
+    private static boolean isWire(TypeCheckerVariableData.Type type){
+	return (type == TypeCheckerVariableData.Type.INPUT_WIRE || type == TypeCheckerVariableData.Type.WIRE || type == TypeCheckerVariableData.Type.OUTPUT_WIRE || type == TypeCheckerVariableData.Type.OUTPUT_WIRE_VECTOR || type == TypeCheckerVariableData.Type.WIRE_VECTOR || type == TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR);
+    }
+
+     private static boolean isReg(TypeCheckerVariableData.Type type){
+	return  (type == TypeCheckerVariableData.Type.OUTPUT_REGISTER || type == TypeCheckerVariableData.Type.REGISTER || type == TypeCheckerVariableData.Type.REGISTER_VECTOR || type == TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR);
+    }
+
+    private static boolean isScalar(TypeCheckerVariableData.Type type){
+	return (type == TypeCheckerVariableData.Type.INPUT_WIRE || type == TypeCheckerVariableData.Type.WIRE || type == TypeCheckerVariableData.Type.OUTPUT_WIRE || type == TypeCheckerVariableData.Type.OUTPUT_REGISTER || type == TypeCheckerVariableData.Type.REGISTER);
+    }
+
+    private static boolean isVector(TypeCheckerVariableData.Type type){
+	return  (type == TypeCheckerVariableData.Type.OUTPUT_WIRE_VECTOR || type == TypeCheckerVariableData.Type.WIRE_VECTOR || type == TypeCheckerVariableData.Type.INPUT_WIRE_VECTOR || type == TypeCheckerVariableData.Type.REGISTER_VECTOR || type == TypeCheckerVariableData.Type.OUTPUT_REGISTER_VECTOR);
+    }
+
+    private static boolean isInteger(TypeCheckerVariableData.Type type){
+	return  (type == TypeCheckerVariableData.Type.INTEGER || type == TypeCheckerVariableData.Type.CONSTANT_INTEGER);
+    }
+
+    private static boolean isReal(TypeCheckerVariableData.Type type){
+	return  (type == TypeCheckerVariableData.Type.REAL || type == TypeCheckerVariableData.Type.CONSTANT_REAL);
+    }
+
+    private static boolean isConstant(TypeCheckerVariableData.Type type){
+	return (type == TypeCheckerVariableData.Type.CONSTANT_INTEGER || type == TypeCheckerVariableData.Type.CONSTANT_REAL);
+    }
     /**
      * This is the code for visiting binary operations
      * @param op
@@ -982,8 +1035,351 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	TypeCheckerVariableData.Type left = op.getLeft().accept(this);
 	TypeCheckerVariableData.Type right = op.getRight().accept(this);
 
-	//Do this later
-	return TypeCheckerVariableData.Type.UNDEFINED;
+	if(left == TypeCheckerVariableData.Type.UNDEFINED){
+	    return right;
+	} else if(right == TypeCheckerVariableData.Type.UNDEFINED){
+	    return left;
+	} else if (left == TypeCheckerVariableData.Type.STRING || right == TypeCheckerVariableData.Type.STRING) {
+	    errorLog.addItem(new ErrorItem("Can't have Strings in Binary Operation " + left + " + " + right, op.getPosition()));
+	    return TypeCheckerVariableData.Type.UNDEFINED;
+	} else if (isArray(left) || isArray(right)){
+	    errorLog.addItem(new ErrorItem("Can't have Array Types in Binary Operation " + left + " + "  + right, op.getPosition()));
+	    return TypeCheckerVariableData.Type.UNDEFINED;
+	} else {
+	    switch(op.getOp().getOpType()){
+	    case PLUS:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " + "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " + "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(left) && isConstant(left) && isReal(right) && isConstant(right)) || (isInteger(right) && isConstant(right) && isReal(left) && isConstant(left))) {
+		    return TypeCheckerVariableData.Type.CONSTANT_REAL;
+		} else if ((isInteger(left) && isConstant(left) && isReal(right) && !isConstant(right)) || (isInteger(right) && isConstant(right) && isReal(left) && !isConstant(left))){
+		    return TypeCheckerVariableData.Type.REAL;
+		} else if((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " + "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER_VECTOR;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case MINUS:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " - "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " - "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(left) && isConstant(left) && isReal(right) && isConstant(right)) || (isInteger(right) && isConstant(right) && isReal(left) && isConstant(left))) {
+		    return TypeCheckerVariableData.Type.CONSTANT_REAL;
+		} else if ((isInteger(left) && isConstant(left) && isReal(right) && !isConstant(right)) || (isInteger(right) && isConstant(right) && isReal(left) && !isConstant(left))){
+		    return TypeCheckerVariableData.Type.REAL;
+		} else if((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " - "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER_VECTOR;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case TIMES:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " * "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " * "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(left) && isConstant(left) && isReal(right) && isConstant(right)) || (isInteger(right) && isConstant(right) && isReal(left) && isConstant(left))) {
+		    return TypeCheckerVariableData.Type.CONSTANT_REAL;
+		} else if ((isInteger(left) && isConstant(left) && isReal(right) && !isConstant(right)) || (isInteger(right) && isConstant(right) && isReal(left) && !isConstant(left))){
+		    return TypeCheckerVariableData.Type.REAL;
+		} else if((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " * "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER_VECTOR;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case DIV:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " / "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " / "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} if (isConstant(left) && isConstant(right)) {
+		    return TypeCheckerVariableData.Type.CONSTANT_REAL;
+		} else {
+		    return TypeCheckerVariableData.Type.REAL;
+		}
+	    case MOD:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " % "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " % "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(right) || isReal(left)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " % "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else {
+		    return TypeCheckerVariableData.Type.INTEGER;
+		}
+	    case EQ2:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case EQ3:
+		if(left != right){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " % "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.BOOLEAN;
+		} else {
+		    return TypeCheckerVariableData.Type.BOOLEAN;
+		}
+	    case NE1:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case NE2:
+		if(left != right){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " % "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.BOOLEAN;
+		} else {
+		    return TypeCheckerVariableData.Type.BOOLEAN;
+		}
+	    case LAND:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case LOR:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case LE:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case LT:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case GE:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case GT:
+		return TypeCheckerVariableData.Type.BOOLEAN;
+	    case BAND:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " & "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " & "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " & "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case BOR:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " | "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " | "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " | "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case BXOR:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case BXNOR:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case LSHIFT:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    case RSHIFT:
+		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
+		} else if(isReal(left) || isReal(right)){
+		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " ^ "  + right, op.getPosition()));
+		    return isReal(left) ? right : left;
+		} else if (right == left){
+		    return left;
+		} else if (left == TypeCheckerVariableData.Type.MIXED_VECTOR || right == TypeCheckerVariableData.Type.MIXED_VECTOR){
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		} else if ((isInteger(right) && isConstant(right) && isInteger(left)) || (isInteger(left) && isConstant(left) && isInteger(right))){
+		    return TypeCheckerVariableData.Type.INTEGER;
+		} else if(isInteger(left) || isInteger(right)){
+		    return isInteger(left) ? right : left;
+		} else if(isWire(left) && isWire(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right) && (isVector(left) || isVector(right))){
+		    return TypeCheckerVariableData.Type.WIRE_VECTOR;
+		} else if(isReg(left) && isReg(right)){
+		    return TypeCheckerVariableData.Type.REGISTER;
+		} else if(isWire(left) && isWire(right)){
+		    return TypeCheckerVariableData.Type.WIRE;
+		} else {
+		    return TypeCheckerVariableData.Type.MIXED_VECTOR;
+		}
+	    default:
+		errorLog.addItem(new ErrorItem("Invalid operation in verilog of type " + left + " " + op.getOp().getOpType()+ " " + right, op.getPosition()));
+		return TypeCheckerVariableData.Type.UNDEFINED;
+	    }
+	}
     }
 
     /**
