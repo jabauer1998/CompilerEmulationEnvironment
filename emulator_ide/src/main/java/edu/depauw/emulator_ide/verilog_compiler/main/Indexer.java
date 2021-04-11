@@ -217,6 +217,25 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
     }
 
     /**
+     * This is used to visit any input wire scalar wire declaration in verilog.
+     * Ex. wire a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(InputRegScalarDeclaration decl, Object... argv){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		dest.println("USE REG " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL REG " + current.getLexeme() + " AT [" + current.getPosition() + ']');
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
      * This is used to visit any wire scalar wire declaration in verilog.
      * Ex. wire a, b, c ... ;
      * @param decl
@@ -286,6 +305,25 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 		dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
 	    } else {
 		dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
+		varEnv.addEntry(current.getLexeme(), current.getPosition());
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * This is used to visit any input wire vector declaration in verilog.
+     * Ex. wire [31:0] a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(InputRegVectorDeclaration decl, Object... argv){
+	for(int i = 0; i < decl.numIdentifiers(); i++){
+	    Identifier current = decl.getIdentifier(i);
+	    if(varEnv.entryExists(current.getLexeme())){
+		dest.println("USE REG " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT [" + varEnv.getEntry(current.getLexeme()) + ']');
+	    } else {
+		dest.println("DECL REG " + current.getLexeme() + " AT " + current.getPosition());
 		varEnv.addEntry(current.getLexeme(), current.getPosition());
 	    }
 	}

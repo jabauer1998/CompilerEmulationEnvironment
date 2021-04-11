@@ -87,6 +87,14 @@ public interface ModuleVisitor<ModVisitType>{
     
     public ModVisitType visit(InputWireScalarDeclaration decl, Object... argv);
 
+     /**
+     * This is used to visit any input wire scalar declaration in verilog.
+     * Ex. input a, b, c ... ;
+     * @param decl
+     */
+    
+    public ModVisitType visit(InputRegScalarDeclaration decl, Object... argv);
+
     /**
      * This is used to visit any wire scalar wire declaration in verilog.
      * Ex. wire a, b, c ... ;
@@ -94,6 +102,14 @@ public interface ModuleVisitor<ModVisitType>{
      */
 
     public ModVisitType visit(InputWireVectorDeclaration decl, Object... argv);
+
+    /**
+     * This is used to visit any wire scalar wire declaration in verilog.
+     * Ex. wire a, b, c ... ;
+     * @param decl
+     */
+
+    public ModVisitType visit(InputRegVectorDeclaration decl, Object... argv);
 
     /**
      * This is used to visit any wire scalar wire declaration in verilog.

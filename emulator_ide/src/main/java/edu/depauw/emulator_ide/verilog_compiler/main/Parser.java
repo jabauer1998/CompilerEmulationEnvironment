@@ -387,6 +387,8 @@ public class Parser{
 	    skip();
 	    if(willMatch(Token.Type.WIRE)){
 		return parseInputWireDeclaration();
+	    } else if (willMatch(Token.Type.REG)){
+		return parseInputRegDeclaration();
 	    } else {
 		return parseInputDeclaration();
 	    }
@@ -394,6 +396,8 @@ public class Parser{
 	    skip();
 	    if(willMatch(Token.Type.REG)){
 		return parseOutputRegDeclaration();
+	    } else if (willMatch(Token.Type.WIRE)){
+		return parseOutputWireDeclaration();
 	    } else {
 		return parseOutputDeclaration();
 	    }
@@ -535,6 +539,25 @@ public class Parser{
 	    IdentifierList identList = parseIdentifierList();
 	    match(Token.Type.SEMI);
 	    return new InputWireScalarDeclaration(identList);
+	}
+    }
+
+    //InputWireDeclaration -> INPUT REG IdentifierList ; | INPUT REG [ ConstExpression : ConstExpression ] IdentifierList ;
+    private Declaration parseInputRegDeclaration(){
+	match(Token.Type.REG);
+	if(willMatch(Token.Type.LBRACK)){
+	    skip();
+	    ConstantExpression exp1 = parseConstantExpression();
+	    match(Token.Type.COLON);
+	    ConstantExpression exp2 = parseConstantExpression();
+	    match(Token.Type.RBRACK);
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new InputRegVectorDeclaration(exp1, exp2, identList);
+	} else {
+	    IdentifierList identList = parseIdentifierList();
+	    match(Token.Type.SEMI);
+	    return new InputRegScalarDeclaration(identList);
 	}
     }
 
@@ -716,7 +739,9 @@ public class Parser{
 	    return parseSeqBlock();
 	} else if(willMatch(Token.Type.ASSIGN)){
 	    skip();
-	    return parseAssignment();
+	    Statement stat = parseAssignment();
+	    match(Token.Type.SEMI);
+	    return stat;
 	} else if (willMatch(Token.Type.DOLLAR)){ //system tasks
 	    skip();
 	    Identifier ident = parseIdentifier();
@@ -739,11 +764,15 @@ public class Parser{
 	    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 		skip();
 		Expression exp = parseExpression();
-		return new BlockAssign(concat, exp);
+		Statement stat = new BlockAssign(concat, exp);
+		match(Token.Type.SEMI);
+		return stat;
 	    } else { //it is a non blocking assignment
 		match(Token.Type.LE);
 		Expression exp = parseExpression();
-		return new NonBlockAssign(concat, exp);
+		Statement stat = new NonBlockAssign(concat, exp);
+		match(Token.Type.SEMI);
+		return stat;
 	    }
 	} else { //lvalue or task_enable
 	    Identifier ident = parseIdentifier();
@@ -751,10 +780,12 @@ public class Parser{
 		skip();
 		if(willMatch(Token.Type.RPAR)){
 		    skip();
+		    match(Token.Type.SEMI);
 		    return new TaskStatement(ident);
 		} else {
 		    ExpressionList expList = parseExpressionList();
 		    match(Token.Type.RPAR);
+		    match(Token.Type.SEMI);
 		    return new TaskStatement(ident, expList);
 		}
 	    } else if (willMatch(Token.Type.SEMI)){
@@ -769,11 +800,15 @@ public class Parser{
 		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
-			return new BlockAssign(vec, exp);
+			Statement stat = new BlockAssign(vec, exp);
+			match(Token.Type.SEMI);
+			return stat;
 		    } else { //it is a non blocking assignment
 			match(Token.Type.LE);
 			Expression exp = parseExpression();
-			return new NonBlockAssign(vec, exp);
+			Statement stat = new NonBlockAssign(vec, exp);
+			match(Token.Type.SEMI);
+			return stat;
 		    }
 		} else {
 		    match(Token.Type.COLON);
@@ -783,21 +818,29 @@ public class Parser{
 		    if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 			skip();
 			Expression exp = parseExpression();
-			return new BlockAssign(vec, exp);
+			Statement stat = new BlockAssign(vec, exp);
+			match(Token.Type.SEMI);
+			return stat;
 		    } else { //it is a non blocking assignment
 			match(Token.Type.LE);
 			Expression exp = parseExpression();
-			return new NonBlockAssign(vec, exp);
+			Statement stat = new NonBlockAssign(vec, exp);
+			match(Token.Type.SEMI);
+			return stat;
 		    }
 		}
 	    } else if (willMatch(Token.Type.EQ1)){ // it is a blocking assignment
 		skip();
 		Expression exp = parseExpression();
-		return new BlockAssign(ident, exp);
+		Statement stat = new BlockAssign(ident, exp);
+		match(Token.Type.SEMI);
+		return stat;
 	    } else if(willMatch(Token.Type.LE)){ //it is a non blocking assignment
 		skip();
 		Expression exp = parseExpression();
-		return new NonBlockAssign(ident, exp);
+		Statement stat = new NonBlockAssign(ident, exp);
+		match(Token.Type.SEMI);
+		return stat;
 	    } else {
 		Token matched = peek();
 		errorLog.addItem(new ErrorItem("Unexpected Statement token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
@@ -825,10 +868,6 @@ public class Parser{
 	    do{
 		Statement stat = parseStatement();
 		statList.add(stat);
-		if(willMatch(Token.Type.SEMI)){
-		    skip();
-		    continue;
-		}
 	    } while(!willMatch(Token.Type.END));
 	}
 	
@@ -855,13 +894,11 @@ public class Parser{
 		skip();
 	    }
 	    Statement stat = parseStatementOrNull();
-	    match(Token.Type.SEMI);
 	    return new DefCaseItem(stat);
 	} else {
 	    ExpressionList expList = parseExpressionList();
 	    match(Token.Type.COLON);
 	    Statement stat = parseStatementOrNull();
-	    match(Token.Type.SEMI);
 	    return new ExprCaseItem(expList, stat);
 	}
     }

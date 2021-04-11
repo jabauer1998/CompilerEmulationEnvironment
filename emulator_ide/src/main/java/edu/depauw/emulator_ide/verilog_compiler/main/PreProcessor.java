@@ -155,12 +155,31 @@ public class PreProcessor implements ExpressionVisitor<Expression>, StatementVis
     }
 
     /**
+     * This is used to visit any input scalar declaration in verilog.
+     * Ex. input a, b, c ... ;
+     * @param decl
+     */
+    
+    public Void visit(InputRegScalarDeclaration decl, Object... argv){
+	return null;
+    }
+
+    /**
      * This is used to visit any input vector declaration in verilog.
      * Ex. input [31:0] a, b, c ... ;
      * @param decl
      */
     
     public Void visit(InputWireVectorDeclaration decl, Object... argv){
+	Expression exp1 = decl.getExpression1().accept(this); //check whether the expressions return ints
+	Expression exp2 = decl.getExpression2().accept(this);
+
+	decl.setExpression1(exp1);
+	decl.setExpression2(exp2);
+	return null;
+    }
+
+    public Void visit(InputRegVectorDeclaration decl, Object... argv){
 	Expression exp1 = decl.getExpression1().accept(this); //check whether the expressions return ints
 	Expression exp2 = decl.getExpression2().accept(this);
 
