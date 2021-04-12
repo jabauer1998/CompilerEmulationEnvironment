@@ -808,7 +808,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	} else if(type1 == TypeCheckerVariableData.Type.REAL && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
-	}  else if(type2 == TypeCheckerVariableData.Type.REAL || type2  == TypeCheckerVariableData.Type.BOOLEAN){
+	}  else if(isReg(type1) && type2 == TypeCheckerVariableData.Type.REAL){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	}
 	return null;
@@ -826,7 +826,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	} else if(type1 == TypeCheckerVariableData.Type.REAL && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
-	}  else if(type2 == TypeCheckerVariableData.Type.REAL || type2  == TypeCheckerVariableData.Type.BOOLEAN){
+	} else if(isReg(type1) && type2 == TypeCheckerVariableData.Type.REAL){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	}
 	return null;
@@ -976,7 +976,7 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	} else if(type1 == TypeCheckerVariableData.Type.REAL && (type2 == TypeCheckerVariableData.Type.BOOLEAN || type2 == TypeCheckerVariableData.Type.STRING)){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
-	}  else if(type2 == TypeCheckerVariableData.Type.REAL || type2  == TypeCheckerVariableData.Type.BOOLEAN){
+	} else if(isReg(type1) && type2 == TypeCheckerVariableData.Type.REAL){
 	    errorLog.addItem(new ErrorItem("Type mismatch in assignment between " + type1 + " and " + type2, assign.getPosition()));
 	}
 	return null;
@@ -1301,9 +1301,6 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
 		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " & "  + right, op.getPosition()));
 		    return TypeCheckerVariableData.Type.INTEGER;
-		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
-		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " & "  + right, op.getPosition()));
-		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
 		} else if(isReal(left) || isReal(right)){
 		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " & "  + right, op.getPosition()));
 		    return isReal(left) ? right : left;
@@ -1330,9 +1327,6 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 		if(right == TypeCheckerVariableData.Type.BOOLEAN && left == TypeCheckerVariableData.Type.BOOLEAN){
 		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " | "  + right, op.getPosition()));
 		    return TypeCheckerVariableData.Type.INTEGER;
-		} else if(right == TypeCheckerVariableData.Type.BOOLEAN || left == TypeCheckerVariableData.Type.BOOLEAN){
-		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " | "  + right, op.getPosition()));
-		    return (left == TypeCheckerVariableData.Type.BOOLEAN) ? right : left;
 		} else if(isReal(left) || isReal(right)){
 		    errorLog.addItem(new ErrorItem("Unknown operation of type " + left + " | "  + right, op.getPosition()));
 		    return isReal(left) ? right : left;
@@ -1490,8 +1484,8 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 	} if(op.getOp().getOpType() == UnOp.Type.PLUS && (right == TypeCheckerVariableData.Type.BOOLEAN || right == TypeCheckerVariableData.Type.STRING)){
 	   errorLog.addItem(new ErrorItem("Unexpected type for unary plus operation [Type -> " + right + "]", op.getPosition()));
 	} else if(op.getOp().getOpType() == UnOp.Type.LNEG && right == TypeCheckerVariableData.Type.STRING){
-	   errorLog.addItem(new ErrorItem("Unexpected type for unary Boolean Not operation [Type -> " + right + "]", op.getPosition()));
-	} else if(op.getOp().getOpType() == UnOp.Type.BNEG && (right == TypeCheckerVariableData.Type.STRING || right == TypeCheckerVariableData.Type.REAL) || right == TypeCheckerVariableData.Type.BOOLEAN){
+	   errorLog.addItem(new ErrorItem("Unexpected type for Boolean Not operation [Type -> " + right + "]", op.getPosition()));
+	} else if(op.getOp().getOpType() == UnOp.Type.BNEG && (right == TypeCheckerVariableData.Type.STRING || right == TypeCheckerVariableData.Type.REAL || right == TypeCheckerVariableData.Type.BOOLEAN)){
 	    errorLog.addItem(new ErrorItem("Unexpected type for Bitwise Not operation [Type -> " + right + "]", op.getPosition()));
 	}
 	return op.getRight().accept(this);

@@ -20,7 +20,6 @@ public class UnOp{
     private Type type;
 
     public UnOp(Token op){
-	
 	switch(op.getTokenType()){
 	case PLUS:
 	    type = Type.PLUS;
