@@ -178,7 +178,37 @@ public class CheckpointTest{
 
 	    TypeChecker typeChecker = new TypeChecker(errorLog);
 	    typeChecker.visit(moddec);
-	    errorLog.printLog();
+
+	    System.out.print("\n\n---------------------------------------------------------\n\n");
+
+	    System.out.print("\n\n-----------Checkpoint 3 Full Program Interpreter Test---------------\n\n");
+
+	    String path2 = "src/main/java/edu/depauw/emulator_ide/processor";
+	    String command1 = "iverilog ARM7TDMIS.v";
+	    try {
+		Process process = Runtime.getRuntime().exec(command1, null, new File(path2));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+		String line;
+		while ((line = reader.readLine()) != null) {
+		    System.out.println(line);
+		}
+		reader.close();
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
+	
+	    String command2 = "vvp a.out";
+	    try {
+		Process process = Runtime.getRuntime().exec(command2, null, new File(path2));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+		String line;
+		while ((line = reader.readLine()) != null) {
+		    System.out.println(line);
+		}
+		reader.close();
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
 
 	    System.out.print("\n\n---------------------------------------------------------\n\n");
 	    

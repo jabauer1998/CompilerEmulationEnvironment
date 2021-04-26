@@ -1,6 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.*;
 
 import java.util.ArrayList;
 /**
@@ -9,7 +10,7 @@ import java.util.ArrayList;
  */
 
 public class NotGate extends Gate{
-    private Wire input;
+    private CircuitElem input;
 
     /**
      * The and gate constructor creates a new and gate. It can take in a variable number of inputs with a minimum of two inputs
@@ -19,7 +20,7 @@ public class NotGate extends Gate{
      * @author Jacob Bauer
      */
     
-    public NotGate(Wire output, Wire input){
+    public NotGate(CircuitElem output, CircuitElem input){
 	super(output);
 	this.input = input;
 	this.input.addOutput(this);

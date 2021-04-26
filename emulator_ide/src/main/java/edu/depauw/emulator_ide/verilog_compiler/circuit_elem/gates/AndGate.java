@@ -1,6 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.*;
 
 import java.util.LinkedList;
 
@@ -10,7 +11,7 @@ import java.util.LinkedList;
  * @author Jacob Bauer
  */
 public class AndGate extends Gate{
-    private LinkedList<Wire> inputs;
+    private LinkedList<CircuitElem> inputs;
     
     /**
      * The and gate constructor creates a new and gate. It can take in a variable number of inputs with a minimum of two inputs
@@ -20,21 +21,25 @@ public class AndGate extends Gate{
      * @author Jacob Bauer
      */
     
-    public AndGate(Wire output, Wire input1, Wire input2, Wire... optional){
+    public AndGate(CircuitElem output, CircuitElem input1, CircuitElem input2, CircuitElem... optional){
 	super(output); //call the common gate constructor to deeal with configuring outputs
 	this.inputs = new LinkedList<>(); //Initialize the array for inputs
 	this.inputs.add(input1); //add all of the inputs to the array by removing duplicates
 	if(!inputs.contains(input2)){ 
 	    this.inputs.add(input2); 
 	}
-	for(Wire input: optional){
+	for(CircuitElem input: optional){
 	    if(!inputs.contains(input)){
 		this.inputs.add(input);
 	    }
 	}
-	for(Wire input : inputs){
+	for(CircuitElem input : inputs){
 	    if(!input.hasOutput(this)){
-		input.addOutput(this);
+		if(input instanceof Wire){
+		    ((Wire)input).addOutput(this);
+		} else {
+		    ((Register)input).addOutput(this);
+		}
 	    }
 	}
 	this.update(); //update the output
@@ -48,7 +53,7 @@ public class AndGate extends Gate{
     
     public void update(){
 	if(outputSignal == false){
-		for(Wire input : inputs){
+		for(CircuitElem input : inputs){
 			if(input.getSignal() == false){
 				return;
 			}
@@ -56,7 +61,7 @@ public class AndGate extends Gate{
 		outputSignal = true;
 		updateOutput();
 	} else {
-		for(Wire input : inputs){
+		for(CircuitElem input : inputs){
 			if(input.getSignal() == false){
 				outputSignal = false;
 				updateOutput();

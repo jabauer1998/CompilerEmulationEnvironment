@@ -4,9 +4,13 @@ package edu.depauw.emulator_ide.verilog_compiler.main.util;
  * @author Jacob Bauer
  */
 
+import edu.depauw.emulator_ide.verilog_compiler.data_structure.Range;
+
 import java.lang.String;
 import java.lang.Number;
 import java.lang.Integer;
+import java.lang.StringBuilder;
+
 
 public class NumberUtil {
 
@@ -90,5 +94,45 @@ public class NumberUtil {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
 	}
+    }
+
+    /**Returns the Decimal version of the number
+     * @param val String representing the number
+     */
+    public static Range getZRange(String val){
+	StringBuilder lower = new StringBuilder(val);
+	StringBuilder upper = new StringBuilder(val);
+	for(int i = 0; i < val.length(); i++){
+	    if(Character.toLowerCase(val.charAt(i)) == 'z'){
+		lower.setCharAt(i, '0');
+		upper.setCharAt(i, '1');
+	    }
+	}
+
+	int binaryLower = getBinary(lower.toString());
+	int binaryUpper = getBinary(upper.toString());
+
+	return new Range(binaryLower, binaryUpper);
+	
+    }
+
+    /**Returns the Decimal version of the number
+     * @param val String representing the number
+     */
+    public static Range getXRange(String val){
+	StringBuilder lower = new StringBuilder(val);
+	StringBuilder upper = new StringBuilder(val);
+	for(int i = 0; i < val.length(); i++){
+	    if(Character.toLowerCase(val.charAt(i)) == 'x'){
+		lower.setCharAt(i, '0');
+		upper.setCharAt(i, '1');
+	    }
+	}
+
+	int binaryLower = getBinary(lower.toString());
+	int binaryUpper = getBinary(upper.toString());
+
+	return new Range(binaryLower, binaryUpper);
+	
     }
 }

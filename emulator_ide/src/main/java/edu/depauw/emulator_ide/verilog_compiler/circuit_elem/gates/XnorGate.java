@@ -1,6 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.gates;
 
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.*;
 
 import java.util.LinkedList;
 
@@ -12,7 +13,7 @@ import java.util.LinkedList;
 
 public class XnorGate extends Gate {
 
-    private LinkedList<Wire> inputs;
+    private LinkedList<CircuitElem> inputs;
 
     /**
      * The and gate constructor creates a new and gate. It can take in a variable number of inputs with a minimum of two inputs
@@ -22,17 +23,21 @@ public class XnorGate extends Gate {
      * @author Jacob Bauer
      */
     
-    public XnorGate(Wire output, Wire input1, Wire input2, Wire... optional){
+    public XnorGate(CircuitElem output, CircuitElem input1, CircuitElem input2, CircuitElem... optional){
 	super(output);
 	this.inputs = new LinkedList<>();
 	inputs.add(input1);
 	inputs.add(input2);
-	for(Wire input: optional){
+	for(CircuitElem input: optional){
 	    inputs.add(input);
 	}
-	for(Wire input : inputs){
+	for(CircuitElem input : inputs){
 	    if(!input.hasOutput(this)){
-		input.addOutput(this);
+		if(input instanceof Wire){
+		    ((Wire)input).addOutput(this);
+		} else {
+		    ((Register)input).addOutput(this);
+		}
 	    }
 	}
 	this.update();
@@ -47,7 +52,7 @@ public class XnorGate extends Gate {
     public void update(){
 	if(outputSignal == false){
 	    int numTrue = 0;
-	    for(Wire input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}
@@ -58,7 +63,7 @@ public class XnorGate extends Gate {
 	    }
 	} else {
 	    int numTrue = 0;
-	    for(Wire input : inputs){
+	    for(CircuitElem input : inputs){
 		if(input.getSignal() == true){
 		    numTrue++;
 		}
