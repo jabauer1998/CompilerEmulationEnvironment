@@ -20,7 +20,7 @@ public class WireTest {
 
 	Wire output = new Wire();
 
-	input.setOutput(output);
+	input.addOutput(output);
 
 	
 	Primitive table = new Primitive(1, 1); //two input one output table

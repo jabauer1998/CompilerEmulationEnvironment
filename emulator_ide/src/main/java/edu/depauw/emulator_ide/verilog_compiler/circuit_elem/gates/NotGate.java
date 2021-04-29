@@ -23,7 +23,17 @@ public class NotGate extends Gate{
     public NotGate(CircuitElem output, CircuitElem input){
 	super(output);
 	this.input = input;
-	this.input.addOutput(this);
+	if(input instanceof Wire){
+	    Wire inp = (Wire)input;
+	    if(!inp.hasOutput(this)){
+		inp.addOutput(this);
+	    }
+	} else {
+	    Register inp = (Register)input;
+	    if(!inp.hasOutput(this)){
+		inp.addOutput(this);
+	    }
+	}
 	this.update(); //update the output
     }
 

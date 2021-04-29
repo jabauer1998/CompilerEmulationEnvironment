@@ -32,11 +32,15 @@ public class XnorGate extends Gate {
 	    inputs.add(input);
 	}
 	for(CircuitElem input : inputs){
-	    if(!input.hasOutput(this)){
-		if(input instanceof Wire){
-		    ((Wire)input).addOutput(this);
-		} else {
-		    ((Register)input).addOutput(this);
+	    if(input instanceof Wire){
+		Wire inp = (Wire)input;
+		if(!inp.hasOutput(this)){
+		    inp.addOutput(this);
+		}
+	    } else {
+		Register inp = (Register)input;
+		if(!inp.hasOutput(this)){
+		    inp.addOutput(this);
 		}
 	    }
 	}

@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 
 import edu.depauw.emulator_ide.verilog_compiler.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 /** The Statement abstract class is used to represent Statement abstract syntax tree nodes in the verilog
  * language. This will come in handy when creating graphical user interfaces.

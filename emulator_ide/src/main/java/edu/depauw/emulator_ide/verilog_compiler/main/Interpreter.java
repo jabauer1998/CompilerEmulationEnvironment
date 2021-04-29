@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.main;
 
 import edu.depauw.emulator_ide.verilog_compiler.visitor.*;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.*;
@@ -17,7 +17,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.reg_value.*;
-import edu.depauw.emulator_ide.verilog_compiler.main.util.NumberUtil;
+import edu.depauw.emulator_ide.verilog_compiler.main.util.*;
 import edu.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
 import edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry.InterpreterVariableData;
 import edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry.InterpreterFunctionData;
@@ -26,7 +26,9 @@ import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
 
 import java.util.concurrent.Semaphore;
+import java.lang.InterruptedException;
 import java.util.ArrayList;
+
     
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void>{
     
@@ -66,7 +68,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         for(int i = 0; i < processes.size(); i++){
 	    
 	}
-	sema.acquire();
+	try{
+	    sema.acquire();
+	} catch (InterruptedException e){
+	    e.printStackTrace();
+	}
 	varEnv.removeScope();
 	funcEnv.removeScope();
 	modEnv.removeScope();
@@ -84,7 +90,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(AllwaysStatement stat, Object... argv){
 	processes.add(stat);
-	while(true){
+	boolean tf = true;
+	while(tf){
 	    stat.getStatement().accept(this);
 	}
 	return null;
@@ -111,8 +118,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private Identifier topFunctionName = null;
 
     public Void visit(FunctionDeclaration function, Object... argv){
-
 	//May need to finish this later
+
+	Declaration functionName = function.getFunctionName();
+	
+	inFunctionName = true;
+	functionName.accept(this); //retrieve the function name from the declaration
+	inFunctionName = false;
+
+	funcEnv.addEntry(topFunctionName.getLexeme(), new InterpreterFunctionData(function, function.getPosition()));
+
+	
 	
 	return null;
     }
@@ -180,17 +196,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(InputWireScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
-	    } else {
-		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Wire(), current.getPosition()));
+	    if(!varEnv.entryExists(current.getLexeme())){
+		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Wire(), current.getPosition()));		
 	    }
-	    /*
+	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addIdentifier(entryData); //add paramter to function
+		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
 	    }
-	    */
 	}
+	return null;
     }
 
     /**
@@ -203,18 +217,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
-	    } else {
-		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Register(Register.SignalValue.LOW), current.getPosition()));
+	    if(!varEnv.entryExists(current.getLexeme())){
+		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Register(false), current.getPosition()));
 	    }
 
-	    /*
+	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
+	    
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addIdentifier(entryData); //add paramter to function
+		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
 	    }
-	    */
 	}
+	return null;
     }
 
     /**
@@ -230,7 +243,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
+	    if(!varEnv.entryExists(current.getLexeme())){
 		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 		
 		if(entryData.getObject() == null){
@@ -239,7 +252,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		    errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.getObject() + " to type output wire vector", current.getPosition()));
 		}
 	    } else {
-		Vector<CircuitElem> vec = new Vector<>(index1, index2);
+		Vector<CircuitElem> vec = new Vector<CircuitElem>(index1, index2);
 		if(index1 <= index2){
 		    for(int x = index1; x != index2; x++){
 			vec.setValue(x, new Wire());
@@ -251,11 +264,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		}
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(vec, current.getPosition()));
 	    }
-	    /*
+
+	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addIdentifier(entryData); //add paramter to function
+		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
 	    }
-	    */
 	}
 	return null;
     }
@@ -293,11 +306,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		}
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(vec, current.getPosition()));
 	    }
-	    /*
+	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addIdentifier(entryData); //add paramter to function
+		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
 	    }
-	    */
 	}
 	return null;
     }
@@ -707,7 +719,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    }
 	    arr[index] = value;
 	} else if(data.getObject() instanceof Vector){
-	    Vector<CircuitElem> vec = lValue.accept(this); //returns the vector stored in the symbol table
+	    Vector<CircuitElem> vec = (Vector<CircuitElem>)data.getObject(); //returns the vector stored in the symbol table
 	    if(lValue instanceof Identifier){
 		if(result instanceof Vector){
 		    OpUtil.deepAssign(vec, (Vector<CircuitElem>)result);
@@ -767,7 +779,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof Boolean){
 		OpUtil.shallowAssign(arr[index], (boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
 		System.exit(1);
 	    }
 	} else if (data.getObject() instanceof CircuitElem[]){
@@ -781,11 +793,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof CircuitElem){
 		arr[index] = (CircuitElem)result;
 	    } else if(result instanceof Long){
-		arr[index] = new Register((long)result ? true : false);
+		arr[index] = new Register(((long)result) != 0 ? true : false);
 	    } else if(result instanceof Boolean){
 		arr[index] = new Register((boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
 		System.exit(1);
 		return null;
 	    }
@@ -800,11 +812,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof CircuitElem){
 		data.setObject(result);
 	    } else if(result instanceof Long){
-		data.setObject(new Register((long)result ? true : false));
+		data.setObject(new Register(((long)result) != 0 ? true : false));
 	    } else if(result instanceof Boolean){
 		data.setObject(new Register((boolean)result));
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
 		System.exit(1);
 		return null;
 	    }
@@ -874,7 +886,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    }
 	    arr[index] = value;
 	} else if(data.getObject() instanceof Vector){
-	    Vector<CircuitElem> vec = lValue.accept(this); //returns the vector stored in the symbol table
+	    Vector<CircuitElem> vec = (Vector<CircuitElem>)data.getObject(); //returns the vector stored in the symbol table
 	    if(lValue instanceof Identifier){
 		if(result instanceof Vector){
 		    OpUtil.shallowAssign(vec, (Vector<CircuitElem>)result);
@@ -900,7 +912,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		} else if(result instanceof Boolean){
 		    OpUtil.shallowAssign(vec, index, (boolean)result);
 		} else {
-		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
 		    System.exit(1);
 		}
 		
@@ -917,7 +929,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		} else if(result instanceof Boolean){
 		    OpUtil.shallowAssign(vec, index1, index2, (boolean)result);
 		} else {
-		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
 		    System.exit(1);
 		}
 	    }
@@ -934,7 +946,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof Boolean){
 		OpUtil.shallowAssign(arr[index], (boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
 		System.exit(1);
 	    }
 	} else if (data.getObject() instanceof CircuitElem[]){
@@ -944,30 +956,31 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    if(result instanceof Vector){
 		Vector<CircuitElem> vec = (Vector<CircuitElem>)result;
 		int lowestIndex = (vec.getIndex1() <= vec.getIndex2()) ?  vec.getIndex1() : vec.getIndex2(); 
-		arr[index].setSignal(((Vector<CircuitElem>)result).getValue(lowestIndex).getSignal());
+		((Register)arr[index]).setSignal(((Vector<CircuitElem>)result).getValue(lowestIndex).getSignal());
 	    } else if(result instanceof CircuitElem){
-		arr[index].setSignal(((CircuitElem)result).getSignal());
+		((Register)arr[index]).setSignal(((CircuitElem)result).getSignal());
 	    } else if(result instanceof Long){
-		arr[index].setSignal(((long)result) ? true : false);
+		((Register)arr[index]).setSignal(((long)result) != 0 ? true : false);
 	    } else if(result instanceof Boolean){
-		arr[index].setSignal((boolean)result);
+		((Register)arr[index]).setSignal((boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
 		System.exit(1);
 		return null;
 	    }
 	} else if (data.getObject() instanceof CircuitElem){
 	    if(result instanceof Vector){
 		Vector<CircuitElem> vec = (Vector<CircuitElem>)result;
-		data.getObject().setSignal(vec.getValue(lowestIndex).getSignal());
+		int lowestIndex = (vec.getIndex1() <= vec.getIndex2()) ? vec.getIndex1() : vec.getIndex2();
+		((Register)data.getObject()).setSignal(vec.getValue(lowestIndex).getSignal());
 	    } else if(result instanceof CircuitElem){
-		data.getObject().setSignal(result.getSignal());
+		((Register)data.getObject()).setSignal(((CircuitElem)result).getSignal());
 	    } else if(result instanceof Long){
-		data.getObject().setSignal(((long)result) ? true : false);
+		((Register)data.getObject()).setSignal(((long)result) != 0 ? true : false);
 	    } else if(result instanceof Boolean){
-		data.getObject().setSignal((boolean)result);
+		((Register)data.getObject()).setSignal((boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
 		System.exit(1);
 		return null;
 	    }
@@ -975,6 +988,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    errorLog.addItem(new ErrorItem("Unexpected Type for Object " + data.getObject().getClass(), assign.getPosition()));
 	    System.exit(1);
 	    return null;
+	}
+
+	if(inFunctionReturn){
+	    needExit = true;
 	}
 	return null;
     }
@@ -987,13 +1004,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(CaseStatement stat, Object... argv){
 	Object expr = stat.getExpression().accept(this);
 
-	int target = 0;
-	if(expr instanceof Integer){
-	    target = (int)numType;
+	long target = 0;
+	if(expr instanceof Long){
+	    target = (int)expr;
 	} else if (expr instanceof CircuitElem){
-	    target = boolValue((CircuitElem)numType) ? 1 : 0; 
+	    target = ((CircuitElem)expr).getSignal() ? 1 : 0; 
 	} else if (expr instanceof Vector){
-	    target = intValue((Vector<CircuitElem>)expr);
+	    target = OpUtil.toLong((Vector<CircuitElem>)expr);
 	} else {
 	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition()));
 	    System.exit(1);
@@ -1006,13 +1023,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		ExprCaseItem exprItem = (ExprCaseItem)item;
 		for(int x = 0; x < exprItem.numExpressions(); x++){
 		    Object exprValue = exprItem.getExpression(x).accept(this);
-		    if(caseBoolean(exprValue, target)){
+		    if(caseBoolean(target, exprValue)){
 			item.getStatement().accept(this);
 			break;
 		    }
 		}
 	    } else {
-		DefaultCaseItem exprItem = (DefCaseItem)item;
+		DefCaseItem exprItem = (DefCaseItem)item;
 		item.getStatement().accept(this);
 	    }
 	}
@@ -1028,13 +1045,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(CaseXStatement stat, Object... argv){
 	Object expr = stat.getExpression().accept(this);
 
-	int target = 0;
-	if(expr instanceof Integer){
-	    target = (int)numType;
+	long target = 0;
+	if(expr instanceof Long){
+	    target = (long)expr;
 	} else if (expr instanceof CircuitElem){
-	    target = boolValue((CircuitElem)numType) ? 1 : 0; 
+	    target = ((CircuitElem)expr).getSignal() ? 1 : 0; 
 	} else if (expr instanceof Vector){
-	    target = intValue((Vector<CircuitElem>)expr);
+	    target = OpUtil.toLong((Vector<CircuitElem>)expr);
 	} else {
 	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition()));
 	    System.exit(1);
@@ -1047,13 +1064,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		ExprCaseItem exprItem = (ExprCaseItem)item;
 		for(int x = 0; x < exprItem.numExpressions(); x++){
 		    Object exprValue = exprItem.getExpression(x).accept(this);
-		    if(caseBoolean(exprValue, target)){
+		    if(caseBoolean(target, exprValue)){
 			item.getStatement().accept(this);
 			break;
 		    }
 		}
 	    } else {
-		DefaultCaseItem exprItem = (DefCaseItem)item;
+		DefCaseItem exprItem = (DefCaseItem)item;
 		item.getStatement().accept(this);
 	    }
 	}
@@ -1066,13 +1083,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      * @param assign
      */
 
-    private static boolean caseBoolean(int target, Object expr){
-	if(expr instanceof Integer){
-	    return (int)expr == target;
+    private boolean caseBoolean(long target, Object expr){
+	if(expr instanceof Long){
+	    return ((long)expr) == target;
 	} else if(expr instanceof Range){
 	    return ((Range)expr).inRange(target);
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement expression " + expr.getClass(), stat.getExpression().getPosition()));
+	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement expression " + expr.getClass(), null));
 	    System.exit(1);
 	    return false;
 	}
@@ -1081,13 +1098,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(CaseZStatement stat, Object... argv){
 	Object expr = stat.getExpression().accept(this);
 
-	int target = 0;
-	if(expr instanceof Integer){
-	    target = (int)numType;
+	long target = 0;
+	if(expr instanceof Long){
+	    target = (long)expr;
 	} else if (expr instanceof CircuitElem){
-	    target = boolValue((CircuitElem)numType) ? 1 : 0; 
+	    target = ((CircuitElem)expr).getSignal() ? 1 : 0; 
 	} else if (expr instanceof Vector){
-	    target = intValue((Vector<CircuitElem>)expr);
+	    target = OpUtil.toLong((Vector<CircuitElem>)expr);
 	} else {
 	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition()));
 	    System.exit(1);
@@ -1100,18 +1117,36 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		ExprCaseItem exprItem = (ExprCaseItem)item;
 		for(int x = 0; x < exprItem.numExpressions(); x++){
 		    Object exprValue = exprItem.getExpression(x).accept(this);
-		    if(caseBoolean(exprValue, target)){
+		    if(caseBoolean(target, exprValue)){
 			item.getStatement().accept(this);
 			break;
 		    }
 		}
 	    } else {
-		DefaultCaseItem exprItem = (DefCaseItem)item;
+		DefCaseItem exprItem = (DefCaseItem)item;
 		item.getStatement().accept(this);
 	    }
 	}
 	
 	return null;
+    }
+
+    private boolean boolValue(Object obj){
+	if(obj instanceof Long){
+	    return ((long)obj) != 0;
+	} else if(obj instanceof Boolean){
+	    return (boolean)obj;
+	} else if(obj instanceof Double){
+	    return ((double)obj) != 0;
+	} else if(obj instanceof Vector){
+	    return boolValue(OpUtil.toLong((Vector<CircuitElem>)obj));
+	} else if(obj instanceof CircuitElem){
+	    return ((CircuitElem)obj).getSignal();
+	} else {
+	    errorLog.addItem(new ErrorItem("Unexpected Type to change to bool " + obj.getClass(), null));
+	    System.exit(1);
+	    return false;
+	}
     }
 
     /**
@@ -1120,7 +1155,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(ForStatement forLoop, Object... argv){
-	for(forLoop.getInit().accept(this); boolValue(forLoop.getExpression().accept(this)); boolValue.getChange().accept(this)){
+	for(forLoop.getInit().accept(this); boolValue(forLoop.getExpression().accept(this)); forLoop.getChange().accept(this)){
 	    forLoop.getStatement().accept(this);
 	}
 	return null;
@@ -1132,7 +1167,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(ForeverStatement foreverLoop, Object... argv){
-	while(true){
+	boolean tf = true;
+	while(tf){
 	    foreverLoop.getStatement().accept(this);
 	}
 	return null;
@@ -1172,13 +1208,160 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(NonBlockAssign assign, Object... argv){
-	Object lValue = assign.getLValue().accept(this);
-	Object expression = assign.getExpression().accept(this);
-	if(lValue instanceof CircuitElem && expression instanceof CircuitElem){
-	    ((CircuitElem)lValue).setSignal(((CircuitElem)expression).getSignal());
+	Expression lValue = assign.getLValue();
+
+	Identifier name = null;
+	if(lValue instanceof VectorCall){
+	    name = ((VectorCall)lValue).getIdentifier();
+	} else if(lValue instanceof Identifier){
+	    name = (Identifier)lValue;
+	} else if (lValue instanceof VectorSlice){
+	    name = ((VectorSlice)lValue).getIdentifier();
 	} else {
-	    errorLog.addItem(new ErrorItem("Blocking assigments can only be done on single net types however what was found was [ " + lValue.getClass() + " = " + expression.getClass() + " ] at ", stat.getExpression().getPosition()));
+	    errorLog.addItem(new ErrorItem("Unexpected Type for LValue " + lValue.getClass(), assign.getPosition()));
 	    System.exit(1);
+	    return null;
+	}
+
+	InterpreterVariableData data = varEnv.getEntry(name.getLexeme());
+
+	Object result = assign.getExpression().accept(this);
+
+	if(data.getObject() instanceof Double){
+	    double value = 0;
+	    if(result instanceof Vector){
+		value = (double)OpUtil.toLong((Vector<CircuitElem>)result);
+	    } else if(result instanceof CircuitElem){
+		value = (double)OpUtil.toLong((CircuitElem)result);
+	    } else {
+		value = (double)result;
+	    }
+	    data.setObject(value);
+	} else if (data.getObject() instanceof Long) {
+	    long value = 0;
+	    if(result instanceof Vector){
+		value = OpUtil.toLong((Vector<CircuitElem>)result);
+	    } else if(result instanceof CircuitElem){
+		value = OpUtil.toLong((CircuitElem)result);
+	    } else {
+		value = (long)result;
+	    }
+	    data.setObject(value);
+	} else if(data.getObject() instanceof Long[]){
+	    Long[] arr = (Long[])data.getObject();
+	    int index = (int)((VectorCall)lValue).getExpression().accept(this);
+	    long value = 0;
+	    if(result instanceof Vector){
+		value = OpUtil.toLong((Vector<CircuitElem>)result);
+	    } else if(result instanceof CircuitElem){
+		value = OpUtil.toLong((CircuitElem)result);
+	    } else {
+		value = (long)result;
+	    }
+	    arr[index] = value;
+	} else if(data.getObject() instanceof Vector){
+	    Vector<CircuitElem> vec = (Vector<CircuitElem>)data.getObject(); //returns the vector stored in the symbol table
+	    if(lValue instanceof Identifier){
+		if(result instanceof Vector){
+		    OpUtil.shallowAssign(vec, (Vector<CircuitElem>)result);
+		} else if(result instanceof CircuitElem){
+		    OpUtil.shallowAssign(vec, (CircuitElem)result);
+		} else if(result instanceof Long){
+		    OpUtil.shallowAssign(vec, (long)result);
+		} else if(result instanceof Boolean){
+		    OpUtil.shallowAssign(vec, (boolean)result);
+		} else {
+		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
+		    System.exit(1);
+		}
+	    } else if(lValue instanceof VectorCall){
+		int index = (int)((VectorCall)lValue).getExpression().accept(this);
+
+		if(result instanceof Vector){
+		    OpUtil.shallowAssign(vec, index, (Vector<CircuitElem>)result);
+		} else if(result instanceof CircuitElem){
+		    OpUtil.shallowAssign(vec, index, (CircuitElem)result);
+		} else if(result instanceof Long){
+		    OpUtil.shallowAssign(vec, index, (long)result);
+		} else if(result instanceof Boolean){
+		    OpUtil.shallowAssign(vec, index, (boolean)result);
+		} else {
+		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
+		    System.exit(1);
+		}
+		
+	    } else if (lValue instanceof VectorSlice){
+		int index1 = (int)((VectorSlice)lValue).getExpression1().accept(this);
+		int index2 = (int)((VectorSlice)lValue).getExpression2().accept(this);
+
+		if(result instanceof Vector){
+		    OpUtil.shallowAssign(vec, index1, index2, (Vector<CircuitElem>)result);
+		} else if(result instanceof CircuitElem){
+		    OpUtil.shallowAssign(vec, index1, index2, (CircuitElem)result);
+		} else if(result instanceof Long){
+		    OpUtil.shallowAssign(vec, index1, index2, (long)result);
+		} else if(result instanceof Boolean){
+		    OpUtil.shallowAssign(vec, index1, index2, (boolean)result);
+		} else {
+		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
+		    System.exit(1);
+		}
+	    }
+	} else if (data.getObject() instanceof Vector[]){
+	    Vector<CircuitElem>[] arr = (Vector<CircuitElem>[])data.getObject();
+	    //it must be an lvalue becuase you can only assign one element of an array at a time
+	    int index = (int)((VectorCall)lValue).getExpression().accept(this);
+	    if(result instanceof Vector){
+		OpUtil.shallowAssign(arr[index], (Vector<CircuitElem>)result);
+	    } else if(result instanceof CircuitElem){
+		OpUtil.shallowAssign(arr[index], (CircuitElem)result);
+	    } else if(result instanceof Long){
+		OpUtil.shallowAssign(arr[index], (long)result);
+	    } else if(result instanceof Boolean){
+		OpUtil.shallowAssign(arr[index], (boolean)result);
+	    } else {
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
+		System.exit(1);
+	    }
+	} else if (data.getObject() instanceof CircuitElem[]){
+	    CircuitElem[] arr = (CircuitElem[])data.getObject();
+	    //it must be an lvalue becuase you can only assign one element of an array at a time
+	    int index = (int)((VectorCall)lValue).getExpression().accept(this);
+	    if(result instanceof Vector){
+		Vector<CircuitElem> vec = (Vector<CircuitElem>)result;
+		int lowestIndex = (vec.getIndex1() <= vec.getIndex2()) ?  vec.getIndex1() : vec.getIndex2(); 
+		((Register)arr[index]).setSignal(((Vector<CircuitElem>)result).getValue(lowestIndex).getSignal());
+	    } else if(result instanceof CircuitElem){
+		((Register)arr[index]).setSignal(((CircuitElem)result).getSignal());
+	    } else if(result instanceof Long){
+		((Register)arr[index]).setSignal(((long)result) != 0 ? true : false);
+	    } else if(result instanceof Boolean){
+		((Register)arr[index]).setSignal((boolean)result);
+	    } else {
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
+		System.exit(1);
+		return null;
+	    }
+	} else if (data.getObject() instanceof CircuitElem){
+	    if(result instanceof Vector){
+		Vector<CircuitElem> vec = (Vector<CircuitElem>)result;
+		int lowestIndex = (vec.getIndex1() <= vec.getIndex2()) ? vec.getIndex1() : vec.getIndex2();
+		((Register)data.getObject()).setSignal(vec.getValue(lowestIndex).getSignal());
+	    } else if(result instanceof CircuitElem){
+		((Register)data.getObject()).setSignal(((CircuitElem)result).getSignal());
+	    } else if(result instanceof Long){
+		((Register)data.getObject()).setSignal(((long)result) != 0 ? true : false);
+	    } else if(result instanceof Boolean){
+		((Register)data.getObject()).setSignal((boolean)result);
+	    } else {
+		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
+		System.exit(1);
+		return null;
+	    }
+	} else {
+	    errorLog.addItem(new ErrorItem("Unexpected Type for Object " + data.getObject().getClass(), assign.getPosition()));
+	    System.exit(1);
+	    return null;
 	}
 	return null;
     }
@@ -1190,14 +1373,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(RepeatStatement stat, Object... argv){
         Object expr = stat.getExpression().accept(this);
-	if(expr instanceof Integer){
-	    int amount = (int)expr;
-	    for(int i = 0; i < amount; i++){
+	if(expr instanceof Long){
+	    long amount = (long)expr;
+	    for(long i = 0; i < amount; i++){
 		stat.getStatement().accept(this);
 	    }
 	} else if (expr instanceof Vector){
-	    int amount = ((Vector<CircuitElem>)expr).toInt();
-	    for(int i = 0; i < amount; i++){
+	    long amount = OpUtil.toLong((Vector<CircuitElem>)expr);
+	    for(long i = 0; i < amount; i++){
 		stat.getStatement().accept(this);
 	    }
 	} else if(expr instanceof CircuitElem || expr instanceof Boolean){
@@ -1209,6 +1392,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    System.exit(1);
 	    return null;
 	}
+	return null;
     }
 
     /**
@@ -1219,6 +1403,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(SeqBlockStatement stat, Object... argv){
 	for(int i = 0; i < stat.numStatements(); i++){
 	    stat.getStatement(i).accept(this);
+	    if(needExit == true){
+		break;
+	    }
 	}
 	return null;
     }
@@ -1233,32 +1420,35 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	if(funcEnv.entryExists(tname.getLexeme())){
 	    //Collect symbol table data from the function
 	    InterpreterFunctionData funcData = funcEnv.getEntry(tname.getLexeme());
-	    DeclarationList declList = funcData.getDeclList();
-	    IdentifierList identList = funcData.getIdentifierList();
-	    StatementList statList = funcData.getStatList();
+
+	    funcData.storeParameterList();
+
+	    TaskDeclaration decl = (TaskDeclaration)funcData.getFuncDeclaration();
 
 	    varEnv.addScope();
 
-	    for(int i = 0; i < declList.numDeclarations(); i++){
-		declList.get(i).accept(this);
+	    inFunctionParam = true;
+	    for(int i = 0; i < decl.numDeclarations(); i++){
+		decl.getDeclaration(i).accept(this);
 	    }
+	    inFunctionParam = false;
 	    
-	    if(call.numExpressions() == identList.numIdentifiers()){
+	    if(task.numExpressions() == funcData.numParameters()){
 		//Assign parameter values
-		for(int i = 0; i < call.numExpressions(); i++){
-		    InterpreterVariableData varData = varEnv.getEntry(identList.getIdentifier(i).getLexeme());
-		    varData.setObject(call.getExpression(i).accept(this));
+		for(int i = 0; i < task.numExpressions(); i++){
+		    InterpreterVariableData varData = funcData.getParameter(i);
+		    varData.setObject(task.getExpression(i).accept(this));
 		}
 		
 	    } else {
-		errorLog.addItem(new ErrorItem("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + identList.numIdentifiers() + " | Got -> " + call.numExpressions() + " ]", tname.getPosition()));
+		errorLog.addItem(new ErrorItem("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + funcData.numParameters() + " | Got -> " + task.numExpressions() + " ]", tname.getPosition()));
 		System.exit(1);
 		return null;
 	    }
 
-	    for(int i = 0; i < statList.numStatements(); i++){
-		statList.getStatement(i).accept(this);
-	    }
+	    decl.getStatement().accept(this);
+
+	    funcData.restoreParameterList();
 	    
 	    varEnv.removeScope();
 	    
@@ -1267,6 +1457,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    System.exit(1);
 	    return null;
 	}
+	return null;
     }
 
     /**
@@ -1276,28 +1467,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      
     public Void visit(SystemTaskStatement task, Object... argv){
 	// These are not important for now I will handle those later
+	System.out.println("Entered System Task");
       	return null;
-    }
-
-    /**
-     * This is used to visit a wait statement in verilog
-     * @param stat
-     */
-
-    private static boolean boolValue(Object obj){
-	if(obj instanceof Integer){
-	    return (int)obj != 0;
-	} else if(obj instanceof Vector){
-	    return ((Vector<CircuitElem>)obj).boolValue();
-	} else if (obj instanceof Boolean){
-	    return (boolean)obj;
-	} else {
-	    return (double)obj != 0;
-	}
     }
      
     public Void visit(WaitStatement wait, Object... argv){
-	while(boolValue(wait.getExpression.accept(this)));
+	while(boolValue(wait.getExpression().accept(this)));
         wait.getStatement().accept(this);
 	return null;
     }
@@ -1308,11 +1483,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
      
     public Void visit(WhileStatement whileLoop, Object... argv){
-	TypeCheckerVariableData.Type type = whileLoop.getExpression().accept(this);
-	if(type != TypeCheckerVariableData.Type.BOOLEAN && type != TypeCheckerVariableData.Type.CONSTANT_INTEGER && type != TypeCheckerVariableData.Type.INTEGER){
-	    errorLog.addItem(new ErrorItem("Unknown type " + type +" for while loop expression ", whileLoop.getExpression().getPosition()));
+	while(boolValue(whileLoop.getExpression().accept(this))){
+	    whileLoop.getStatement().accept(this);
 	}
-	whileLoop.getStatement().accept(this);
 	return null;
     }
 
@@ -1341,282 +1514,282 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	switch(op.getOp().getOpType()){
 	case PLUS:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) + ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) + ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return add((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) + OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left + (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left + (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left + (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return add((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return ((long)left) + ((double)right);
+	    } else if (left instanceof Double && right instanceof Long){
+		return ((double)left) + ((long)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) + (long)right;
 	    } else {
-		return add((int)left, (Vector<CircuitElem>)right);
+		return (long)left + OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case MINUS:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) - ((int)right);
-	    } else if (right instanceof Vector<CircuitElem> && left instanceof Vector<CircuitElem>){
-		return sub((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) - ((long)right);
+	    } else if (right instanceof Vector && left instanceof Vector){
+		return OpUtil.toLong((Vector<CircuitElem>)left) - OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left - (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left - (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left - (int)right;
-	    } else if(left instanceof Vector<CircuitElem> && right instanceof Integer){
-		return sub((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left - (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left - (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) - (long)right;
 	    } else {
-		return sub((int)left, (Vector<CircuitElem>)right);
+		return (long)left - OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case TIMES:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) * ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) * ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return mult((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) * OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left * (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left * (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left * (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return mult((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left * (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left * (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) * (long)right;
 	    } else {
-		return mult((int)left, (Vector<CircuitElem>)right);
+		return (long)left * OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case DIV:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) / ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) / ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return div((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) / OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left / (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left / (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left / (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return div((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left / (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left / (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) * (long)right;
 	    } else {
-		return div((int)left, (Vector<CircuitElem>)right);
+		return (long)left / OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case MOD:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) % ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) % ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return mod((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return mod((Vector<CircuitElem>)left, (int)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) % OpUtil.toLong((Vector<CircuitElem>)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) % ((long)right);
 	    } else {
-		return mod((int)left, (Vector<CircuitElem>)right);
+		return (long)left % OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case EQ2:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) == ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) == ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return eq((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) == OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left == (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left == (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left == (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return eq((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left == (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left == (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) == ((long)right);
 	    } else {
-		return eq((int)left, (Vector<CircuitElem>)right);
+		return ((long)left) == OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case EQ3:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) == ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) == ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return eq((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) == OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else {
 		return (double)left == (double)right;
 	    }
 	case NE1:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) != ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) != ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return ne((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) != OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left != (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left != (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left != (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return ne((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left != (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left != (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) != ((long)right);
 	    } else {
-		return ne((int)left, (Vector<CircuitElem>)right);
+		return ((long)left) != OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case NE2:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left) != ((int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left) != ((long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return ne((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) != OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else {
 		return (double)left != (double)right;
 	    }
 	case LAND:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left != 0) && ((int)right != 0);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left != 0) && ((long)right != 0);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return land((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) != 0 && OpUtil.toLong((Vector<CircuitElem>)right) != 0;
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left != 0 && (double)right != 0;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left != 0 && (double)right != 0;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left != 0 && (int)right != 0;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return land((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left != 0 && (double)right != 0;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left != 0 && (long)right != 0;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) != 0 && (long)right != 0;
 	    } else {
-		return land((int)left, (Vector<CircuitElem>)right);
+		return (long)left != 0 && OpUtil.toLong((Vector<CircuitElem>)right) != 0;
 	    }
 	case LOR:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left != 0) || ((int)right != 0);
+	   if(right instanceof Long && left instanceof Long){
+		return ((long)left != 0) || ((long)right != 0);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return lor((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) != 0 || OpUtil.toLong((Vector<CircuitElem>)right) != 0;
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left != 0 || (double)right != 0;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left != 0 || (double)right != 0;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left != 0 || (int)right != 0;
-	    } else if(left instanceof Vector<CircuitElem> && right instanceof Integer){
-		return lor((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left != 0 || (double)right != 0;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left != 0 || (long)right != 0;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) != 0 || (long)right != 0;
 	    } else {
-		return lor((int)left, (Vector<CircuitElem>)right);
+		return (long)left != 0 || OpUtil.toLong((Vector<CircuitElem>)right) != 0;
 	    }
 	case LE:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left <= (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left <= (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return le((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) <= OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left <= (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left <= (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left <= (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return le((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left <= (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left <= (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) <= (long)right;
 	    } else {
-		return le((int)left, (Vector<CircuitElem>)right);
+		return (long)left <= OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case LT:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left < (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left < (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return lt((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) < OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left < (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left < (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left < (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return lt((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left < (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left < (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) < (long)right;
 	    } else {
-		return lt((int)left, (Vector<CircuitElem>)right);
+		return (long)left < OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case GE:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left >= (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left >= (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return ge((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) >= OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left >= (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left >= (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left >= (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return ge((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left >= (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left >= (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) >= (long)right;
 	    } else {
-		return ge((int)left, (Vector<CircuitElem>)right);
+		return (long)left >= OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case GT:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left > (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left > (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return gt((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) > OpUtil.toLong((Vector<CircuitElem>)right);
 	    } else if (left instanceof Double && right instanceof Double){
 		return (double)left > (double)right;
-	    } else if (left instanceof Integer && right instanceof Double) {
-		return (int)left > (double)right;
-	    } else if (left instanceof Double && right instanceof Integer){
-		return (double)left > (int)right;
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return gt((Vector<CircuitElem>)left, (int)right);
+	    } else if (left instanceof Long && right instanceof Double) {
+		return (long)left > (double)right;
+	    } else if (left instanceof Double && right instanceof Long){
+		return (double)left > (long)right;
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) > (long)right;
 	    } else {
-		return gt((int)left, (Vector<CircuitElem>)right);
+		return (long)left > OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case BAND:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left & (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left & (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return band((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return band((Vector<CircuitElem>)left, (int)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) & OpUtil.toLong((Vector<CircuitElem>)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) & (long)right;
 	    } else {
-		return band((int)left, (Vector<CircuitElem>)right);
+		return (long)left & OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case BOR:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left | (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left | (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return bor((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return bor((Vector<CircuitElem>)left, (int)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) | OpUtil.toLong((Vector<CircuitElem>)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) | (long)right;
 	    } else {
-		return bor((int)left, (Vector<CircuitElem>)right);
+		return (long)left & OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case BXOR:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left ^ (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left ^ (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return bxor((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return bxor((Vector<CircuitElem>)left, (int)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) ^ OpUtil.toLong((Vector<CircuitElem>)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) ^ (long)right;
 	    } else {
-		return bxor((int)left, (Vector<CircuitElem>)right);
+		return (long)left ^ OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case BXNOR:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ~((int)left ^ (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ~((long)left ^ (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return bxnor((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return bxnor((Vector<CircuitElem>)left, (int)right);
+		return ~(OpUtil.toLong((Vector<CircuitElem>)left) ^ OpUtil.toLong((Vector<CircuitElem>)right));
+	    } else if(left instanceof Vector && right instanceof Long){
+		return ~(OpUtil.toLong((Vector<CircuitElem>)left) ^ (long)right);
 	    } else {
-		return bxnor((int)left, (Vector<CircuitElem>)right);
+		return ~((long)left ^ OpUtil.toLong((Vector<CircuitElem>)right));
 	    }
 	case LSHIFT:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left << (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left << (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return lshift((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return lshift((Vector<CircuitElem>)left, (int)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) << OpUtil.toLong((Vector<CircuitElem>)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) << (long)right;
 	    } else {
-		return lshift((int)left, (Vector<CircuitElem>)right);
+		return (long)left << OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case RSHIFT:
-	    if(right instanceof Integer && left instanceof Integer){
-		return ((int)left >> (int)right);
+	    if(right instanceof Long && left instanceof Long){
+		return ((long)left >> (long)right);
 	    } else if (right instanceof Vector && left instanceof Vector){
-		return rshift((Vector<CircuitElem>)left, (Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Integer){
-		return rshift((Vector<CircuitElem>)left, (int)right);
+		return OpUtil.toLong((Vector<CircuitElem>)left) >> OpUtil.toLong((Vector<CircuitElem>)right);
+	    } else if(left instanceof Vector && right instanceof Long){
+		return OpUtil.toLong((Vector<CircuitElem>)left) >> (long)right;
 	    } else {
-		return rshift((int)left, (Vector<CircuitElem>)right);
+		return (long)left >> OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	default:
 	    errorLog.addItem(new ErrorItem("Invalid operation in verilog of type " + left.getClass() + " " + op.getOp().getOpType()+ " " + right.getClass(), op.getPosition()));
@@ -1635,36 +1808,35 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	case PLUS:
 	    return right;
 	case MINUS:
-	    if(right instanceof Integer){
-		return -(int)right;
+	    if(right instanceof Long){
+		return -(long)right;
 	    } else if (right instanceof Double) {
 		return -(double)right;
 	    } else {
-		return neg((Vector<CircuitElem>)right);
+		return -OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	case LNEG:
-	    if(right instanceof Integer){
-		return !((int)right != 0);
+	    if(right instanceof Long){
+		return !((long)right != 0);
 	    } else if (right instanceof Boolean){
-		return !(booelan)right;
+		return !(boolean)right;
 	    } else if (right instanceof Double){
 		return !((double)right != 0);
 	    } else {
-		return lneg((Vector<CircuitElem>)right);
+		return !(OpUtil.toLong((Vector<CircuitElem>)right) != 0);
 	    }
 	case BNEG:
-	    if(right instanceof Integer){
-		return !((int)right != 0);
+	    if(right instanceof Long){
+		return ~(long)right;
 	    } else if (right instanceof Boolean){
-		return ~(booelan)right;
+		return !(boolean)right;
 	    } else {
-		return lneg((Vector<CircuitElem>)right);
+		return ~OpUtil.toLong((Vector<CircuitElem>)right);
 	    }
 	default:
-	    errorLog.addItem(new ErrorItem("Unknown unary operation in verilog of type " + left.getClass() + " " + op.getOp().getOpType()+ " " + right.getClass(), op.getPosition()));
+	    errorLog.addItem(new ErrorItem("Unknown unary operation in verilog of type " + op.getOp().getOpType() + " " + right.getClass(), op.getPosition()));
             return null;
 	}
-	return op.getRight().accept(this);
     }
 
 
@@ -1676,8 +1848,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Object visit(Concatenation concat, Object... argv){
 
 	int size = 0;
-	for(int expr = 0; exp < concat.NumExpressions(); i++){
-	    Object obj = cocat.getExpression.accept(this);
+	for(int expr = 0; expr < concat.numExpressions(); expr++){
+	    Object obj = concat.getExpression(expr).accept(this);
 	    if(obj instanceof Vector){
 		size += ((Vector<CircuitElem>)obj).getSize();
 	    } else {
@@ -1688,8 +1860,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	Vector newVec = new Vector(size, 0);
 
 	int total = 0;
-	for(itn expr = 0; i < concat.NumExpressions(); i++){
-	    Object obj = cocat.getExpression(i).accept(this);
+	for(int expr = 0; expr < concat.numExpressions(); expr++){
+	    Object obj = concat.getExpression(expr).accept(this);
 	    if(obj instanceof Vector){
 		Vector<CircuitElem> vec = (Vector<CircuitElem>)obj;
 		for(int v = 0; v < vec.getSize(); v++, total++){
@@ -1712,7 +1884,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Object visit(ConstantExpression expr, Object... argv){
-	return expr.getExpression.accept(this);
+	return expr.getExpression().accept(this);
     }
 
     /**
@@ -1729,44 +1901,47 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      * @param call
      */
     
+    boolean inFunctionReturn = false;
+    boolean needExit = false;
     public Object visit(FunctionCall call, Object... argv){
 	Identifier tname = call.getFunctionName();
 	if(funcEnv.entryExists(tname.getLexeme())){
 	    //Collect symbol table data from the function
 	    InterpreterFunctionData funcData = funcEnv.getEntry(tname.getLexeme());
-	    Declaration returnDecl = funcData.getReturnDecl();
-	    DeclarationList declList = funcData.getDeclList();
-	    IdentifierList identList = funcData.getIdentifierList();
-	    StatementList statList = funcData.getStatList();
+	    FunctionDeclaration decl = (FunctionDeclaration)funcData.getFuncDeclaration();
 
+	    funcData.storeParameterList();
 	    varEnv.addScope();
 
-	    returnDecl.accept(this); //declare the return variable for the function
+	    decl.getFunctionName().accept(this); //declare the return variable for the function
 	    
-	    InterpreterVariableData returnData = varEnv.getEntry(tname.getLexeme());
+	    InterpreterVariableData returnData = varEnv.getEntry(tname.getLexeme()); //get return object
 
-	    for(int i = 0; i < declList.numDeclarations(); i++){
-		declList.get(i).accept(this);
+	    inFunctionParam = true; //Set input declarations as function params
+	    for(int i = 0; i < decl.numDeclarations(); i++){
+		decl.getDeclaration(i).accept(this);
 	    }
+	    inFunctionParam = false; //Params are declared if any
 	    
-	    if(call.numExpressions() == identList.numIdentifiers()){
+	    if(call.numExpressions() == funcData.numParameters()){
 		//Assign parameter values
 		for(int i = 0; i < call.numExpressions(); i++){
-		    InterpreterVariableData varData = varEnv.getEntry(identList.getIdentifier(i).getLexeme());
+		    InterpreterVariableData varData = funcData.getParameter(i);
 		    varData.setObject(call.getExpression(i).accept(this));
 		}
 		
 	    } else {
-		errorLog.addItem(new ErrorItem("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + identList.numIdentifiers() + " | Got -> " + call.numExpressions() + " ]", tname.getPosition()));
+		errorLog.addItem(new ErrorItem("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + funcData.numParameters() + " | Got -> " + call.numExpressions() + " ]", tname.getPosition()));
 		System.exit(1);
 		return null;
 	    }
 
-	    for(int i = 0; i < statList.numStatements(); i++){
-		statList.getStatement(i).accept(this);
-	    }
-	    
+	    inFunctionReturn = true;
+	    decl.getStatement().accept(this);
+	    needExit = false;
+	    inFunctionReturn = false;
 	    varEnv.removeScope();
+	    funcData.restoreParameterList();
 	    return returnData.getObject();
 	    
 	} else {
@@ -1783,6 +1958,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Object visit(SystemFunctionCall call, Object... argv){
 	//Ill take care of this later
+	return null;
     }
 
     /**
@@ -1792,7 +1968,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Object visit(Identifier ident, Object... argv){
 	if(varEnv.entryExists(ident.getLexeme())){
-	    IndexerVariableData data = varEnv.getEntry(ident.getLexeme());
+	    InterpreterVariableData data = varEnv.getEntry(ident.getLexeme());
 	    return data.getObject();
 	} else {
 	    errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition()));
@@ -1810,11 +1986,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    return Double.parseDouble(number.getLexeme());
 	} else {
 	    if(number.getLexeme().contains("\'")){
-		if(getBase(number.getLexeme()) == 10){
+		if(NumberUtil.getBase(number.getLexeme()) == 10){
 		    return NumberUtil.getDecimal(number.getLexeme());
-		} else if(getBase(number.getLexeme()) == 8){
+		} else if(NumberUtil.getBase(number.getLexeme()) == 8){
 		    return NumberUtil.getOctal(number.getLexeme());
-		} else if(getBase(number.getLexeme()) == 16){
+		} else if(NumberUtil.getBase(number.getLexeme()) == 16){
 		    return NumberUtil.getHexidecimal(number.getLexeme());
 		} else {
 		    if(number.getLexeme().contains("x")){
@@ -1856,23 +2032,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Object visit(TernaryExpression expr, Object... argv){
 	
-	Object cond = expr.getCondition().accept(this);
-	
-	Object left = expr.getLeft().accept(this);
-	Object right = expr.getRight().accept(this);
-	
-	if(cond instanceof Integer){
-	    return ((int)cond != 0) ? left : right;
-	} else if(cond instanceof Double){
-	    return ((Double)cond != 0) ? left : right;
-	} else if(cond instanceof Boolean){
-	    return (boolean)cond ? left : right;
-	} else if(cond instanceof Vector){
-	    return toBool((Vector<CircuitElem>)cond) ? left : right;
+	if(boolValue(expr.getCondition().accept(this))){
+	    return expr.getLeft().accept(this);
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected type for ternary operation " + cond.getClass(), expr.getPosition()));
-	    System.exit(1);
-	    return null;
+	    return expr.getRight().accept(this);
 	}
     }
 
@@ -1890,9 +2053,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    if(dataObject instanceof Vector[]){
 		return ((Vector<CircuitElem>[])dataObject)[index];
 	    } else if (dataObject instanceof Vector){
-		return ((Vector<CircuitELem>)dataObject).getValue(index);
-	    } else if (dataObject instanceof Integer[]){
-		return ((Integer[])dataObject)[index];
+		return ((Vector<CircuitElem>)dataObject).getValue(index);
+	    } else if (dataObject instanceof Long[]){
+		return ((Long[])dataObject)[index];
 	    } else {
 		errorLog.addItem(new ErrorItem("Unkown array type for " + ident.getLexeme() + " [ Type -> " + dataObject.getClass() + " ]", ident.getPosition()));
 		System.exit(1);
@@ -1932,18 +2095,20 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	Identifier ident = regVector.getIdentifier();
 	int start = (int)argv[0];
 	int end = (int)argv[1];
-	varEnv.addEntry(ident.getLexeme(), new IndexerVariableData(new Vector<CircuitElem>(start, end), ident.getPosition()));
 	if(inFunctionName){
 	    topFunctionName = ident;
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Vector<CircuitElem>(start, end), ident.getPosition()));
 	}
 	return null;
     }
 
     public Void visit(RegScalarIdent regScalar, Object... argv){
 	Identifier ident = regScalar.getIdentifier();
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Register(false), ident.getPosition()));
 	if(inFunctionName){
 	    topFunctionName = ident;
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Register(false), ident.getPosition()));
 	}
 	return null;
     }
@@ -1952,27 +2117,30 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	Identifier ident = regVector.getIdentifier();
 	int start = (int)argv[0];
 	int end = (int)argv[1];
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Vector<CircuitElem>(start, end), ident.getPosition()));
 	if(inFunctionName){
 	    topFunctionName = ident;
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Vector<CircuitElem>(start, end), ident.getPosition()));
 	}
 	return null;
     }
 
     public Void visit(OutputRegScalarIdent regScalar, Object... argv){
-	Identifier ident = regScalar.getIdentifier();
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Register(false), ident.getPosition()));
+	Identifier ident = regScalar.getIdentifier();	
 	if(inFunctionName){
 	    topFunctionName = ident;
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Register(false), ident.getPosition()));
 	}
 	return null;
     }
 
     public Void visit(IntegerIdent intIdent, Object... argv){
 	Identifier ident = intIdent.getIdentifier();
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Integer(0), ident.getPosition()));
 	if(inFunctionName){
 	    topFunctionName = ident;
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Long(0), ident.getPosition()));
 	}
 	return null;
     }
@@ -1988,17 +2156,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
 
-	Vector<CircuitElem>[] arr = new Vector<CircuitElem>[aSize];
+	Vector<CircuitElem>[] arr = new Vector[aSize];
 
 	for(int i = 0; i < aSize; i++){
 	    arr[i] = new Vector<CircuitElem>(index1, index2);	    
 	    if(index1 <= index2){
 		for(int x = index1; x <= index2; x++){
-		    arr[i].setElement(x, new Register(Register.SignalValue.LOW));
+		    arr[i].setValue(x, new Register(false));
 		}
 	    } else {
 		for(int x = index2; x <= index1; x--){
-		    arr[i].setElement(x, new Register(Register.SignalValue.LOW));
+		    arr[i].setValue(x, new Register(false));
 		}
 	    }
 	}
@@ -2018,7 +2186,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	CircuitElem[] arr = new CircuitElem[aSize];
 
 	for(int i = 0; i < aSize; i++){
-	    arr[i] = new Register(SigValue.LOW);
+	    arr[i] = new Register(false);
 	}
 	
 	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
@@ -2036,17 +2204,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
 
-	Vector<CircuitElem>[] arr = new Vector<CircuitElem>[aSize];
+	Vector<CircuitElem>[] arr = new Vector[aSize];
 
 	for(int i = 0; i < aSize; i++){
 	    arr[i] = new Vector<CircuitElem>(index1, index2);
 	    if(index1 <= index2){
 		for(int x = index1; x <= index2; x++){
-		    arr[i].setElement(x, new Register(Register.SignalValue.LOW));
+		    arr[i].setValue(x, new Register(false));
 		}
 	    } else {
 		for(int x = index2; x <= index1; x--){
-		    arr[i].setElement(x, new Register(Register.SignalValue.LOW));
+		    arr[i].setValue(x, new Register(false));
 		}
 	    }
 	}
@@ -2066,7 +2234,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	CircuitElem[] arr = new CircuitElem[aSize];
 
 	for(int i = 0; i < aSize; i++){
-	    arr[i] = new Register(SignalValue.LOW);
+	    arr[i] = new Register(false);
 	}
 	
 	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));

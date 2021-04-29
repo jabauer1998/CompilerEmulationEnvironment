@@ -1,6 +1,6 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast;
 
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
     
 public class AstNode{
     private final Position position; //field to store the starting position of an ast node

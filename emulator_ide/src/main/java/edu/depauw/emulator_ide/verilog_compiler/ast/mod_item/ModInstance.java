@@ -4,7 +4,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.ExpressionList;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ModuleVisitor;
 
 public class ModInstance extends ModItem{

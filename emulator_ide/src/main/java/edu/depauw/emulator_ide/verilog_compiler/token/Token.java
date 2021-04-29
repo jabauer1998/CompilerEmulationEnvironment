@@ -1,6 +1,8 @@
 package edu.depauw.emulator_ide.verilog_compiler.token;
 import java.util.HashMap;
 
+import edu.depauw.emulator_ide.common.Position;
+
 public class Token{
 	public enum Type {
 	    IDENT, //identifiers

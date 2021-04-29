@@ -22,9 +22,8 @@ public class Vector<DataValue>{
      */
     
     public Vector(int index1, int index2){
-	this.data = data;
-	this.index1 = index2;
-	this.index1 = index2;
+	this.index1 = index1;
+	this.index2 = index2;
 	int size = (index1 > index2) ? index1 - index2 + 1 : index2 - index1 + 1;
 	//data = new DataValue[size];
     }
@@ -55,7 +54,7 @@ public class Vector<DataValue>{
 	return (index1 > index2) ? index1 - index2 + 1 : index2 - index1 + 1;
     }
 
-    public int setValue(int index, DataValue val){
+    public void setValue(int index, DataValue val){
 	data[(index1 <= index2) ? index - index1 : index1 - index] = val;
     }
 

@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.main;
 
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.common.debug.InfoLog;

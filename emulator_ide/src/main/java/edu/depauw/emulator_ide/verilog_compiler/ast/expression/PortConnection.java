@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 /** The port connection class is used for module instantiations
  * @author Jacob Bauer

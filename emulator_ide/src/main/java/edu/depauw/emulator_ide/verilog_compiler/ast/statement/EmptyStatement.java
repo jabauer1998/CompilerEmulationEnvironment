@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.statement;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.StatementVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 public class EmptyStatement extends Statement{
     

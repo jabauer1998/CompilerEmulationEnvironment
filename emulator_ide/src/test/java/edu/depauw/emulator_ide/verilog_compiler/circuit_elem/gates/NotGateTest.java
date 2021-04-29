@@ -21,7 +21,7 @@ public class NotGateTest {
 	Wire in = new Wire();
 	Wire out = new Wire();
 
-	input.setOutput(in);
+	input.addOutput(in);
 	
 	CircuitElem norGate = new NotGate(out, in); //put wires through a basic nor gate
 	

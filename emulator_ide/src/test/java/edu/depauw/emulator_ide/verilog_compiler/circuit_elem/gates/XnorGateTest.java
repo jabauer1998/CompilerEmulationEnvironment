@@ -24,8 +24,8 @@ public class XnorGateTest {
 	Wire in2 = new Wire();
 	Wire out1 = new Wire();
 
-	input1.setOutput(in1);
-	input2.setOutput(in2);
+	input1.addOutput(in1);
+	input2.addOutput(in2);
 	
 	CircuitElem xnorGate = new XnorGate(out1, in1, in2); //put wires through a basic and gate
 	

@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 /** The empty.expression class is designed as a place holder to par.E an empty expression
  * @author Jacob Bauer

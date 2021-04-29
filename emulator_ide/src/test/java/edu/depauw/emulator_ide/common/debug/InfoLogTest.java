@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import  edu.depauw.emulator_ide.common.io.Destination;
 import  edu.depauw.emulator_ide.common.debug.item.ErrorItem;
-import  edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import  edu.depauw.emulator_ide.common.Position;
 
 import java.io.StringWriter;
 import java.io.Writer;

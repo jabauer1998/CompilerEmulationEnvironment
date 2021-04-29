@@ -33,14 +33,14 @@ public class XorGate extends Gate{
 	}
 	for(CircuitElem input : inputs){
 	    if(input instanceof Wire){
-		Wire wInput = (Wire)input;
-		if(!wInput.hasOutput(this)){
-		    wInput.addOutput(this);
+		Wire inp = (Wire)input;
+		if(!inp.hasOutput(this)){
+		    inp.addOutput(this);
 		}
 	    } else {
-		Register rInput = (Register)input;
-		if(!rInput.hasOutput(this)){
-		    rInput.addOutput(this);
+		Register inp = (Register)input;
+		if(!inp.hasOutput(this)){
+		    inp.addOutput(this);
 		}
 	    }
 	}

@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 public class DefCaseItem extends CaseItem{
     

@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.expression;
 
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.token.Position;
+import edu.depauw.emulator_ide.common.Position;
 
 /** The.expression class is an extention of the AstNode class
  * This class is used as a supertype for all.expression objects
