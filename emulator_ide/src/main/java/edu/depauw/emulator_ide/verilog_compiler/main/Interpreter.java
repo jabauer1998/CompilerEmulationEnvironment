@@ -28,7 +28,12 @@ import edu.depauw.emulator_ide.common.debug.item.*;
 import java.util.concurrent.Semaphore;
 import java.lang.InterruptedException;
 import java.util.ArrayList;
-
+import java.util.Scanner;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.File;
     
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void>{
     
@@ -36,6 +41,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private final Environment<String, InterpreterFunctionData> funcEnv;
     private final Environment<String, InterpreterVariableData> varEnv;
     private final InfoLog errorLog;
+    private boolean keyPressed;
 
     private volatile Semaphore sema;
 
@@ -65,11 +71,37 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    mod.getModItem(i).accept(this);
 	}
 	sema = new Semaphore(-processes.size() + 1);
-        for(int i = 0; i < processes.size(); i++){
-	    
+        for(int i = 0; i < processes.size(); i++){ //Iterate through queue and execute threads
+	    if(processes.get(i) instanceof AllwaysStatement){ //Creates a new thread that should loop until cntrl-C
+		/*new Thread(() -> { //On exit this thread will aquire the semaphore
+			final AllwaysStatement stat = (AllwaysStatement)processes.get(i);
+			boolean tf = true;
+			while(tf){
+			    stat.getStatement().accept(this);
+			}
+			try{ 
+			    sema.acquire();
+			} catch (InterruptedException e){
+			    e.printStackTrace();
+			    System.exit(1);
+			}
+			}).start();*/
+	    } else if(processes.get(i) instanceof InitialStatement){
+		/*new Thread(() -> { //Run the statement once and aquire the semaphore once it is done
+			final InitialStatement stat = (InitialStatement)processes.get(i);
+			stat.getStatement().accept(this);
+			try{
+			    sema.acquire();
+			} catch (InterruptedException e){
+			    e.printStackTrace();
+			}
+			}).start();*/
+	    } else {
+		errorLog.addItem(new ErrorItem(" Unknown process type " + processes.get(i).getClass(), processes.get(i).getPosition()));
+	    }
 	}
 	try{
-	    sema.acquire();
+	    sema.acquire(); //aquire semaphore and wait until all other processes are done
 	} catch (InterruptedException e){
 	    e.printStackTrace();
 	}
@@ -90,10 +122,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(AllwaysStatement stat, Object... argv){
 	processes.add(stat);
-	boolean tf = true;
-	while(tf){
-	    stat.getStatement().accept(this);
-	}
 	return null;
     }
 
@@ -140,7 +168,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(InitialStatement stat, Object... argv){
 	processes.add(stat);
-	stat.getStatement().accept(this);
 	return null;
     }
 
@@ -853,7 +880,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	Object result = assign.getExpression().accept(this);
 
-	if(data.getObject() instanceof Double){
+	if(result instanceof Scanner) {
+	    data.setObject(result); //if it is a scanner ignore all assign rules and assign the scanner object to the variable
+	} else if(data.getObject() instanceof Double){
 	    double value = 0;
 	    if(result instanceof Vector){
 		value = (double)OpUtil.toLong((Vector<CircuitElem>)result);
@@ -1466,8 +1495,18 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
      
     public Void visit(SystemTaskStatement task, Object... argv){
-	// These are not important for now I will handle those later
-	System.out.println("Entered System Task");
+	Identifier taskName = task.getSystemTaskName();
+	if(taskName.getLexeme().equals("fscanf")){
+	    Scanner fReader = (Scanner)task.getExpression(0).accept(this);
+	    String fString = (String)task.getExpression(1).accept(this);
+	    Vector<CircuitElem> location = (Vector<CircuitElem>)task.getExpression(2).accept(this);
+
+	    if(fString.contains("\n")){
+		if(fString.contains("%b")){
+		    OpUtil.shallowAssign(location, fReader.nextLine());
+		}
+	    }
+	}
       	return null;
     }
      
@@ -1957,7 +1996,40 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Object visit(SystemFunctionCall call, Object... argv){
-	//Ill take care of this later
+	Identifier functionName = call.getSystemFunctionName();
+	if(functionName.getLexeme().equals("fopen")){
+	    
+	    File filename = new File((String)call.getExpression(0).accept(this));
+	    String access = (String)call.getExpression(1).accept(this);
+
+	    if(access.equals("r")){
+		filename.setReadOnly();
+
+		Scanner ref = null;
+		try{
+		    ref = new Scanner(filename);
+		} catch (FileNotFoundException exp) {
+		    exp.printStackTrace();
+		    System.exit(1);
+		}
+		return ref;
+	    } else if(access.equals("w")){
+		filename.setWritable(true, false);
+
+		FileWriter ref = null;
+		try{
+		    ref = new FileWriter(filename);
+		} catch (IOException exp) {
+		    exp.printStackTrace();
+		    System.exit(1);
+		}
+		return ref;
+	    }
+	    return null;
+	} else if(functionName.getLexeme().equals("feof")){
+	    Scanner fReader = (Scanner)call.getExpression(0).accept(this);
+	    return fReader.hasNext();
+	}
 	return null;
     }
 

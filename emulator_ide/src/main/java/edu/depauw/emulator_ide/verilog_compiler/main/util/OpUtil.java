@@ -97,6 +97,64 @@ public class OpUtil {
 	((Register)vec1.getValue(index)).setSignal(vec2.getValue(start2).getSignal());
     }
 
+    public static void shallowAssign(Vector<CircuitElem> vec1, String str2){
+	if(vec1.getSize() == str2.length()){
+	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int start2 = 0;
+	    int end1 = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int end2 = str2.length() - 1;
+
+	    int sIndex1 = start1;
+	    int sIndex2 = start2;
+	    
+	    while(sIndex1 <= end1){
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
+	    }
+	    
+	} else if(vec1.getSize() < str2.length()){
+	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int start2 = 0;
+	    int end1 = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int end2 = str2.length() - 1;
+
+	    int sIndex1 = start1;
+	    int sIndex2 = start2 + (str2.length() - vec1.getSize());
+	    
+	    while(sIndex1 <= end1){
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
+	    }
+	} else {
+	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int start2 = 0;
+	    int end1 = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int end2 = str2.length() - 1;
+
+	    int sIndex1 = start1;
+	    int sIndex2 = start2;
+	    
+	    while(sIndex2 <= end2){
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = str2.charAt(sIndex2) == '1' ? true : false;  
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
+	    }
+
+	    while(sIndex1 <= end1){
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		elem1.setSignal(false);
+	    }
+	}
+    }
+
     /** I created two types of assignments for verilog and the difference breaks down to how registers are assigned to one another
      * In a shallow assignment the value is coppied over from one register to another a register can hold a True or a False value representing whether the output from that register is high or low
      * So the assignment works by assigning the value from one register to the value of the current register. This is different then actually changing the literal register object in a deep assignment.
