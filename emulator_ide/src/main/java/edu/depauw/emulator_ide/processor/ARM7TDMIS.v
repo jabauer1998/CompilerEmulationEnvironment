@@ -93,7 +93,7 @@ module Arm();
       reg [0:31]   binaryLine;
       begin
 	 R[15] = address; // initialize stack pointer to address 0
-	 handler = $fopen("./memfile.txt", "r");
+	 handler = $fopen("src/main/java/edu/depauw/emulator_ide/processor/memfile.txt", "r");
 	 while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
 	    MEM[R[15]] = binaryLine[0:7];

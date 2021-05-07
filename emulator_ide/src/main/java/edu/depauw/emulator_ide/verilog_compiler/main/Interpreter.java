@@ -28,6 +28,7 @@ import edu.depauw.emulator_ide.common.debug.item.*;
 import java.util.concurrent.Semaphore;
 import java.lang.InterruptedException;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.Scanner;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -37,78 +38,112 @@ import java.io.File;
     
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void>{
     
-    private final Environment<String, Position> modEnv;
-    private final Environment<String, InterpreterFunctionData> funcEnv;
-    private final Environment<String, InterpreterVariableData> varEnv;
+    private Environment<String, Position> modEnv;
+    private Environment<String, InterpreterFunctionData> funcEnv;
+    private Environment<String, InterpreterVariableData> varEnv;
+    private Stack<String> topFunction = new Stack<String>();
+    private Stack<Boolean> needExit = new Stack<Boolean>();
     private final InfoLog errorLog;
-    private boolean keyPressed;
 
     private volatile Semaphore sema;
 
     private ArrayList<ModItem> processes = new ArrayList<>();
     
     public Interpreter(InfoLog errorLog){
-	this.modEnv = new Environment<>();
-	this.funcEnv = new Environment<>();
-	this.varEnv = new Environment<>();
-	this.errorLog = errorLog;
+		this.modEnv = new Environment<>();
+		this.funcEnv = new Environment<>();
+		this.varEnv = new Environment<>();
+		this.errorLog = errorLog;
+    }
+
+    private String getTopFunctionName(){
+	return topFunction.peek();
+    }
+
+    private boolean getTopExit(){
+	return needExit.peek();
+    }
+
+    private void setTopFunctionName(String func){
+	topFunction.push(func);
+    }
+
+    private void setTopExit(boolean val){
+	needExit.push(val);
+    }
+
+    private void changeTopExit(boolean val){
+	removeTopExit();
+	needExit.push(val);
+    }
+
+    private void removeTopFunctionName(){
+	topFunction.pop();
+    }
+
+    private void removeTopExit(){
+	needExit.pop();
+    }
+    
+    public void passModTable(Environment<String, Position> modEnv){
+		this.modEnv = modEnv;
+    }
+    
+    public void passFuncTable(Environment<String, InterpreterFunctionData> funcEnv){
+		this.funcEnv = funcEnv;
+    }
+    
+    public void passVarTable(Environment<String, InterpreterVariableData> varEnv) {
+    	this.varEnv = varEnv;
+    }
+
+    private void errorAndExit(String error){
+	errorAndExit(error, null);
+    }
+
+    private void errorAndExit(String error, Position pos){
+	errorLog.addItem(new ErrorItem(error, pos));
+	errorLog.printLog();
+	System.exit(1);
     }
     
     public Void visit(ModuleDeclaration mod, Object... argv){
-	modEnv.addScope();
-	funcEnv.addScope();
-	varEnv.addScope();
-	Identifier modName = mod.getModuleName();
-	if(modEnv.entryExists(modName.getLexeme())){
-	    errorLog.addItem(new ErrorItem("Redeclaration of Module " + modName.getLexeme() + "found at " + '[' + mod.getPosition() + "] declared ", modEnv.getEntry(modName.getLexeme()))); 
-	} else {
-	    modEnv.addEntry(modName.getLexeme(), mod.getPosition());
-	}
-	for(int i = 0; i < mod.numParameters(); i++){
-	    mod.getParameter(i).accept(this);
-	}
-	for(int i = 0; i < mod.numModItems(); i++){
-	    mod.getModItem(i).accept(this);
-	}
-	sema = new Semaphore(-processes.size() + 1);
-        for(int i = 0; i < processes.size(); i++){ //Iterate through queue and execute threads
-	    if(processes.get(i) instanceof AllwaysStatement){ //Creates a new thread that should loop until cntrl-C
-		/*new Thread(() -> { //On exit this thread will aquire the semaphore
-			final AllwaysStatement stat = (AllwaysStatement)processes.get(i);
-			boolean tf = true;
-			while(tf){
-			    stat.getStatement().accept(this);
-			}
-			try{ 
-			    sema.acquire();
-			} catch (InterruptedException e){
-			    e.printStackTrace();
-			    System.exit(1);
-			}
-			}).start();*/
-	    } else if(processes.get(i) instanceof InitialStatement){
-		/*new Thread(() -> { //Run the statement once and aquire the semaphore once it is done
-			final InitialStatement stat = (InitialStatement)processes.get(i);
-			stat.getStatement().accept(this);
-			try{
-			    sema.acquire();
-			} catch (InterruptedException e){
-			    e.printStackTrace();
-			}
-			}).start();*/
-	    } else {
-		errorLog.addItem(new ErrorItem(" Unknown process type " + processes.get(i).getClass(), processes.get(i).getPosition()));
-	    }
-	}
-	try{
-	    sema.acquire(); //aquire semaphore and wait until all other processes are done
-	} catch (InterruptedException e){
-	    e.printStackTrace();
-	}
-	varEnv.removeScope();
-	funcEnv.removeScope();
-	modEnv.removeScope();
-	return null;
+		modEnv.addScope();
+		funcEnv.addScope();
+		varEnv.addScope();
+		Identifier modName = mod.getModuleName();
+		if(modEnv.entryExists(modName.getLexeme())){
+		    errorAndExit("Redeclaration of Module " + modName.getLexeme() + "found at " + '[' + mod.getPosition() + "] declared ", modEnv.getEntry(modName.getLexeme()));
+		} else {
+		    modEnv.addEntry(modName.getLexeme(), mod.getPosition());
+		}
+		for(int i = 0; i < mod.numParameters(); i++){
+		    mod.getParameter(i).accept(this);
+		}
+		for(int i = 0; i < mod.numModItems(); i++){
+		    mod.getModItem(i).accept(this);
+		}
+		sema = new Semaphore(-processes.size() + 1);
+		AllwaysStatement.setThreadParameters(this, sema); //set parameters for the run methods for allways statements
+		InitialStatement.setThreadParameters(this, sema); //do the same for initial statements
+		for(int i = 0; i < processes.size(); i++){ //Iterate through queue and execute threads
+		    if(processes.get(i) instanceof AllwaysStatement){ //Creates a new thread that should loop until cntrl-C
+			new Thread((AllwaysStatement)processes.get(i)).start();
+		    } else if(processes.get(i) instanceof InitialStatement){
+			new Thread((InitialStatement)processes.get(i)).start();
+		    } else {
+			errorAndExit(" Unknown process type " + processes.get(i).getClass(), processes.get(i).getPosition());
+		    }
+		}
+		try{
+		    sema.acquire(); //aquire semaphore and wait until all other processes are done
+		} catch (InterruptedException e){
+		    e.printStackTrace();
+		}
+		varEnv.removeScope();
+		funcEnv.removeScope();
+		modEnv.removeScope();
+		return null;
     }
 
     /*
@@ -121,8 +156,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(AllwaysStatement stat, Object... argv){
-	processes.add(stat);
-	return null;
+		processes.add(stat);
+		return null;
     }
 
     /**
@@ -131,10 +166,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(ContinuousAssignment assign, Object... argv){
-	for(int i = 0; i < assign.numAssignments(); i++){
-	    assign.getAssignment(i).accept(this);
-	}
-	return null;
+		for(int i = 0; i < assign.numAssignments(); i++){
+		    assign.getAssignment(i).accept(this);
+		}
+		return null;
     }
 
     /**
@@ -143,21 +178,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     private boolean inFunctionParam = false;
     private boolean inFunctionName = false;
-    private Identifier topFunctionName = null;
 
     public Void visit(FunctionDeclaration function, Object... argv){
 	//May need to finish this later
-
 	Declaration functionName = function.getFunctionName();
-	
+		
 	inFunctionName = true;
 	functionName.accept(this); //retrieve the function name from the declaration
 	inFunctionName = false;
-
-	funcEnv.addEntry(topFunctionName.getLexeme(), new InterpreterFunctionData(function, function.getPosition()));
-
 	
-	
+	funcEnv.addEntry(getTopFunctionName(), new InterpreterFunctionData(function, function.getPosition()));
+
+	removeTopFunctionName();
+		
 	return null;
     }
 
@@ -197,8 +230,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(TaskDeclaration task, Object... argv){
 	Identifier taskName = task.getTaskName();
-	if(funcEnv.entryExists(taskName.getLexeme())){
-	    errorLog.addItem(new ErrorItem("Task declaration by the name of " + taskName.getLexeme() + " found at [" + taskName.getPosition() + "] already exists at ", funcEnv.getEntry(taskName.getLexeme()).getPosition())); 
+	if(funcEnv.inScope(taskName.getLexeme())){
+	    errorAndExit("Task declaration by the name of " + taskName.getLexeme() + " found at [" + taskName.getPosition() + "] already exists at ", funcEnv.getEntry(taskName.getLexeme()).getPosition()); 
 	} else {
 	    funcEnv.addEntry(taskName.getLexeme(), new InterpreterFunctionData(task, task.getPosition()));
 	}
@@ -223,12 +256,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(InputWireScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(!varEnv.entryExists(current.getLexeme())){
+	    if(!varEnv.inScope(current.getLexeme())){
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Wire(), current.getPosition()));		
 	    }
 	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
+		funcEnv.getEntry(getTopFunctionName()).addParameter(entryData); //add paramter to function
 	    }
 	}
 	return null;
@@ -244,14 +277,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(!varEnv.entryExists(current.getLexeme())){
+	    if(!varEnv.inScope(current.getLexeme())){
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Register(false), current.getPosition()));
 	    }
 
 	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
+		funcEnv.getEntry(getTopFunctionName()).addParameter(entryData); //add paramter to function
 	    }
 	}
 	return null;
@@ -265,27 +298,37 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(InputWireVectorDeclaration decl, Object... argv){
 	
-	int index1 = (int)decl.getExpression1().accept(this); //check whether the expressions return ints
-	int index2 = (int)decl.getExpression2().accept(this);
+	int index1 = (int)(long)decl.getExpression1().accept(this); //check whether the expressions return ints
+	int index2 = (int)(long)decl.getExpression2().accept(this);
 	    
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(!varEnv.entryExists(current.getLexeme())){
+	    if(varEnv.inScope(current.getLexeme())){
 		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
-		
 		if(entryData.getObject() == null){
-		    entryData.setObject(new Vector(index1, index2));
+		    Vector vec = new Vector(index1, index2);
+
+		    if(index1 <= index2){
+			for(int x = index1; x <= index2; x++){
+			    vec.setValue(x, new Wire());
+			}
+		    } else {
+			for(int x = index2; x <= index1; x++){
+			    vec.setValue(x, new Wire());
+			}
+		    }
+		    entryData.setObject(vec);
 		} else {
-		    errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.getObject() + " to type output wire vector", current.getPosition()));
+		    errorLog.addItem(new ErrorItem("Variable named " + current.getLexeme() + "allready exists and cannot be converted to " + entryData.getObject().getClass(), current.getPosition()));
 		}
 	    } else {
 		Vector<CircuitElem> vec = new Vector<CircuitElem>(index1, index2);
 		if(index1 <= index2){
-		    for(int x = index1; x != index2; x++){
+		    for(int x = index1; x <= index2; x++){
 			vec.setValue(x, new Wire());
 		    }
 		} else {
-		    for(int x = index1; x != index2; x--){
+		    for(int x = index2; x <= index1; x++){
 			vec.setValue(x, new Wire());
 		    }
 		}
@@ -294,7 +337,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
+		funcEnv.getEntry(getTopFunctionName()).addParameter(entryData); //add paramter to function
 	    }
 	}
 	return null;
@@ -307,12 +350,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(InputRegVectorDeclaration decl, Object... argv){
-	int index1 = (int)decl.getExpression1().accept(this); //check whether the expressions return ints
-	int index2 = (int)decl.getExpression2().accept(this);
-	    
+	int index1 = (int)(long)decl.getExpression1().accept(this); //check whether the expressions return ints
+	int index2 = (int)(long)decl.getExpression2().accept(this);
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
+	    if(varEnv.inScope(current.getLexeme())){
 		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 		
 		if(entryData.getObject() == null){
@@ -323,19 +365,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else {
 		Vector<CircuitElem> vec = new Vector<CircuitElem>(index1, index2);
 		if(index1 <= index2){
-		    for(int x = index1; x != index2; x++){
-			vec.setValue(x, new Wire());
+		    for(int x = index1; x <= index2; x++){
+			vec.setValue(x, new Register(false));
 		    }
 		} else {
-		    for(int x = index1; x != index2; x--){
-			vec.setValue(x, new Wire());
+		    for(int x = index2; x <= index1; x++){
+			vec.setValue(x, new Register(false));
 		    }
 		}
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(vec, current.getPosition()));
 	    }
 	    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    if(inFunctionParam){
-		funcEnv.getEntry(topFunctionName.getLexeme()).addParameter(entryData); //add paramter to function
+		funcEnv.getEntry(getTopFunctionName()).addParameter(entryData); //add paramter to function
 	    }
 	}
 	return null;
@@ -350,7 +392,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(WireScalarDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
+	    if(varEnv.inScope(current.getLexeme())){
 		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 	    } else {
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Wire(), current.getPosition()));
@@ -366,19 +408,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(WireVectorDeclaration decl, Object... argv){
-	int index1 = (int)decl.getExpression1().accept(this); //check whether the expressions return ints
-	int index2 = (int)decl.getExpression2().accept(this);
+	int index1 = (int)(long)decl.getExpression1().accept(this); //check whether the expressions return ints
+	int index2 = (int)(long)decl.getExpression2().accept(this);
 	    
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
-		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
-		
-		if(entryData.getObject() == null){
-		    entryData.setObject(new Vector(index1, index2));
-		} else {
-		    errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.getObject() + " to type output wire vector", current.getPosition()));
-		}
+	    if(varEnv.inScope(current.getLexeme())){
+		    InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
+			
+			if(entryData.getObject() == null){
+			    entryData.setObject(new Vector(index1, index2));
+			} else {
+			    errorLog.addItem(new ErrorItem("Cannot re-assign variable of type " + entryData.getObject() + " to type output wire vector", current.getPosition()));
+			}
 	    } else {
 		Vector<CircuitElem> vec = new Vector<CircuitElem>(index1, index2);
 		if(index1 <= index2){
@@ -387,7 +429,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		    }
 		} else {
 		    for(int x = index1; x != index2; x--){
-			vec.setValue(x, new Wire());
+		    	vec.setValue(x, new Wire());
 		    }
 		}
 		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(vec, current.getPosition()));
@@ -405,10 +447,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(RegScalarDeclaration decl, Object... argv){
-	for(int i = 0; i < decl.numRegValues(); i++){
-	    decl.getRegValue(i).accept(this);
-	}
-	return null;
+    	for(int i = 0; i < decl.numRegValues(); i++){
+    		decl.getRegValue(i).accept(this);
+    	}
+    	return null;
     }
 
     /**
@@ -419,8 +461,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(RegVectorDeclaration decl, Object... argv){
 
-	int index1 = (int)decl.getExpression1().accept(this); //check whether the expressions return ints
-	int index2 = (int)decl.getExpression2().accept(this);
+	int index1 = (int)(long)decl.getExpression1().accept(this); //check whether the expressions return ints
+	int index2 = (int)(long)decl.getExpression2().accept(this);
 
 	for(int i = 0; i < decl.numRegValues(); i++){
 	    decl.getRegValue(i).accept(this, index1, index2);
@@ -460,12 +502,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     public Void visit(OutputWireVectorDeclaration decl, Object... argv){
 
-	int index1 = (int)decl.getExpression1().accept(this); //check whether the expressions return ints
-	int index2 = (int)decl.getExpression2().accept(this);
+	int index1 = (int)(long)decl.getExpression1().accept(this); //check whether the expressions return ints
+	int index2 = (int)(long)decl.getExpression2().accept(this);
 	    
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
+	    if(varEnv.inScope(current.getLexeme())){
 		InterpreterVariableData entryData = varEnv.getEntry(current.getLexeme());
 		
 		if(entryData.getObject() == null){
@@ -499,14 +541,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Void visit(OutputRegVectorDeclaration decl, Object... argv){
-
-	int index1 = (int)decl.getExpression1().accept(this); //check whether the expressions return ints
-	int index2 = (int)decl.getExpression2().accept(this);
-
+	
+	int index1 = (int)(long)decl.getExpression1().accept(this); //check whether the expressions return ints
+	int index2 = (int)(long)decl.getExpression2().accept(this);
+		
 	for(int i = 0; i < decl.numRegValues(); i++){
 	    decl.getRegValue(i).accept(this, index1, index2);
 	}
-	
+		
 	return null;
     }
     /**
@@ -531,11 +573,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(RealDeclaration decl, Object... argv){
 	for(int i = 0; i < decl.numIdentifiers(); i++){
 	    Identifier current = decl.getIdentifier(i);
-	    if(varEnv.entryExists(current.getLexeme())){
+	    if(varEnv.inScope(current.getLexeme())){
 		InterpreterVariableData dataType = varEnv.getEntry(current.getLexeme());
 		errorLog.addItem(new ErrorItem("Variable " + current.getLexeme() + " allready defined at " + dataType.getPosition() + " declared again at ", current.getPosition()));
 	    } else {
-		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData(new Double(0), current.getPosition()));
+		varEnv.addEntry(current.getLexeme(), new InterpreterVariableData((double)0, current.getPosition()));
 	    }
 	}
 	return null;
@@ -549,7 +591,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(UnidentifiedDeclaration decl, Object... argv){
 	Identifier current = decl.getIdentifier();
-	if(varEnv.entryExists(current.getLexeme())){
+	if(varEnv.inScope(current.getLexeme())){
 	    InterpreterVariableData dataType = varEnv.getEntry(current.getLexeme());
 	    errorLog.addItem(new ErrorItem("Variable " + current.getLexeme() + " allready defined at " + dataType.getPosition() + " declared again at ", current.getPosition()));
 	} else {
@@ -862,7 +904,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Void visit(BlockAssign assign, Object... argv){
 	Expression lValue = assign.getLValue();
-
 	Identifier name = null;
 	if(lValue instanceof VectorCall){
 	    name = ((VectorCall)lValue).getIdentifier();
@@ -871,14 +912,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if (lValue instanceof VectorSlice){
 	    name = ((VectorSlice)lValue).getIdentifier();
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for LValue " + lValue.getClass(), assign.getPosition()));
-	    System.exit(1);
+	    errorAndExit("Unexpected Type for LValue " + lValue.getClass(), assign.getPosition());
 	    return null;
 	}
-
+	
 	InterpreterVariableData data = varEnv.getEntry(name.getLexeme());
-
 	Object result = assign.getExpression().accept(this);
+	if(result == null){
+	    errorAndExit("Result type of Null", name.getPosition());
+	}
 
 	if(result instanceof Scanner) {
 	    data.setObject(result); //if it is a scanner ignore all assign rules and assign the scanner object to the variable
@@ -904,7 +946,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    data.setObject(value);
 	} else if(data.getObject() instanceof Long[]){
 	    Long[] arr = (Long[])data.getObject();
-	    int index = (int)((VectorCall)lValue).getExpression().accept(this);
+	    int index = (int)(long)((VectorCall)lValue).getExpression().accept(this);
 	    long value = 0;
 	    if(result instanceof Vector){
 		value = OpUtil.toLong((Vector<CircuitElem>)result);
@@ -926,11 +968,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		} else if(result instanceof Boolean){
 		    OpUtil.shallowAssign(vec, (boolean)result);
 		} else {
-		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition()));
-		    System.exit(1);
+		    errorAndExit("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition());
 		}
 	    } else if(lValue instanceof VectorCall){
-		int index = (int)((VectorCall)lValue).getExpression().accept(this);
+		int index = (int)(long)((VectorCall)lValue).getExpression().accept(this);
 
 		if(result instanceof Vector){
 		    OpUtil.shallowAssign(vec, index, (Vector<CircuitElem>)result);
@@ -941,13 +982,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		} else if(result instanceof Boolean){
 		    OpUtil.shallowAssign(vec, index, (boolean)result);
 		} else {
-		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
+		    errorAndExit("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition());
 		    System.exit(1);
 		}
 		
 	    } else if (lValue instanceof VectorSlice){
-		int index1 = (int)((VectorSlice)lValue).getExpression1().accept(this);
-		int index2 = (int)((VectorSlice)lValue).getExpression2().accept(this);
+		int index1 = (int)(long)((VectorSlice)lValue).getExpression1().accept(this);
+		int index2 = (int)(long)((VectorSlice)lValue).getExpression2().accept(this);
 
 		if(result instanceof Vector){
 		    OpUtil.shallowAssign(vec, index1, index2, (Vector<CircuitElem>)result);
@@ -958,14 +999,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		} else if(result instanceof Boolean){
 		    OpUtil.shallowAssign(vec, index1, index2, (boolean)result);
 		} else {
-		    errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
+		    errorAndExit("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition());
 		    System.exit(1);
 		}
 	    }
 	} else if (data.getObject() instanceof Vector[]){
 	    Vector<CircuitElem>[] arr = (Vector<CircuitElem>[])data.getObject();
 	    //it must be an lvalue becuase you can only assign one element of an array at a time
-	    int index = (int)((VectorCall)lValue).getExpression().accept(this);
+	    int index = (int)(long)((VectorCall)lValue).getExpression().accept(this);
 	    if(result instanceof Vector){
 		OpUtil.shallowAssign(arr[index], (Vector<CircuitElem>)result);
 	    } else if(result instanceof CircuitElem){
@@ -975,13 +1016,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof Boolean){
 		OpUtil.shallowAssign(arr[index], (boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
+		errorAndExit("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition());
 		System.exit(1);
 	    }
 	} else if (data.getObject() instanceof CircuitElem[]){
 	    CircuitElem[] arr = (CircuitElem[])data.getObject();
 	    //it must be an lvalue becuase you can only assign one element of an array at a time
-	    int index = (int)((VectorCall)lValue).getExpression().accept(this);
+	    int index = (int)(long)((VectorCall)lValue).getExpression().accept(this);
 	    if(result instanceof Vector){
 		Vector<CircuitElem> vec = (Vector<CircuitElem>)result;
 		int lowestIndex = (vec.getIndex1() <= vec.getIndex2()) ?  vec.getIndex1() : vec.getIndex2(); 
@@ -993,9 +1034,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof Boolean){
 		((Register)arr[index]).setSignal((boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition()));
-		System.exit(1);
-		return null;
+		errorAndExit("Incompatible assignment from " + result.getClass() + " to " + arr.getClass(), lValue.getPosition());
 	    }
 	} else if (data.getObject() instanceof CircuitElem){
 	    if(result instanceof Vector){
@@ -1009,18 +1048,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if(result instanceof Boolean){
 		((Register)data.getObject()).setSignal((boolean)result);
 	    } else {
-		errorLog.addItem(new ErrorItem("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition()));
-		System.exit(1);
-		return null;
+		errorAndExit("Incompatible assignment from " + result.getClass() + " to " + data.getObject().getClass(), lValue.getPosition());
 	    }
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for Object " + data.getObject().getClass(), assign.getPosition()));
-	    System.exit(1);
-	    return null;
+	    errorAndExit("Unexpected Type for Object " + data.getObject().getClass(), assign.getPosition());
 	}
 
 	if(inFunctionReturn){
-	    needExit = true;
+	    changeTopExit(true);
 	}
 	return null;
     }
@@ -1041,8 +1076,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if (expr instanceof Vector){
 	    target = OpUtil.toLong((Vector<CircuitElem>)expr);
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition()));
-	    System.exit(1);
+	    errorAndExit("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition());
 	    return null;
 	}
     
@@ -1082,8 +1116,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if (expr instanceof Vector){
 	    target = OpUtil.toLong((Vector<CircuitElem>)expr);
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition()));
-	    System.exit(1);
+	    errorAndExit("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition());
 	    return null;
 	}
     
@@ -1108,7 +1141,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     /**
-     * This is used to visit casez statements in verilog
+     * This is used to visit casedz statements in verilog
      * @param assign
      */
 
@@ -1118,8 +1151,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if(expr instanceof Range){
 	    return ((Range)expr).inRange(target);
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement expression " + expr.getClass(), null));
-	    System.exit(1);
+	    errorAndExit("Unexpected Type for switch statement expression " + expr.getClass());
 	    return false;
 	}
     }
@@ -1135,9 +1167,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if (expr instanceof Vector){
 	    target = OpUtil.toLong((Vector<CircuitElem>)expr);
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition()));
-	    System.exit(1);
-	    return null;
+	    errorAndExit("Unexpected Type for switch statement " + expr.getClass(), stat.getExpression().getPosition());
 	}
     
 	for(int i = 0; i < stat.numCaseItems(); i++){
@@ -1172,8 +1202,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if(obj instanceof CircuitElem){
 	    return ((CircuitElem)obj).getSignal();
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type to change to bool " + obj.getClass(), null));
-	    System.exit(1);
+	    errorAndExit("Unexpected Type to change to bool " + obj.getClass());
 	    return false;
 	}
     }
@@ -1186,6 +1215,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(ForStatement forLoop, Object... argv){
 	for(forLoop.getInit().accept(this); boolValue(forLoop.getExpression().accept(this)); forLoop.getChange().accept(this)){
 	    forLoop.getStatement().accept(this);
+	    if(inFunctionReturn){
+		if(getTopExit()){
+		    return null;
+		}
+	    }
 	}
 	return null;
     }
@@ -1199,6 +1233,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	boolean tf = true;
 	while(tf){
 	    foreverLoop.getStatement().accept(this);
+	    if(inFunctionReturn){
+		if(getTopExit()){
+		    return null;
+		}
+	    }
 	}
 	return null;
     }
@@ -1247,13 +1286,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if (lValue instanceof VectorSlice){
 	    name = ((VectorSlice)lValue).getIdentifier();
 	} else {
-	    errorLog.addItem(new ErrorItem("Unexpected Type for LValue " + lValue.getClass(), assign.getPosition()));
-	    System.exit(1);
+	    errorAndExit("Unexpected Type for LValue " + lValue.getClass(), assign.getPosition());
 	    return null;
 	}
 
 	InterpreterVariableData data = varEnv.getEntry(name.getLexeme());
-
 	Object result = assign.getExpression().accept(this);
 
 	if(data.getObject() instanceof Double){
@@ -1289,6 +1326,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    }
 	    arr[index] = value;
 	} else if(data.getObject() instanceof Vector){
+	    System.out.println("LLLLLLLLLLLLLLLLLLLOOOOOOOOOOOLLLLLLLllll");
 	    Vector<CircuitElem> vec = (Vector<CircuitElem>)data.getObject(); //returns the vector stored in the symbol table
 	    if(lValue instanceof Identifier){
 		if(result instanceof Vector){
@@ -1406,15 +1444,30 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    long amount = (long)expr;
 	    for(long i = 0; i < amount; i++){
 		stat.getStatement().accept(this);
+		if(inFunctionReturn){
+		    if(getTopExit()){
+			return null;
+		    }
+		}
 	    }
 	} else if (expr instanceof Vector){
 	    long amount = OpUtil.toLong((Vector<CircuitElem>)expr);
 	    for(long i = 0; i < amount; i++){
 		stat.getStatement().accept(this);
+		if(inFunctionReturn){
+		    if(getTopExit()){
+			return null;
+		    }
+		}
 	    }
 	} else if(expr instanceof CircuitElem || expr instanceof Boolean){
 	    if(boolValue(expr)){
 		stat.getStatement().accept(this);
+		if(inFunctionReturn){
+		    if(getTopExit()){
+			return null;
+		    }
+		}
 	    }
 	} else {
 	    errorLog.addItem(new ErrorItem("Unknown Type for While loop expression " + expr.getClass(), stat.getExpression().getPosition()));
@@ -1431,9 +1484,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      
     public Void visit(SeqBlockStatement stat, Object... argv){
 	for(int i = 0; i < stat.numStatements(); i++){
+	    System.out.println("In statement " + i + " of class type " + stat.getStatement(i).getClass() + " at location " + stat.getStatement(i).getPosition());
 	    stat.getStatement(i).accept(this);
-	    if(needExit == true){
-		break;
+	    if(inFunctionReturn){
+		if(getTopExit()){
+		    return null;
+		}
 	    }
 	}
 	return null;
@@ -1449,32 +1505,32 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	if(funcEnv.entryExists(tname.getLexeme())){
 	    //Collect symbol table data from the function
 	    InterpreterFunctionData funcData = funcEnv.getEntry(tname.getLexeme());
-
 	    funcData.storeParameterList();
-
 	    TaskDeclaration decl = (TaskDeclaration)funcData.getFuncDeclaration();
-
 	    varEnv.addScope();
 
+	    setTopFunctionName(tname.getLexeme());
+	    
 	    inFunctionParam = true;
 	    for(int i = 0; i < decl.numDeclarations(); i++){
-		decl.getDeclaration(i).accept(this);
+	    	decl.getDeclaration(i).accept(this);
 	    }
 	    inFunctionParam = false;
+
+	    removeTopFunctionName();
 	    
 	    if(task.numExpressions() == funcData.numParameters()){
-		//Assign parameter values
+		//Assign parameter value
 		for(int i = 0; i < task.numExpressions(); i++){
 		    InterpreterVariableData varData = funcData.getParameter(i);
 		    varData.setObject(task.getExpression(i).accept(this));
 		}
 		
 	    } else {
-		errorLog.addItem(new ErrorItem("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + funcData.numParameters() + " | Got -> " + task.numExpressions() + " ]", tname.getPosition()));
-		System.exit(1);
-		return null;
+	    	errorAndExit("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + funcData.numParameters() + " | Got -> " + task.numExpressions() + " ]", tname.getPosition());
 	    }
 
+	    System.out.println("And I totally got here lol");
 	    decl.getStatement().accept(this);
 
 	    funcData.restoreParameterList();
@@ -1482,8 +1538,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    varEnv.removeScope();
 	    
 	} else {
-	    errorLog.addItem(new ErrorItem("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition()));
-	    System.exit(1);
+	    errorAndExit("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition());
 	    return null;
 	}
 	return null;
@@ -1500,19 +1555,30 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    Scanner fReader = (Scanner)task.getExpression(0).accept(this);
 	    String fString = (String)task.getExpression(1).accept(this);
 	    Vector<CircuitElem> location = (Vector<CircuitElem>)task.getExpression(2).accept(this);
-
+	
 	    if(fString.contains("\n")){
 		if(fString.contains("%b")){
 		    OpUtil.shallowAssign(location, fReader.nextLine());
 		}
 	    }
+	} else if (taskName.getLexeme().equals("fclose")){
+	    Scanner fReader = (Scanner)task.getExpression(0).accept(this);
+	    fReader.close();
+	} else if (taskName.getLexeme().equals("display")){
+	    String fString = (String)task.getExpression(0).accept(this);
+	    Object data = task.getExpression(0).accept(this);
+	    System.out.printf(fString, data);
+	} else if (taskName.getLexeme().equals("finish")){
+	    System.exit(0);
+	} else {
+	    errorAndExit("Unknown system task declaration " + taskName.getLexeme(), taskName.getPosition());
 	}
       	return null;
     }
      
     public Void visit(WaitStatement wait, Object... argv){
 	while(boolValue(wait.getExpression().accept(this)));
-        wait.getStatement().accept(this);
+	wait.getStatement().accept(this);
 	return null;
     }
 
@@ -1524,6 +1590,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(WhileStatement whileLoop, Object... argv){
 	while(boolValue(whileLoop.getExpression().accept(this))){
 	    whileLoop.getStatement().accept(this);
+	    if(inFunctionReturn){
+		if(getTopExit()){
+		    return null;
+		}
+	    }
 	}
 	return null;
     }
@@ -1895,8 +1966,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		size++; //it is a CircuitElem
 	    }
 	}
-
-	Vector newVec = new Vector(size, 0);
+	System.out.println("Hey yo yo yo yo i got here");
+	Vector newVec = new Vector(size - 1, 0);
 
 	int total = 0;
 	for(int expr = 0; expr < concat.numExpressions(); expr++){
@@ -1941,7 +2012,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     boolean inFunctionReturn = false;
-    boolean needExit = false;
     public Object visit(FunctionCall call, Object... argv){
 	Identifier tname = call.getFunctionName();
 	if(funcEnv.entryExists(tname.getLexeme())){
@@ -1949,9 +2019,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    InterpreterFunctionData funcData = funcEnv.getEntry(tname.getLexeme());
 	    FunctionDeclaration decl = (FunctionDeclaration)funcData.getFuncDeclaration();
 
-	    funcData.storeParameterList();
+	    funcData.storeParameterList();//store the old parameter list
 	    varEnv.addScope();
 
+	    setTopFunctionName(tname.getLexeme());
+	    setTopExit(false);
 	    decl.getFunctionName().accept(this); //declare the return variable for the function
 	    
 	    InterpreterVariableData returnData = varEnv.getEntry(tname.getLexeme()); //get return object
@@ -1966,26 +2038,27 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		//Assign parameter values
 		for(int i = 0; i < call.numExpressions(); i++){
 		    InterpreterVariableData varData = funcData.getParameter(i);
-		    varData.setObject(call.getExpression(i).accept(this));
+		    Object exp = call.getExpression(i).accept(this);
+		    varData.setObject(exp);
 		}
 		
 	    } else {
-		errorLog.addItem(new ErrorItem("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + funcData.numParameters() + " | Got -> " + call.numExpressions() + " ]", tname.getPosition()));
-		System.exit(1);
+		errorAndExit("Argument amount mismatch " + tname.getLexeme() + " [Expected -> " + funcData.numParameters() + " | Got -> " + call.numExpressions() + " ]", tname.getPosition());
 		return null;
 	    }
-
+	    
 	    inFunctionReturn = true;
 	    decl.getStatement().accept(this);
-	    needExit = false;
+	    removeTopExit();
 	    inFunctionReturn = false;
 	    varEnv.removeScope();
+	    removeTopFunctionName();
 	    funcData.restoreParameterList();
+	    System.out.print("---Lol got here loser---");
 	    return returnData.getObject();
 	    
 	} else {
-	    errorLog.addItem(new ErrorItem("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition()));
-	    System.exit(1);
+	    errorAndExit("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition());
 	    return null;
 	}
     }
@@ -1998,14 +2071,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Object visit(SystemFunctionCall call, Object... argv){
 	Identifier functionName = call.getSystemFunctionName();
 	if(functionName.getLexeme().equals("fopen")){
-	    
-	    File filename = new File((String)call.getExpression(0).accept(this));
+	    String fname = (String)call.getExpression(0).accept(this);
+	    String basePath = new File("").getAbsolutePath();
+	    File filename = new File(basePath + '/' + fname);
 	    String access = (String)call.getExpression(1).accept(this);
 
+	   
 	    if(access.equals("r")){
 		filename.setReadOnly();
 
 		Scanner ref = null;
+		
 		try{
 		    ref = new Scanner(filename);
 		} catch (FileNotFoundException exp) {
@@ -2014,6 +2090,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		}
 		return ref;
 	    } else if(access.equals("w")){
+		System.out.print("Got here");
 		filename.setWritable(true, false);
 
 		FileWriter ref = null;
@@ -2024,11 +2101,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		    System.exit(1);
 		}
 		return ref;
+	    } else {
+		errorAndExit("Unexpected Access type " + access + " for file " + basePath + '/' + fname, call.getPosition());
 	    }
 	    return null;
 	} else if(functionName.getLexeme().equals("feof")){
 	    Scanner fReader = (Scanner)call.getExpression(0).accept(this);
 	    return fReader.hasNext();
+	} else {
+	    errorAndExit("Could not find a systemcall with the name " + functionName.getLexeme(), call.getPosition());
 	}
 	return null;
     }
@@ -2043,7 +2124,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    InterpreterVariableData data = varEnv.getEntry(ident.getLexeme());
 	    return data.getObject();
 	} else {
-	    errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition()));
+	    errorAndExit("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition());
 	    return null;
 	}
     }
@@ -2074,7 +2155,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		    }
 		}
 	    } else {
-		return Integer.parseInt(number.getLexeme());
+		return (long)Integer.parseInt(number.getLexeme());
 	    }
 	}
     }
@@ -2118,7 +2199,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
     public Object visit(VectorCall vector, Object... argv){
 	Identifier ident = vector.getIdentifier();
-	int index = (int)vector.getExpression().accept(this);
+	int index = (int)(long)vector.getExpression().accept(this);
 	if(varEnv.entryExists(ident.getLexeme())){
 	    InterpreterVariableData data = varEnv.getEntry(ident.getLexeme());
 	    Object dataObject = data.getObject();
@@ -2129,8 +2210,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if (dataObject instanceof Long[]){
 		return ((Long[])dataObject)[index];
 	    } else {
-		errorLog.addItem(new ErrorItem("Unkown array type for " + ident.getLexeme() + " [ Type -> " + dataObject.getClass() + " ]", ident.getPosition()));
-		System.exit(1);
+		errorAndExit("Unkown array type for " + ident.getLexeme() + " [ Type -> " + dataObject.getClass() + " ]", ident.getPosition());
 		return null;
 	    }
 	} else {
@@ -2141,16 +2221,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     public Object visit(VectorSlice vector, Object... argv){
 	Identifier ident = vector.getIdentifier();
-	int startIndex = (int)vector.getExpression1().accept(this);
-	int endIndex = (int)vector.getExpression2().accept(this);
+	int startIndex = (int)(long)vector.getExpression1().accept(this);
+	int endIndex = (int)(long)vector.getExpression2().accept(this);
 	if(varEnv.entryExists(ident.getLexeme())){
 	    InterpreterVariableData data = varEnv.getEntry(ident.getLexeme());
 	    Object dataObject = data.getObject();
 	    if (dataObject instanceof Vector){
 		return ((Vector<CircuitElem>)dataObject).getSlice(startIndex, endIndex);
 	    } else {
-		errorLog.addItem(new ErrorItem("Unkown array type for " + ident.getLexeme() + " [ Type -> " + dataObject.getClass() + " ]", ident.getPosition()));
-		System.exit(1);
+		errorAndExit("Unkown array type for " + ident.getLexeme() + " [ Type -> " + dataObject.getClass() + " ]", ident.getPosition());
 		return null;
 	    }
 	} else {
@@ -2168,9 +2247,28 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	int start = (int)argv[0];
 	int end = (int)argv[1];
 	if(inFunctionName){
-	    topFunctionName = ident;
+	    setTopFunctionName(ident.getLexeme());
 	} else {
-	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Vector<CircuitElem>(start, end), ident.getPosition()));
+	    Vector vec = new Vector(start, end);
+	    if(start <= end){
+		for(int i = start; i <= end; i++){
+		    vec.setValue(i, new Register(false));
+		}
+	    } else {
+		for(int i = end; i <= start; i++){
+		    vec.setValue(i, new Register(false));
+		}
+	    }
+	    if(varEnv.inScope(ident.getLexeme())){
+		InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+		if(got.getObject() == null){
+		    got.setObject(vec);
+		} else {
+		    errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+		}
+	    } else {
+		varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(vec, ident.getPosition()));
+	    }
 	}
 	return null;
     }
@@ -2178,9 +2276,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(RegScalarIdent regScalar, Object... argv){
 	Identifier ident = regScalar.getIdentifier();
 	if(inFunctionName){
-	    topFunctionName = ident;
+	    setTopFunctionName(ident.getLexeme());
 	} else {
-	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Register(false), ident.getPosition()));
+	    Register reg = new Register(false);
+	    if(varEnv.inScope(ident.getLexeme())){
+		InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+		if(got.getObject() == null){
+		    got.setObject(reg);
+		} else {
+		    errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+		}
+	    } else {
+		varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(reg, ident.getPosition()));
+	    }
 	}
 	return null;
     }
@@ -2190,9 +2298,28 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	int start = (int)argv[0];
 	int end = (int)argv[1];
 	if(inFunctionName){
-	    topFunctionName = ident;
+	    setTopFunctionName(ident.getLexeme());
 	} else {
-	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Vector<CircuitElem>(start, end), ident.getPosition()));
+	    Vector vec = new Vector(start, end);
+	    if(start <= end){
+		for(int i = start; i <= end; i++){
+		    vec.setValue(i, new Register(false));
+		}
+	    } else {
+		for(int i = end; i <= start; i++){
+		    vec.setValue(i, new Register(false));
+		}
+	    }
+	    if(varEnv.inScope(ident.getLexeme())){
+		InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+		if(got.getObject() == null){
+		    got.setObject(vec);
+		} else {
+		    errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+		}
+	    } else {
+		varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(vec, ident.getPosition()));
+	    }
 	}
 	return null;
     }
@@ -2200,9 +2327,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(OutputRegScalarIdent regScalar, Object... argv){
 	Identifier ident = regScalar.getIdentifier();	
 	if(inFunctionName){
-	    topFunctionName = ident;
+	    setTopFunctionName(ident.getLexeme());
 	} else {
-	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Register(false), ident.getPosition()));
+	    Register reg = new Register(false);
+	    if(varEnv.inScope(ident.getLexeme())){
+		InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+		if(got.getObject() == null){
+		    got.setObject(reg);
+		} else {
+		    errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+		}
+	    } else {
+		varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(reg, ident.getPosition()));
+	    }
 	}
 	return null;
     }
@@ -2210,26 +2347,35 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visit(IntegerIdent intIdent, Object... argv){
 	Identifier ident = intIdent.getIdentifier();
 	if(inFunctionName){
-	    topFunctionName = ident;
+	    setTopFunctionName(ident.getLexeme());
 	} else {
-	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(new Long(0), ident.getPosition()));
+	    if(varEnv.inScope(ident.getLexeme())){
+		InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+		if(got.getObject() == null){
+		    got.setObject((long)0);
+		} else {
+		    errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+		}
+	    } else {
+		varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData((long)0, ident.getPosition()));
+	    }
 	}
 	return null;
     }
 
     public Void visit(RegVectorArray regVector, Object... argv){
 	Identifier ident = regVector.getIdentifier();
-	
+		
 	int index1 = (int)argv[0];
 	int index2 = (int)argv[1];
-
-	int aIndex1 = (int)regVector.getExpression1().accept(this);
-	int aIndex2 = (int)regVector.getExpression2().accept(this);
-
+	
+	int aIndex1 = (int)(long)regVector.getExpression1().accept(this);
+	int aIndex2 = (int)(long)regVector.getExpression2().accept(this);
+	
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
-
+	
 	Vector<CircuitElem>[] arr = new Vector[aSize];
-
+	
 	for(int i = 0; i < aSize; i++){
 	    arr[i] = new Vector<CircuitElem>(index1, index2);	    
 	    if(index1 <= index2){
@@ -2237,21 +2383,29 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		    arr[i].setValue(x, new Register(false));
 		}
 	    } else {
-		for(int x = index2; x <= index1; x--){
+		for(int x = index2; x <= index1; x++){
 		    arr[i].setValue(x, new Register(false));
 		}
 	    }
 	}
-	
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	if(varEnv.inScope(ident.getLexeme())){
+	    InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+	    if(got.getObject() == null){
+		got.setObject(arr);
+	    } else {
+		errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+	    }
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	}
 	return null;
     }
 
     public Void visit(RegScalarArray regScalar, Object... argv){
 	Identifier ident = regScalar.getIdentifier();
 
-	int aIndex1 = (int)regScalar.getExpression1().accept(this);
-	int aIndex2 = (int)regScalar.getExpression2().accept(this);
+	int aIndex1 = (int)(long)regScalar.getExpression1().accept(this);
+	int aIndex2 = (int)(long)regScalar.getExpression2().accept(this);
 
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
 
@@ -2261,7 +2415,16 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    arr[i] = new Register(false);
 	}
 	
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	if(varEnv.inScope(ident.getLexeme())){
+	    InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+	    if(got.getObject() == null){
+		got.setObject(arr);
+	    } else {
+		errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+	    }
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	}
 	return null;
     }
 
@@ -2271,8 +2434,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	int index1 = (int)argv[0];
 	int index2 = (int)argv[1];
 
-	int aIndex1 = (int)regVector.getExpression1().accept(this);
-	int aIndex2 = (int)regVector.getExpression2().accept(this);
+	int aIndex1 = (int)(long)regVector.getExpression1().accept(this);
+	int aIndex2 = (int)(long)regVector.getExpression2().accept(this);
 
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
 
@@ -2285,21 +2448,29 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		    arr[i].setValue(x, new Register(false));
 		}
 	    } else {
-		for(int x = index2; x <= index1; x--){
+		for(int x = index2; x <= index1; x++){
 		    arr[i].setValue(x, new Register(false));
 		}
 	    }
 	}
-	
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	if(varEnv.inScope(ident.getLexeme())){
+	    InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+	    if(got.getObject() == null){
+		got.setObject(arr);
+	    } else {
+		errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+	    }
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	}
 	return null;
     }
 
     public Void visit(OutputRegScalarArray regScalar, Object... argv){
 	Identifier ident = regScalar.getIdentifier();
 
-	int aIndex1 = (int)regScalar.getExpression1().accept(this);
-	int aIndex2 = (int)regScalar.getExpression2().accept(this);
+	int aIndex1 = (int)(long)regScalar.getExpression1().accept(this);
+	int aIndex2 = (int)(long)regScalar.getExpression2().accept(this);
 
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
 
@@ -2308,26 +2479,43 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	for(int i = 0; i < aSize; i++){
 	    arr[i] = new Register(false);
 	}
-	
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	if(varEnv.inScope(ident.getLexeme())){
+	    InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+	    if(got.getObject() == null){
+		got.setObject(arr);
+	    } else {
+		errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+	    }
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	}
 	return null;
     }
 
     public Void visit(IntegerArray intIdent, Object... argv){
 	Identifier ident = intIdent.getIdentifier();
 
-	int aIndex1 = (int)intIdent.getExpression1().accept(this);
-	int aIndex2 = (int)intIdent.getExpression2().accept(this);
+	int aIndex1 = (int)(long)intIdent.getExpression1().accept(this);
+	int aIndex2 = (int)(long)intIdent.getExpression2().accept(this);
 
 	int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
 
-	Integer[] arr = new Integer[aSize];
+	Long[] arr = new Long[aSize];
 
 	for(int i = 0; i < aSize; i++){
-	    arr[i] = new Integer(0);
+	    arr[i] = (long)0;
 	}
-	
-	varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+
+	if(varEnv.inScope(ident.getLexeme())){
+	    InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
+	    if(got.getObject() == null){
+		got.setObject(arr);
+	    } else {
+		errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
+	    }
+	} else {
+	    varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
+	}
 	return null;
     }
 }

@@ -157,63 +157,39 @@ public class CheckpointTest{
 
     @Test
     public void Checkpoint3(){
-	System.out.print("\n\n-----------Checkpoint 3 Full Program Parser Test---------------\n\n");
-	String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
+		System.out.print("\n\n-----------Checkpoint 3 Full Program Parser Test---------------\n\n");
+		String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
+		
+		//Tokenise the tokens
+		Destination display = new Destination(System.out);
+		try{
+		    Source source = new Source(new FileReader(path));
+		    InfoLog errorLog = new InfoLog(display);
+		    Lexer lex = new Lexer(source, errorLog);
+		
+		    List<Token> tokens = lex.tokenize();
 	
-	//tokenise the tokens
-	Destination display = new Destination(System.out);
-	try{
-	    Source source = new Source(new FileReader(path));
-	    InfoLog errorLog = new InfoLog(display);
-	    Lexer lex = new Lexer(source, errorLog);
+		    
+		    //parse the tokens
+		    Parser parse = new Parser(tokens, errorLog);
+		    ModuleDeclaration moddec = parse.parseAST();
+		    
+		    System.out.print("\n\n-----------Checkpoint 3 Full Program TypeChecker Test---------------\n\n");
 	
-	    List<Token> tokens = lex.tokenize();
-
-	    
-	    //parse the tokens
-	    Parser parse = new Parser(tokens, errorLog);
-	    ModuleDeclaration moddec = parse.parseAST();
-	    
-	    System.out.print("\n\n-----------Checkpoint 3 Full Program TypeChecker Test---------------\n\n");
-
-	    TypeChecker typeChecker = new TypeChecker(errorLog);
-	    typeChecker.visit(moddec);
-
-	    System.out.print("\n\n---------------------------------------------------------\n\n");
-
-	    System.out.print("\n\n-----------Checkpoint 3 Full Program Interpreter Test---------------\n\n");
-
-	    String path2 = "src/main/java/edu/depauw/emulator_ide/processor";
-	    String command1 = "iverilog ARM7TDMIS.v";
-	    try {
-		Process process = Runtime.getRuntime().exec(command1, null, new File(path2));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-		String line;
-		while ((line = reader.readLine()) != null) {
-		    System.out.println(line);
+		    TypeChecker typeChecker = new TypeChecker(errorLog);
+		    typeChecker.visit(moddec);
+	
+		    System.out.print("\n\n---------------------------------------------------------\n\n");
+	
+		    System.out.print("\n\n-----------Checkpoint 3 Full Program Interpreter Test---------------\n\n");
+	
+		    Interpreter interpreter = new Interpreter(errorLog);
+		    interpreter.visit(moddec);
+	
+		    System.out.print("\n\n---------------------------------------------------------\n\n");
+		    
+		} catch (FileNotFoundException e){
+		    e.printStackTrace();
 		}
-		reader.close();
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-	
-	    String command2 = "vvp a.out";
-	    try {
-		Process process = Runtime.getRuntime().exec(command2, null, new File(path2));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		String line;
-		while ((line = reader.readLine()) != null) {
-		    System.out.println(line);
-		}
-		reader.close();
-	    } catch (IOException e) {
-		e.printStackTrace();
-	    }
-
-	    System.out.print("\n\n---------------------------------------------------------\n\n");
-	    
-	} catch (FileNotFoundException e){
-	    e.printStackTrace();
-	}
     }
 }

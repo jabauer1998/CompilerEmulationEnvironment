@@ -23,7 +23,7 @@ public class StrValue extends Expression{
      * @param none
      */
     public String getLexeme(){
-	return string.getLexeme();
+	return string.getLexeme().substring(1, string.getLexeme().length() - 1);
     }
 
     /**The accept method will make it so the visitor interface will work

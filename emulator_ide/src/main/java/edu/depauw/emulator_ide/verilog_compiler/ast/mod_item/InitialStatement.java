@@ -2,14 +2,27 @@ package edu.depauw.emulator_ide.verilog_compiler.ast.mod_item;
 
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor.StatementVisitor;
 
-public class InitialStatement extends ModItem{
+import java.lang.Runnable;
+import java.util.concurrent.Semaphore;
+import java.lang.InterruptedException;
+
+
+public class InitialStatement extends ModItem implements Runnable{
 
     private final Statement stat;
+    private static volatile StatementVisitor threadVisitor;
+    private static volatile Semaphore sema;
     
     public InitialStatement(Statement stat){
 	super(stat.getPosition());
 	this.stat = stat;
+    }
+
+    public static void setThreadParameters(StatementVisitor stat, Semaphore semaphore){
+	threadVisitor = stat;
+	sema = semaphore;
     }
 
     public Statement getStatement(){
@@ -21,5 +34,22 @@ public class InitialStatement extends ModItem{
      */
     public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
 	return modVisitor.visit(this, argv);
+    }
+
+    public void run(){
+	if(threadVisitor == null){
+	    System.out.println("Error: thread visitor may have not been initialized in initial statement");
+	    System.exit(1);
+	} else if(sema == null){
+	    System.out.println("Error: semaphore may not have been initialized in Allways Statement");
+	    System.exit(1);
+	}
+	stat.accept(threadVisitor);
+
+	try{
+	    sema.acquire();
+	} catch (InterruptedException exp) {
+	    exp.printStackTrace();
+	}
     }
 }

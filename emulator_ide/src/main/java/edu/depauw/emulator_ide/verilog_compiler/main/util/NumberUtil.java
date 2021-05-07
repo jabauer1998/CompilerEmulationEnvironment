@@ -50,9 +50,9 @@ public class NumberUtil {
     /** Returns the numerical version of the number
      * @param val the string representation of the number
      */
-    public static int getBinary(String val){
+    public static long getBinary(String val){
 	if(checkSize(val)){
-	    return Integer.parseInt("0b" + val.substring(val.indexOf('\'') + 2, val.length()));
+	    return (long)(int)Integer.parseInt("0b" + val.substring(val.indexOf('\'') + 2, val.length()));
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -63,9 +63,9 @@ public class NumberUtil {
      * @param val Number representation of the number
      */
 
-    public static int getHexidecimal(String val){
+    public static long getHexidecimal(String val){
 	if(checkSize(val)){
-	    return Integer.parseInt("0x" + val.substring(val.indexOf('\'') + 2));
+	    return (long)(int)Integer.parseInt("0x" + val.substring(val.indexOf('\'') + 2));
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -75,9 +75,9 @@ public class NumberUtil {
     /**Returns the Octal version of the number
      * @param val String representation of the number
      */
-    public static int getOctal(String val){
+    public static long getOctal(String val){
 	if(checkSize(val)){
-	    return Integer.parseInt("0" + val.substring(val.indexOf('\'') + 2));
+	    return (long)(int)Integer.parseInt("0" + val.substring(val.indexOf('\'') + 2));
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -87,9 +87,9 @@ public class NumberUtil {
     /**Returns the Decimal version of the number
      * @param val String representing the number
      */
-    public static int getDecimal(String val){
+    public static long getDecimal(String val){
 	if(checkSize(val)){
-	    return Integer.parseInt(val.substring(val.indexOf('\'') + 2));
+	    return (long)(int)Integer.parseInt(val.substring(val.indexOf('\'') + 2));
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -109,8 +109,8 @@ public class NumberUtil {
 	    }
 	}
 
-	int binaryLower = getBinary(lower.toString());
-	int binaryUpper = getBinary(upper.toString());
+	long binaryLower = (long)getBinary(lower.toString());
+	long binaryUpper = (long)getBinary(upper.toString());
 
 	return new Range(binaryLower, binaryUpper);
 	
@@ -129,8 +129,8 @@ public class NumberUtil {
 	    }
 	}
 
-	int binaryLower = getBinary(lower.toString());
-	int binaryUpper = getBinary(upper.toString());
+	long binaryLower = getBinary(lower.toString());
+	long binaryUpper = getBinary(upper.toString());
 
 	return new Range(binaryLower, binaryUpper);
 	

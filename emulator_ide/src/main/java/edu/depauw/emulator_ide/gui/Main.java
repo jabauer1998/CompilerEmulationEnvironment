@@ -189,6 +189,7 @@ public class Main extends Application{
 		
 		Scene scene = new Scene(halves);
 		stage.setScene(scene);	
+		stage.setMaximized(true);
 		stage.show();
 	}
 }
