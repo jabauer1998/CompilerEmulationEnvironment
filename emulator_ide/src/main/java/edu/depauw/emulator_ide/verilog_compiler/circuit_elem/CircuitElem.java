@@ -30,4 +30,8 @@ public abstract class CircuitElem{
 	return outputSignal;
     }
     
+    public String toString(){
+	return getSignal() ? "1" : "0";
+    }
+    
 }

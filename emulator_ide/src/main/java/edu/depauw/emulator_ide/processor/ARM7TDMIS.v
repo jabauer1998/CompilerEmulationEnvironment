@@ -90,16 +90,16 @@ module Arm();
    task loadProgram;
       input [31:0] address;
       integer 	   status, handler;
-      reg [0:31]   binaryLine;
+      reg [31:0]   binaryLine;
       begin
 	 R[15] = address; // initialize stack pointer to address 0
 	 handler = $fopen("src/main/java/edu/depauw/emulator_ide/processor/memfile.txt", "r");
 	 while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
-	    MEM[R[15]] = binaryLine[0:7];
-	    MEM[R[15] + 1] = binaryLine[8:15];
-	    MEM[R[15] + 2] = binaryLine[15:23];
-	    MEM[R[15] + 3] = binaryLine[24:31];
+	    MEM[R[15]] = binaryLine[31:24];
+	    MEM[R[15] + 1] = binaryLine[23:16];
+	    MEM[R[15] + 2] = binaryLine[15:8];
+	    MEM[R[15] + 3] = binaryLine[7:0];
 	    R[15] = R[15] + 4;
 	 end
 	 $fclose(handler);
@@ -141,7 +141,7 @@ module Arm();
 	   `DATAPROC: decode = instruction[24:21] + 2; // 2 to 17
 	   `LDRSTR : decode = 23;
 	   default: begin
-	      $display("Error: Unidentified intruction %b", instruction);
+	      $display("Error: Unidentified intruction %d\n", instruction);
 	      $finish;
 	      decode = -1;
 	   end
@@ -168,7 +168,7 @@ module Arm();
 	`LE : checkCC = `Z | (`N != `V);
 	`AL : checkCC = 1; //allways ignored
 	default: begin
-	   $display("Error: Unidentified intsruction %b", code);
+	   $display("Error: Unidentified intsruction %d\n", code);
 	   $finish;
 	   checkCC = -1;
 	end
@@ -550,7 +550,7 @@ module Arm();
 	  end // case: 28
 
 	  default: begin
-	     $display("Unknown Instruction with opcode  %b", code);
+	     $display("Unknown Instruction with opcode %d\n", code);
 	     $finish;
 	  end
 	  
@@ -561,9 +561,12 @@ module Arm();
       loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
       while(fetch(R[15]) && R[15] < `MEMSIZE) begin
 	 INSTR = fetch(R[15]); //Fetch next memory
+	 $display("My instruction: ", INSTR);
 	 InstructionCode = decode(INSTR);
+	 $display("My instruction code: ", InstructionCode);
 	 incriment; //increment the program counter by a word or 4 bytes
 	 execute(InstructionCode);
+	 $display("Executed Instruction\n");
       end
    end
    

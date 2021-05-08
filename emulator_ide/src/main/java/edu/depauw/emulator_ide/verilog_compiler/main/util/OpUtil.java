@@ -40,11 +40,11 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = vec2.getValue(sIndex2).getSignal();
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = vec2.getValue(sIndex2).getSignal();
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
 	    }
 	    
 	} else if(vec1.getSize() < vec2.getSize()){
@@ -57,11 +57,11 @@ public class OpUtil {
 	    int sIndex2 = start2 + (vec2.getSize() - vec1.getSize());
 	    
 	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = vec2.getValue(sIndex2).getSignal();
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = vec2.getValue(sIndex2).getSignal();
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
 	    }
 	} else {
 	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
@@ -73,17 +73,17 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex2 <= end2){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = vec2.getValue(sIndex2).getSignal();
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = vec2.getValue(sIndex2).getSignal();
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
 	    }
 
 	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			elem1.setSignal(false);
-			sIndex1++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		elem1.setSignal(false);
+		sIndex1++;
 	    }
 	}
     }
@@ -100,59 +100,80 @@ public class OpUtil {
 
     public static void shallowAssign(Vector<CircuitElem> vec1, String str2){
 	if(vec1.getSize() == str2.length()){
-	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int start1 = vec1.getIndex1();
 	    int start2 = 0;
-	    int end1 = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int end1 = vec1.getIndex2();
 	    int end2 = str2.length() - 1;
 
-	    int sIndex1 = start1;
 	    int sIndex2 = start2;
-	    
-	    while(sIndex1 <= end1){
-		Register elem1 = (Register)vec1.getValue(sIndex1);
-		boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
-		elem1.setSignal(signal);
-		sIndex1++;
-		sIndex2++;
+
+	    if(start1 <= end1){
+		for(int i = start1; i <= end1; i++){
+		    Register elem1 = (Register)vec1.getValue(i);
+		    boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
+		    elem1.setSignal(signal);
+		    sIndex2++;
+		}
+	    } else {
+		for(int i = start1; i >= end1; i--){
+		    Register elem1 = (Register)vec1.getValue(i);
+		    boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
+		    elem1.setSignal(signal);
+		    sIndex2++;
+		}
 	    }
 	    
 	} else if(vec1.getSize() < str2.length()){
-	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int start1 = vec1.getIndex1();
 	    int start2 = 0;
-	    int end1 = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int end1 = vec1.getIndex2();
 	    int end2 = str2.length() - 1;
 
-	    int sIndex1 = start1;
 	    int sIndex2 = start2 + (str2.length() - vec1.getSize());
-	    
-	    while(sIndex1 <= end1){
-		Register elem1 = (Register)vec1.getValue(sIndex1);
-		boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
-		elem1.setSignal(signal);
-		sIndex1++;
-		sIndex2++;
+
+	    if(start1 <= end1){
+		for(int i = start1; i <= end1; i++){
+		    Register elem1 = (Register)vec1.getValue(i);
+		    boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
+		    elem1.setSignal(signal);
+		    sIndex2++;
+		}
+	    } else {
+		for(int i = start1; i >= end1; i--){
+		    Register elem1 = (Register)vec1.getValue(i);
+		    boolean signal = str2.charAt(sIndex2) == '1' ? true : false;
+		    elem1.setSignal(signal);
+		    sIndex2++;
+		}
 	    }
 	} else {
-	    int start1 = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int start1 = vec1.getIndex1();
 	    int start2 = 0;
-	    int end1 = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	    int end1 = vec1.getIndex2();
 	    int end2 = str2.length() - 1;
 
 	    int sIndex1 = start1;
 	    int sIndex2 = start2;
-	    
+	    int incr = vec1.getIndex1() <= vec1.getIndex2() ?  1 : -1;
+
 	    while(sIndex2 <= end2){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = str2.charAt(sIndex2) == '1' ? true : false;  
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = str2.charAt(sIndex2) == '1' ? true : false;  
+		elem1.setSignal(signal);
+		sIndex1+=incr;
+		sIndex2++;
 	    }
 
-	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			elem1.setSignal(false);
-			sIndex1++;
+	    if(start1 <= end1){
+		for(int i = sIndex1; i <= end1; i++){
+		    Register elem1 = (Register)vec1.getValue(i);
+		    elem1.setSignal(false);
+		}
+	    } else {
+		for(int i = sIndex1; i >= end1; i--){
+		     Register elem1 = (Register)vec1.getValue(i);
+		     elem1.setSignal(false);
+		}
 	    }
 	}
     }
@@ -175,11 +196,11 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = vec2.getValue(sIndex2).getSignal();
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = vec2.getValue(sIndex2).getSignal();
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
 	    }
 	} else if(sliceSize < vec2.getSize()){
 	    int start1 = (index1 < index2) ? index1 : index2;
@@ -191,11 +212,11 @@ public class OpUtil {
 	    int sIndex2 = start2 + (vec2.getSize() - sliceSize);
 	    
 	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = vec2.getValue(sIndex2).getSignal();
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = vec2.getValue(sIndex2).getSignal();
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
 	    }
 	} else {
 	    int start1 = (index1 < index2) ? index1 : index2;
@@ -207,17 +228,17 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex2 <= end2){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			boolean signal = vec2.getValue(sIndex2).getSignal();
-			elem1.setSignal(signal);
-			sIndex1++;
-			sIndex2++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		boolean signal = vec2.getValue(sIndex2).getSignal();
+		elem1.setSignal(signal);
+		sIndex1++;
+		sIndex2++;
 	    }
 
 	    while(sIndex1 <= end1){
-			Register elem1 = (Register)vec1.getValue(sIndex1);
-			elem1.setSignal(false);
-			sIndex1++;
+		Register elem1 = (Register)vec1.getValue(sIndex1);
+		elem1.setSignal(false);
+		sIndex1++;
 	    }
 	}
     }
@@ -228,8 +249,8 @@ public class OpUtil {
      * After a shallow assignment if a signal change occurs in the register that was assigned it will not affect the register that the value was assigned to. In other words it makes a copy.
      */
     public static void deepAssign(Vector<CircuitElem> vec1, int index, Vector<CircuitElem> vec2){
-		int start2 = (vec2.getIndex1() < vec2.getIndex2()) ? vec2.getIndex1() : vec2.getIndex2();
-		vec1.setValue(index, vec2.getValue(start2));
+	int start2 = (vec2.getIndex1() < vec2.getIndex2()) ? vec2.getIndex1() : vec2.getIndex2();
+	vec1.setValue(index, vec2.getValue(start2));
     }
 
     /**
@@ -248,9 +269,9 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex1 <= end1){
-			vec.setValue(sIndex1, vector.getValue(sIndex2));
-			sIndex1++;
-			sIndex2++;
+		vec.setValue(sIndex1, vector.getValue(sIndex2));
+		sIndex1++;
+		sIndex2++;
 	    }
 	    
 	} else if(vec.getSize() < vector.getSize()){
@@ -263,9 +284,9 @@ public class OpUtil {
 	    int sIndex2 = start2 + (vector.getSize() - vec.getSize());
 	    
 	    while(sIndex1 <= end1){
-			vec.setValue(sIndex1, vector.getValue(sIndex2));
-			sIndex1++;
-			sIndex2++;
+		vec.setValue(sIndex1, vector.getValue(sIndex2));
+		sIndex1++;
+		sIndex2++;
 	    }
 	} else {
 	    int start1 = (vec.getIndex1() < vec.getIndex2()) ? vec.getIndex1() : vec.getIndex2();
@@ -277,9 +298,9 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex2 <= end2){
-			vec.setValue(sIndex1, vector.getValue(sIndex2));
-			sIndex1++;
-			sIndex2++;
+		vec.setValue(sIndex1, vector.getValue(sIndex2));
+		sIndex1++;
+		sIndex2++;
 	    }
 
 	    while(sIndex1 <= end1){
@@ -302,9 +323,9 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex1 <= end1){
-			vec1.setValue(sIndex1, vec2.getValue(sIndex2));
-			sIndex1++;
-			sIndex2++;
+		vec1.setValue(sIndex1, vec2.getValue(sIndex2));
+		sIndex1++;
+		sIndex2++;
 	    }
 	    
 	} else if(sliceSize < vec2.getSize()){
@@ -317,9 +338,9 @@ public class OpUtil {
 	    int sIndex2 = start2 + (vec2.getSize() - sliceSize);
 	    
 	    while(sIndex1 <= end1){
-			vec1.setValue(sIndex1, vec2.getValue(sIndex2));
-			sIndex1++;
-			sIndex2++;
+		vec1.setValue(sIndex1, vec2.getValue(sIndex2));
+		sIndex1++;
+		sIndex2++;
 	    }
 	} else {
 	    int start1 = (index1 < index2) ? index1 : index2;
@@ -331,9 +352,9 @@ public class OpUtil {
 	    int sIndex2 = start2;
 	    
 	    while(sIndex2 <= end2){
-			vec1.setValue(sIndex1, vec2.getValue(sIndex2));
-			sIndex1++;
-			sIndex2++;
+		vec1.setValue(sIndex1, vec2.getValue(sIndex2));
+		sIndex1++;
+		sIndex2++;
 	    }
 
 	    while(sIndex1 <= end1){
@@ -349,26 +370,26 @@ public class OpUtil {
     }
 
     public static void shallowAssign(Vector<CircuitElem> vec1, CircuitElem elem2){
-		int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		((Register)vec1.getValue(start)).setSignal(elem2.getSignal());
-		int sIndex1 = start + 1;
-		while(sIndex1 <= end){
-		    ((Register)vec1.getValue(sIndex1)).setSignal(false);
-		    sIndex1++;
-		}
+	int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	((Register)vec1.getValue(start)).setSignal(elem2.getSignal());
+	int sIndex1 = start + 1;
+	while(sIndex1 <= end){
+	    ((Register)vec1.getValue(sIndex1)).setSignal(false);
+	    sIndex1++;
+	}
 	
     }
 
     public static void shallowAssign(Vector<CircuitElem> vec1, int index1, int index2, CircuitElem elem2){
-		int start = (index1 < index2) ? index1 : index2;
-		int end = (index1 > index2) ? index1 : index2;
-		((Register)vec1.getValue(start)).setSignal(elem2.getSignal());
-		int sIndex1 = start + 1;
-		while(sIndex1 <= end){
-		    ((Register)vec1.getValue(sIndex1)).setSignal(false);
-		    sIndex1++;
-		}
+	int start = (index1 < index2) ? index1 : index2;
+	int end = (index1 > index2) ? index1 : index2;
+	((Register)vec1.getValue(start)).setSignal(elem2.getSignal());
+	int sIndex1 = start + 1;
+	while(sIndex1 <= end){
+	    ((Register)vec1.getValue(sIndex1)).setSignal(false);
+	    sIndex1++;
+	}
 	
     }
 
@@ -377,25 +398,25 @@ public class OpUtil {
     }
 
     public static void deepAssign(Vector<CircuitElem> vec1, int index1, int index2, CircuitElem elem2){
-		int start = (index1 < index2) ? index1 : index2;
-		int end = (index1 > index2) ? index1 : index2;
-		vec1.setValue(start, elem2);
-		int sIndex1 = start + 1;
-		while(sIndex1 <= end){
-		    vec1.setValue(sIndex1, new Register(false));
-		    sIndex1++;
-		}
+	int start = (index1 < index2) ? index1 : index2;
+	int end = (index1 > index2) ? index1 : index2;
+	vec1.setValue(start, elem2);
+	int sIndex1 = start + 1;
+	while(sIndex1 <= end){
+	    vec1.setValue(sIndex1, new Register(false));
+	    sIndex1++;
+	}
     }
 
     public static void deepAssign(Vector<CircuitElem> vec1, CircuitElem elem2){
-		int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		vec1.setValue(start, elem2);
-		int sIndex1 = start + 1;
-		while(sIndex1 <= end){
-		    vec1.setValue(sIndex1, new Register(false));
-		    sIndex1++;
-		}
+	int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	vec1.setValue(start, elem2);
+	int sIndex1 = start + 1;
+	while(sIndex1 <= end){
+	    vec1.setValue(sIndex1, new Register(false));
+	    sIndex1++;
+	}
     }
 
     public static void deepAssign(Vector<CircuitElem> vec1, int index1, CircuitElem elem2){
@@ -408,18 +429,18 @@ public class OpUtil {
 	    int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
 	    int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
 	    for(int i = start; i <= end; i++){
-			boolean signal = (int2 & (1 << over)) > 0;
-			((Register)vec1.getValue(i)).setSignal(signal);
-			over++;
+		boolean signal = (int2 & (1 << over)) > 0;
+		((Register)vec1.getValue(i)).setSignal(signal);
+		over++;
 	    }
 	} else {
 	    int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
 	    int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
 	    int sIndex1 = start;
 	    for(int i = 0; i < 64; i++){
-			boolean signal = (int2 & (1 << i)) > 0;
-			((Register)vec1.getValue(sIndex1)).setSignal(signal);
-			sIndex1++;
+		boolean signal = (int2 & (1 << i)) > 0;
+		((Register)vec1.getValue(sIndex1)).setSignal(signal);
+		sIndex1++;
 	    }
 
 	    while(sIndex1 <= end){
@@ -438,16 +459,16 @@ public class OpUtil {
 	    for(int i = start; i <= end; i++){
 	    	boolean signal = (int2 & (1 << over)) > 0;
 	    	((Register)vec1.getValue(i)).setSignal(signal);
-			over++;
+		over++;
 	    }
 	} else {
 	    int start = (index1 < index2) ? index1: index2;
 	    int end = (index1 > index2) ? index1 : index2;
 	    int sIndex1 = start;
 	    for(int i = 0; i < 64; i++){
-			boolean signal = (int2 & (1 << i)) > 0;
-			((Register)vec1.getValue(sIndex1)).setSignal(signal);
-			sIndex1++;
+		boolean signal = (int2 & (1 << i)) > 0;
+		((Register)vec1.getValue(sIndex1)).setSignal(signal);
+		sIndex1++;
 	    }
 
 	    while(sIndex1 <= end){
@@ -466,23 +487,23 @@ public class OpUtil {
     }
 
     public static void shallowAssign(Vector<CircuitElem> vec1, boolean bool2){
-		int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		((Register)vec1.getValue(start)).setSignal(bool2);
-		int sIndex1 = start + 1;
-		for(int i = sIndex1; i <= end; i++){
-		    ((Register)vec1.getValue(i)).setSignal(false);
-		}
+	int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	((Register)vec1.getValue(start)).setSignal(bool2);
+	int sIndex1 = start + 1;
+	for(int i = sIndex1; i <= end; i++){
+	    ((Register)vec1.getValue(i)).setSignal(false);
+	}
     }
 
     public static void shallowAssign(Vector<CircuitElem> vec1, int index1, int index2, boolean bool2){
-		int start = (index1 < index2) ? index1: index2;
-		int end = (index1 > index2) ? index1 : index2;
-		((Register)vec1.getValue(start)).setSignal(bool2);
-		int sIndex1 = start + 1;
-		for(int i = sIndex1; i <= end; i++){
-		    ((Register)vec1.getValue(i)).setSignal(false);
-		}
+	int start = (index1 < index2) ? index1: index2;
+	int end = (index1 > index2) ? index1 : index2;
+	((Register)vec1.getValue(start)).setSignal(bool2);
+	int sIndex1 = start + 1;
+	for(int i = sIndex1; i <= end; i++){
+	    ((Register)vec1.getValue(i)).setSignal(false);
+	}
     }
 
     public static void shallowAssign(Vector<CircuitElem> vec1, int index1, boolean bool2){
@@ -502,17 +523,17 @@ public class OpUtil {
     }
 
     public static long toLong(Vector<CircuitElem> vec1){
-		int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
+	int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
 		
-		int sIndex1 = start;
-		int i = 0;
-		long result = 0;
-		while(i < 64 && sIndex1 <= end){
-		    result |= toLong(vec1.getValue(sIndex1)) << i;
-		    i++;
-		    sIndex1++;
-		}
-		return result;
+	int sIndex1 = start;
+	int i = 0;
+	long result = 0;
+	while(i < 64 && sIndex1 <= end){
+	    result |= toLong(vec1.getValue(sIndex1)) << i;
+	    i++;
+	    sIndex1++;
+	}
+	return result;
     }
 }

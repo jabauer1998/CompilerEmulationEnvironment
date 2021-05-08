@@ -3,6 +3,8 @@ package edu.depauw.emulator_ide.verilog_compiler.data_structure;
 import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
 
+import java.lang.Long;
+
 /**The vectorcall class is used to par.E a call to an array cell
  * @author Jacob Bauer
  */
@@ -24,6 +26,10 @@ public class Range{
 
     public boolean inRange(long value){
 	return value <= upperBound && value >= lowerBound;
+    }
+
+    public String toString(){
+	return "Range is: " + Long.toString(lowerBound, 2) + " <=  value  <= " + Long.toString(upperBound, 2);
     }
     
 }

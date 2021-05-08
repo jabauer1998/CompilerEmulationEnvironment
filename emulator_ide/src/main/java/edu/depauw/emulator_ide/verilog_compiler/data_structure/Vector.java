@@ -1,15 +1,17 @@
 package edu.depauw.emulator_ide.verilog_compiler.data_structure;
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem.Register;
 import edu.depauw.emulator_ide.verilog_compiler.main.util.OpUtil;
 
 import java.util.ArrayList;
+import java.lang.StringBuilder;
 
 /**The vectorcall class is used to par.E a call to an array cell
  * @author Jacob Bauer
  */
 
-public class Vector<DataValue>{
+public class Vector<DataValue> {
 
     private Object[] data;
     private final int index1;
@@ -31,15 +33,38 @@ public class Vector<DataValue>{
     	return (index1 <= index2) ? (DataValue)data[index - index1] : (DataValue)data[index1 - index];
     }
 
-    public Vector<DataValue> getSlice(int index1, int index2){
+    public Vector<DataValue> getDeepSlice(int index1, int index2){
     	Vector<DataValue> vec = new Vector(index1, index2);
-    	if(vec.getValue(index2) instanceof CircuitElem && this.getValue(index2) instanceof CircuitElem) {
-    		Vector<CircuitElem> elem = (Vector<CircuitElem>)vec;
-    		Vector<CircuitElem> This = (Vector<CircuitElem>)this;
-    		OpUtil.deepAssign(elem, This);
-    		return (Vector<DataValue>)elem;
-    	}
-    	return vec;
+	if(index1 <= index2){
+	    for(int i = index1; i <= index2; i++){
+		vec.setValue(i, this.getValue(i));
+	    }
+	} else {
+	    for(int i = index2; i <= index1; i++){
+		vec.setValue(i, this.getValue(i));
+	    }
+	}
+	return vec;
+    }
+
+    public Vector<DataValue> getShallowSlice(int index1, int index2){
+    	Vector<CircuitElem> vec = new Vector(index1, index2);
+	if(index1 <= index2){
+	    for(int i = index1; i <= index2; i++){
+		Register r = new Register(false);
+		CircuitElem elem = (CircuitElem)this.getValue(i);
+		r.setSignal(elem.getSignal());
+		vec.setValue(i, r);
+	    }
+	} else {
+	    for(int i = index2; i <= index1; i++){
+		Register r = new Register(false);
+		CircuitElem elem = (CircuitElem)this.getValue(i);
+		r.setSignal(elem.getSignal());
+		vec.setValue(i, r);
+	    }
+	}
+	return (Vector<DataValue>)vec;
     }
 
     public int getIndex1(){
@@ -56,5 +81,20 @@ public class Vector<DataValue>{
 
     public void setValue(int index, DataValue val){
     	data[(index1 <= index2) ? index - index1 : index1 - index] = val;
+    }
+
+ 
+    public String toString(){
+	StringBuilder sb = new StringBuilder();
+	if(index1 <= index2){
+	    for(int i = index1; i <= index2; i++){
+		sb.append(getValue(i).toString());
+	    }
+	} else {
+	    for(int i = index1; i >= index2; i--){
+		sb.append(getValue(i).toString());
+	    }
+	}
+	return sb.toString();
     }
 }

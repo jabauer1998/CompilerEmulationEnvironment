@@ -9,6 +9,7 @@ import edu.depauw.emulator_ide.verilog_compiler.data_structure.Range;
 import java.lang.String;
 import java.lang.Number;
 import java.lang.Integer;
+import java.lang.Long;
 import java.lang.StringBuilder;
 
 
@@ -52,7 +53,7 @@ public class NumberUtil {
      */
     public static long getBinary(String val){
 	if(checkSize(val)){
-	    return (long)(int)Integer.parseInt("0b" + val.substring(val.indexOf('\'') + 2, val.length()));
+	    return Long.parseLong(val.substring(val.indexOf('\'') + 2), 2);
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -65,7 +66,7 @@ public class NumberUtil {
 
     public static long getHexidecimal(String val){
 	if(checkSize(val)){
-	    return (long)(int)Integer.parseInt("0x" + val.substring(val.indexOf('\'') + 2));
+	    return Long.parseLong(val.substring(val.indexOf('\'') + 2), 16);
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -77,7 +78,7 @@ public class NumberUtil {
      */
     public static long getOctal(String val){
 	if(checkSize(val)){
-	    return (long)(int)Integer.parseInt("0" + val.substring(val.indexOf('\'') + 2));
+	    return Long.parseLong(val.substring(val.indexOf('\'') + 2), 8);
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -89,7 +90,7 @@ public class NumberUtil {
      */
     public static long getDecimal(String val){
 	if(checkSize(val)){
-	    return (long)(int)Integer.parseInt(val.substring(val.indexOf('\'') + 2));
+	    return Long.parseLong(val.substring(val.indexOf('\'') + 2));
 	} else {
 	    System.out.println("Sizes to dot match on integer " + val);
 	    return -1;
@@ -102,15 +103,15 @@ public class NumberUtil {
     public static Range getZRange(String val){
 	StringBuilder lower = new StringBuilder(val);
 	StringBuilder upper = new StringBuilder(val);
-	for(int i = 0; i < val.length(); i++){
+	for(int i = val.indexOf('\'') + 2; i < val.length(); i++){
 	    if(Character.toLowerCase(val.charAt(i)) == 'z'){
 		lower.setCharAt(i, '0');
 		upper.setCharAt(i, '1');
 	    }
 	}
 
-	long binaryLower = (long)getBinary(lower.toString());
-	long binaryUpper = (long)getBinary(upper.toString());
+	long binaryLower = getBinary(lower.toString());
+	long binaryUpper = getBinary(upper.toString());
 
 	return new Range(binaryLower, binaryUpper);
 	
@@ -122,7 +123,7 @@ public class NumberUtil {
     public static Range getXRange(String val){
 	StringBuilder lower = new StringBuilder(val);
 	StringBuilder upper = new StringBuilder(val);
-	for(int i = 0; i < val.length(); i++){
+	for(int i = val.indexOf('\'') + 2; i < val.length(); i++){
 	    if(Character.toLowerCase(val.charAt(i)) == 'x'){
 		lower.setCharAt(i, '0');
 		upper.setCharAt(i, '1');
