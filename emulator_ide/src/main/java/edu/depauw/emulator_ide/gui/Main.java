@@ -55,17 +55,17 @@ public class Main extends Application{
         assemble.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         TextArea assemblerInput = new TextArea();
         assemblerInput.setMaxWidth(leftSide.getMaxWidth());
-		assemblerInput.setMaxHeight(leftSide.getMaxHeight());
-	    assemblerInput.setPrefWidth(leftSide.getMaxWidth());
-		assemblerInput.setPrefHeight(leftSide.getMaxHeight());
+	assemblerInput.setMaxHeight(leftSide.getMaxHeight());
+	assemblerInput.setPrefWidth(leftSide.getMaxWidth());
+	assemblerInput.setPrefHeight(leftSide.getMaxHeight());
 	
         Button execute = new Button("Execute");
         execute.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         TextArea binaryInput = new TextArea();
         binaryInput.setMaxWidth(leftSide.getMaxWidth());
-		binaryInput.setMaxHeight(leftSide.getMaxHeight());
-		binaryInput.setPrefWidth(leftSide.getMaxWidth());
-		binaryInput.setPrefHeight(leftSide.getMaxHeight());
+	binaryInput.setMaxHeight(leftSide.getMaxHeight());
+	binaryInput.setPrefWidth(leftSide.getMaxWidth());
+	binaryInput.setPrefHeight(leftSide.getMaxHeight());
         
         leftSide.getChildren().addAll(assemble, assemblerInput, execute, binaryInput);
         
@@ -77,36 +77,36 @@ public class Main extends Application{
         middleLeftSide.getChildren().add(registerFile);
         
         middleLeftSide.setMaxWidth(halves.getMaxWidth() / 6);
-		middleLeftSide.setMaxHeight(halves.getMaxHeight());
-		middleLeftSide.setPrefWidth(halves.getMaxWidth() / 6);
-		middleLeftSide.setPrefHeight(halves.getMaxHeight());
+	middleLeftSide.setMaxHeight(halves.getMaxHeight());
+	middleLeftSide.setPrefWidth(halves.getMaxWidth() / 6);
+	middleLeftSide.setPrefHeight(halves.getMaxHeight());
 		
-		GuiRegister.setParent(middleLeftSide);
-		GuiRegister.setRegisterSize(32);
+	GuiRegister.setParent(middleLeftSide);
+	GuiRegister.setRegisterSize(32);
 		
-		GuiRegister CSPR = new GuiRegister("CSPR");
-		GuiRegister R0 = new GuiRegister("R0");
-		GuiRegister R1 = new GuiRegister("R1");
-		GuiRegister R2 = new GuiRegister("R2");
-		GuiRegister R3 = new GuiRegister("R3");
-		GuiRegister R4 = new GuiRegister("R4");
-		GuiRegister R5 = new GuiRegister("R5");
-		GuiRegister R6 = new GuiRegister("R6");
-		GuiRegister R7 = new GuiRegister("R7");
-		GuiRegister R8 = new GuiRegister("R8");
-		GuiRegister R9 = new GuiRegister("R9");
-		GuiRegister R10 = new GuiRegister("R10");
-		GuiRegister R11 = new GuiRegister("R11");
-		GuiRegister R12 = new GuiRegister("R12");
-		GuiRegister R13 = new GuiRegister("R13");
-		GuiRegister R14 = new GuiRegister("R14");
-		GuiRegister R15 = new GuiRegister("R15");
+	GuiRegister CSPR = new GuiRegister(42);
+	GuiRegister R0 = new GuiRegister(0);
+	GuiRegister R1 = new GuiRegister(1);
+	GuiRegister R2 = new GuiRegister(2);
+	GuiRegister R3 = new GuiRegister(3);
+	GuiRegister R4 = new GuiRegister(4);
+	GuiRegister R5 = new GuiRegister(5);
+	GuiRegister R6 = new GuiRegister(6);
+	GuiRegister R7 = new GuiRegister(7);
+	GuiRegister R8 = new GuiRegister(8);
+	GuiRegister R9 = new GuiRegister(9);
+	GuiRegister R10 = new GuiRegister(10);
+	GuiRegister R11 = new GuiRegister(11);
+	GuiRegister R12 = new GuiRegister(12);
+	GuiRegister R13 = new GuiRegister(13);
+	GuiRegister R14 = new GuiRegister(14);
+	GuiRegister R15 = new GuiRegister(15);
 		
         VBox middleRightSide = new VBox();
         middleRightSide.setMaxWidth(halves.getMaxWidth() / 6);
-		middleRightSide.setMaxHeight(halves.getMaxHeight());
-		middleRightSide.setPrefWidth(halves.getMaxWidth() / 6);
-		middleRightSide.setPrefHeight(halves.getMaxHeight());
+	middleRightSide.setMaxHeight(halves.getMaxHeight());
+	middleRightSide.setPrefWidth(halves.getMaxWidth() / 6);
+	middleRightSide.setPrefHeight(halves.getMaxHeight());
         
         Label memDumpTitle = new Label("Memory Dump");
         memDumpTitle.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
@@ -114,24 +114,25 @@ public class Main extends Application{
         
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setMaxWidth(middleRightSide.getMaxWidth());
-		scrollPane.setMaxHeight(middleRightSide.getMaxHeight());
-		scrollPane.setPrefWidth(middleRightSide.getMaxWidth());
-		scrollPane.setPrefHeight(middleRightSide.getMaxHeight());
+	scrollPane.setMaxHeight(middleRightSide.getMaxHeight());
+	scrollPane.setPrefWidth(middleRightSide.getMaxWidth());
+	scrollPane.setPrefHeight(middleRightSide.getMaxHeight());
         
 		
-		VBox memoryDump = new VBox();
-		memoryDump.setMaxWidth(scrollPane.getMaxWidth());
-		memoryDump.setMaxHeight(scrollPane.getMaxHeight());
-		memoryDump.setPrefWidth(scrollPane.getMaxWidth());
-		memoryDump.setPrefHeight(scrollPane.getMaxHeight());
+	VBox memoryDump = new VBox();
+	memoryDump.setMaxWidth(scrollPane.getMaxWidth());
+	memoryDump.setMaxHeight(scrollPane.getMaxHeight());
+	memoryDump.setPrefWidth(scrollPane.getMaxWidth());
+	memoryDump.setPrefHeight(scrollPane.getMaxHeight());
 		
 		
-		int MEMSIZE = 10000;
-		GuiMemory.setParent(memoryDump);
-		GuiMemory.setMemSize(MEMSIZE);
+	int MEMSIZE = 10000;
+	GuiMemory.setParent(memoryDump);
+	GuiMemory.setMemSize(MEMSIZE);
+	GuiMemory.setMemLength(8);
         
         for(int i = 0; i < MEMSIZE; i++) {
-        	new GuiMemory(i); //creates a byte of memory to display
+	    new GuiMemory(i); //creates a byte of memory to display
         }
         
         scrollPane.setContent(memoryDump);
@@ -169,10 +170,10 @@ public class Main extends Application{
         standardOutput.setMaxWidth(rightSide.getMaxWidth());
         standardOutput.setMaxHeight(rightSide.getMaxHeight());
         standardOutput.setPrefWidth(rightSide.getMaxWidth());
-		standardOutput.setPrefHeight(rightSide.getMaxHeight());
-		standardOutput.setEditable(false);
+	standardOutput.setPrefHeight(rightSide.getMaxHeight());
+	standardOutput.setEditable(false);
 		
-		Label stdin = new Label("Standard Input");
+	Label stdin = new Label("Standard Input");
         stdin.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         stdin.setAlignment(Pos.CENTER);
         
@@ -180,16 +181,16 @@ public class Main extends Application{
         standardInput.setMaxWidth(rightSide.getMaxWidth());
         standardInput.setMaxHeight(rightSide.getMaxHeight());
         standardInput.setPrefWidth(rightSide.getMaxWidth());
-		standardInput.setPrefHeight(rightSide.getMaxHeight());
+	standardInput.setPrefHeight(rightSide.getMaxHeight());
         
 	
-		rightSide.getChildren().addAll(status, parentStatus, stdout, standardOutput, stdin, standardInput);
+	rightSide.getChildren().addAll(status, parentStatus, stdout, standardOutput, stdin, standardInput);
 		
-	    halves.getChildren().addAll(leftSide, middleLeftSide, middleRightSide, rightSide);
+	halves.getChildren().addAll(leftSide, middleLeftSide, middleRightSide, rightSide);
 		
-		Scene scene = new Scene(halves);
-		stage.setScene(scene);	
-		stage.setMaximized(true);
-		stage.show();
-	}
+	Scene scene = new Scene(halves);
+	stage.setScene(scene);	
+	stage.setMaximized(true);
+	stage.show();
+    }
 }
