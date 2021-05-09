@@ -12,6 +12,7 @@ import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.*;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Vector;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Range;
+import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pattern;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.list.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.general.case_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.ast.statement.*;
@@ -1128,8 +1129,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private boolean caseBoolean(long target, Object expr){
 	if(expr instanceof Range){
 	    Range r = (Range)expr;
-	    System.out.println(r.toString());
 	    return r.inRange(target);
+	} else if (expr instanceof Pattern) {
+	    Pattern pat = (Pattern)expr;
+	    return pat.match(target);
 	} else {
 	    return target == longValue(expr);
 	}
@@ -1547,7 +1550,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		Object data = task.getExpression(0).accept(this);
 		System.out.println(data);
 	    } else {
-		System.out.println("Unknown print arguments ");
+		errorAndExit("Unknown number of print arguments in " + taskName.getLexeme(), taskName.getPosition());
 	    }
 	} else if (taskName.getLexeme().equals("finish")){
 	    System.exit(0);
@@ -1607,255 +1610,135 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
 	switch(op.getOp().getOpType()){
 	case PLUS:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) + ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) + OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left + (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return ((long)left) + ((double)right);
-	    } else if (left instanceof Double && right instanceof Long){
-		return ((double)left) + ((long)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) + (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left + longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) + (double)right;
 	    } else {
-		return (long)left + OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) + longValue(right);
 	    }
 	case MINUS:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) - ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) - OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left - (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left - (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left - (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) - (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left - longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) - (double)right;
 	    } else {
-		return (long)left - OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) - longValue(right);
 	    }
 	case TIMES:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) * ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) * OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left * (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left * (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left * (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) * (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left * longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) * (double)right;
 	    } else {
-		return (long)left * OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) * longValue(right);
 	    }
 	case DIV:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) / ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) / OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left / (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left / (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left / (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) * (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left / longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) / (double)right;
 	    } else {
-		return (long)left / OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) / longValue(right);
 	    }
 	case MOD:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) % ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) % OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) % ((long)right);
-	    } else {
-		return (long)left % OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return longValue(left) % longValue(right);
 	case EQ2:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) == ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) == OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left == (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left == (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left == (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) == ((long)right);
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left == longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) == (double)right;
 	    } else {
-		return ((long)left) == OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) == longValue(right);
 	    }
 	case EQ3:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) == ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) == OpUtil.toLong((Vector<CircuitElem>)right);
+	    if(right instanceof Double && left instanceof Double){
+		return (Double)left == (Double)right;
 	    } else {
-		return (double)left == (double)right;
+		return longValue(left) == longValue(right);
 	    }
 	case NE1:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) != ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) != OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left != (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left != (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left != (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) != ((long)right);
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left != longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) != (double)right;
 	    } else {
-		return ((long)left) != OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) != longValue(right);
 	    }
 	case NE2:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left) != ((long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) != OpUtil.toLong((Vector<CircuitElem>)right);
+	    if(right instanceof Double && left instanceof Double){
+		return (Double)left != (Double)right;
 	    } else {
-		return (double)left != (double)right;
+		return longValue(left) != longValue(right);
 	    }
 	case LAND:
 	    return boolValue(left) && boolValue(right);
 	case LOR:
 	    return boolValue(left) || boolValue(right);
 	case LE:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left <= (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) <= OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left <= (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left <= (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left <= (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) <= (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left <= longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) <= (double)right;
 	    } else {
-		return (long)left <= OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) <= longValue(right);
 	    }
 	case LT:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left < (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) < OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left < (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left < (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left < (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) < (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left < longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) < (double)right;
 	    } else {
-		return (long)left < OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) < longValue(right);
 	    }
 	case GE:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left >= (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) >= OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left >= (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left >= (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left >= (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) >= (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left >= longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) >= (double)right;
 	    } else {
-		return (long)left >= OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) >= longValue(right);
 	    }
 	case GT:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left > (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) > OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if (left instanceof Double && right instanceof Double){
+	    if (left instanceof Double && right instanceof Double){
 		return (double)left > (double)right;
-	    } else if (left instanceof Long && right instanceof Double) {
-		return (long)left > (double)right;
-	    } else if (left instanceof Double && right instanceof Long){
-		return (double)left > (long)right;
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) > (long)right;
+	    } else if (left instanceof Double && !(right instanceof Double)) {
+		return (double)left > longValue(right);
+	    } else if (!(left instanceof Double) && right instanceof Double){
+		return longValue(left) > (double)right;
 	    } else {
-		return (long)left > OpUtil.toLong((Vector<CircuitElem>)right);
+		return longValue(left) > longValue(right);
 	    }
 	case BAND:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left & (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) & OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) & (long)right;
-	    } else {
-		return (long)left & OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return longValue(left) & longValue(right);
 	case BOR:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left | (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) | OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) | (long)right;
-	    } else {
-		return (long)left & OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return longValue(left) | longValue(right);
 	case BXOR:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left ^ (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) ^ OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) ^ (long)right;
-	    } else {
-		return (long)left ^ OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return longValue(left) ^ longValue(right);
 	case BXNOR:
-	    if(right instanceof Long && left instanceof Long){
-		return ~((long)left ^ (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return ~(OpUtil.toLong((Vector<CircuitElem>)left) ^ OpUtil.toLong((Vector<CircuitElem>)right));
-	    } else if(left instanceof Vector && right instanceof Long){
-		return ~(OpUtil.toLong((Vector<CircuitElem>)left) ^ (long)right);
-	    } else {
-		return ~((long)left ^ OpUtil.toLong((Vector<CircuitElem>)right));
-	    }
+	    return ~(longValue(left) ^ longValue(right));
 	case LSHIFT:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left << (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) << OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) << (long)right;
-	    } else {
-		return (long)left << OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return longValue(left) << longValue(right);
 	case RSHIFT:
-	    if(right instanceof Long && left instanceof Long){
-		return ((long)left >> (long)right);
-	    } else if (right instanceof Vector && left instanceof Vector){
-		return OpUtil.toLong((Vector<CircuitElem>)left) >> OpUtil.toLong((Vector<CircuitElem>)right);
-	    } else if(left instanceof Vector && right instanceof Long){
-		return OpUtil.toLong((Vector<CircuitElem>)left) >> (long)right;
-	    } else {
-		return (long)left >> OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return longValue(left) >> longValue(right);
 	default:
 	    errorLog.addItem(new ErrorItem("Invalid operation in verilog of type " + left.getClass() + " " + op.getOp().getOpType()+ " " + right.getClass(), op.getPosition()));
             return null;
@@ -1873,31 +1756,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	case PLUS:
 	    return right;
 	case MINUS:
-	    if(right instanceof Long){
-		return -(long)right;
-	    } else if (right instanceof Double) {
+	    if (right instanceof Double) {
 		return -(double)right;
 	    } else {
-		return -OpUtil.toLong((Vector<CircuitElem>)right);
+		return -longValue(right);
 	    }
 	case LNEG:
-	    if(right instanceof Long){
-		return !((long)right != 0);
-	    } else if (right instanceof Boolean){
-		return !(boolean)right;
-	    } else if (right instanceof Double){
-		return !((double)right != 0);
-	    } else {
-		return !(OpUtil.toLong((Vector<CircuitElem>)right) != 0);
-	    }
+	    return !boolValue(right);
 	case BNEG:
-	    if(right instanceof Long){
-		return ~(long)right;
-	    } else if (right instanceof Boolean){
-		return !(boolean)right;
-	    } else {
-		return ~OpUtil.toLong((Vector<CircuitElem>)right);
-	    }
+	    return ~longValue(right);
 	default:
 	    errorLog.addItem(new ErrorItem("Unknown unary operation in verilog of type " + op.getOp().getOpType() + " " + right.getClass(), op.getPosition()));
             return null;
@@ -1914,8 +1781,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	int size = 0;
 	for(int expr = 0; expr < concat.numExpressions(); expr++){
 	    Object obj = concat.getExpression(expr).accept(this);
-	    System.out.println("Value placed in concat " + obj.toString());
-	    System.out.println("Object of " + obj.getClass() + " is equal to " + obj.toString());
 	    if(obj instanceof Vector){
 		size += ((Vector<CircuitElem>)obj).getSize();
 	    } else {
@@ -1944,7 +1809,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		total--;
 	    }
 	}
-	System.out.print("Value gotten from concat " + newVec.toString());
 	return newVec;
     }
 
@@ -2009,13 +1873,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    
 	    inFunctionReturn = true;
 	    decl.getStatement().accept(this);
-	    removeTopExit();
 	    inFunctionReturn = false;
+	    removeTopExit();
 	    varEnv.removeScope();
 	    removeTopFunctionName();
 	    funcData.restoreParameterList();
 	    return returnData.getObject();
-	    
 	} else {
 	    errorAndExit("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition());
 	    return null;
@@ -2071,7 +1934,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    String fString = (String)call.getExpression(1).accept(this);
 	    Vector<CircuitElem> location = (Vector<CircuitElem>)call.getExpression(2).accept(this);
 	    String data = fReader.nextLine();
-	    System.out.println("Real data " + data);
 	    //data = String.format(fString, data);
 	    OpUtil.shallowAssign(location, data);
 	    return (long)0; //allways true just for consistency with verilog
@@ -2113,13 +1975,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 		} else if(NumberUtil.getBase(number.getLexeme()) == 16){
 		    return NumberUtil.getHexidecimal(number.getLexeme());
 		} else {
-		    if(number.getLexeme().contains("x")){
-			return NumberUtil.getXRange(number.getLexeme());
-		    } else if (number.getLexeme().contains("z")){
-			return NumberUtil.getZRange(number.getLexeme());
-		    } else {
-			return NumberUtil.getBinary(number.getLexeme());
-		    }
+		    return NumberUtil.getPattern(number.getLexeme());
 		}
 	    } else {
 		return Long.parseLong(number.getLexeme());
@@ -2174,8 +2030,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    if(dataObject instanceof Vector[]){
 		Vector<CircuitElem> [] arr = (Vector<CircuitElem>[])data.getObject();
 		Vector<CircuitElem> vec = arr[index];
-		System.out.println("Vec is " + vec.toString());
-		System.out.println("Index is " + index);
 		return vec;
 	    } else if (dataObject instanceof Vector){
 		return ((Vector<CircuitElem>)dataObject).getValue(index);

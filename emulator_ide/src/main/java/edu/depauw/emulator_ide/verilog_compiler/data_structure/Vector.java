@@ -95,6 +95,6 @@ public class Vector<DataValue> {
 		sb.append(getValue(i).toString());
 	    }
 	}
-	return sb.toString();
+	return "" + Long.parseLong(sb.toString(), 2);
     }
 }

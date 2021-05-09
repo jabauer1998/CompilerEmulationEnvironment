@@ -5,6 +5,7 @@ package edu.depauw.emulator_ide.verilog_compiler.main.util;
  */
 
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Range;
+import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pattern;
 
 import java.lang.String;
 import java.lang.Number;
@@ -135,5 +136,9 @@ public class NumberUtil {
 
 	return new Range(binaryLower, binaryUpper);
 	
+    }
+
+    public static Pattern getPattern(String val){
+	return new Pattern(val.substring(val.indexOf('\'') + 2));
     }
 }

@@ -525,15 +525,20 @@ public class OpUtil {
     public static long toLong(Vector<CircuitElem> vec1){
 	int start = (vec1.getIndex1() < vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
 	int end = (vec1.getIndex1() > vec1.getIndex2()) ? vec1.getIndex1() : vec1.getIndex2();
-		
-	int sIndex1 = start;
-	int i = 0;
+	
 	long result = 0;
-	while(i < 64 && sIndex1 <= end){
-	    result |= toLong(vec1.getValue(sIndex1)) << i;
-	    i++;
-	    sIndex1++;
+	if(start <= end){
+	    int over = 0;
+	    for(int i = start; i <= end && over < 64; i++, over++){
+		result |= (toLong(vec1.getValue(i)) & 1) << over;
+	    }
+	} else {
+	    int over = 0;
+	    for(int i = end; i <= start && over < 64; i++, over++){
+		result |= (toLong(vec1.getValue(i)) & 1) << over;
+	    }
 	}
+	
 	return result;
     }
 }

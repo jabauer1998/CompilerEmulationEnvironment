@@ -150,29 +150,31 @@ module Arm();
    endfunction // fetch
 
    function checkCC;
-      input [3:0] code;
-      case(code)
-	`EQ : checkCC = `Z;
-	`NE : checkCC = ~`Z;
-	`CS : checkCC = `C;
-	`CC : checkCC = ~`C;
-	`MI : checkCC = `N;
-	`PL : checkCC = ~`N;
-	`VS : checkCC = `V;
-	`VC : checkCC = ~`V;
-	`HI : checkCC = `C & ~`Z;
-	`LS : checkCC = ~`C & `Z;
-	`GE : checkCC = `N == `V;
-	`LT : checkCC = `N != `V;
-	`GT : checkCC = ~`Z & (`N == `V);
-	`LE : checkCC = `Z | (`N != `V);
-	`AL : checkCC = 1; //allways ignored
-	default: begin
-	   $display("Error: Unidentified intsruction %d\n", code);
-	   $finish;
-	   checkCC = -1;
-	end
-      endcase // case (code)
+      input [3:0] codecc;
+      begin
+	 case(codecc)
+	   `EQ : checkCC = `Z;
+	   `NE : checkCC = ~`Z;
+	   `CS : checkCC = `C;
+	   `CC : checkCC = ~`C;
+	   `MI : checkCC = `N;
+	   `PL : checkCC = ~`N;
+	   `VS : checkCC = `V;
+	   `VC : checkCC = ~`V;
+	   `HI : checkCC = `C & ~`Z;
+	   `LS : checkCC = ~`C & `Z;
+	   `GE : checkCC = `N == `V;
+	   `LT : checkCC = `N != `V;
+	   `GT : checkCC = ~`Z & (`N == `V);
+	   `LE : checkCC = `Z | (`N != `V);
+	   `AL : checkCC = 1; //allways exec
+	   default: begin
+	      $display("Error: Unidentified intsruction %d\n", code);
+	      $finish;
+	      checkCC = -1;
+	   end
+	 endcase // case (code)
+      end
    endfunction // checkCC
    
 
@@ -193,6 +195,7 @@ module Arm();
       reg [15:0]   regList;
       integer 	   i;
       if(checkCC(INSTR[31:28]))
+	begin
 	case(code)
 	  0: R[15] = R[INSTR[3:0]]; //BX or BE
 	  1: begin //BL | B
@@ -532,7 +535,6 @@ module Arm();
 		MEM[address] = op2;
 	     end
 	  end // case: 26
-
 	  27: begin //software interupt
 	     case(INSTR[23:0])
 	       //0: R[0] = $input;
@@ -545,28 +547,26 @@ module Arm();
 	  end // case: 27
 
 	  28: begin //stop
-	     $display("Code is done!!!");
+	     $display("Program executed succesfully!!!");
              $finish;
 	  end // case: 28
 
 	  default: begin
-	     $display("Unknown Instruction with opcode %d\n", code);
+	     $display("Unknown Instruction with opcode: ", code);
 	     $finish;
 	  end
 	  
 	endcase // case (code)
+	   end
    endtask // execute
 
    initial begin
       loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
-      while(fetch(R[15]) && R[15] < `MEMSIZE) begin
+      while(R[15] < `MEMSIZE) begin
 	 INSTR = fetch(R[15]); //Fetch next memory
-	 $display("My instruction: ", INSTR);
 	 InstructionCode = decode(INSTR);
-	 $display("My instruction code: ", InstructionCode);
 	 incriment; //increment the program counter by a word or 4 bytes
 	 execute(InstructionCode);
-	 $display("Executed Instruction\n");
       end
    end
    
