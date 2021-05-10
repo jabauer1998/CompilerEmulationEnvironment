@@ -3,6 +3,8 @@ package edu.depauw.emulator_ide.gui;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -19,10 +21,42 @@ import javafx.scene.control.ScrollPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.util.List;
+
+import edu.depauw.emulator_ide.common.debug.InfoLog;
+import edu.depauw.emulator_ide.common.io.Destination;
+import edu.depauw.emulator_ide.common.io.Source;
+import edu.depauw.emulator_ide.verilog_compiler.ast.ModuleDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.main.Interpreter;
+import edu.depauw.emulator_ide.verilog_compiler.main.Lexer;
+import edu.depauw.emulator_ide.verilog_compiler.main.Parser;
+import edu.depauw.emulator_ide.verilog_compiler.main.TypeChecker;
+import edu.depauw.emulator_ide.verilog_compiler.token.Token;
     
 public class Main extends Application{
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private static ByteArrayInputStream byteStream;
+    private static ByteArrayOutputStream byteOutputStream;
+    
+    public static InputStream getByteInputStream() {
+    	return byteStream;
+    }
+    
+    public static ByteArrayOutputStream getByteOutputStream() {
+    	return byteOutputStream;
+    }
+
+    private void initializeCPU(){
+
     }
     
     @Override
@@ -66,6 +100,9 @@ public class Main extends Application{
 	binaryInput.setMaxHeight(leftSide.getMaxHeight());
 	binaryInput.setPrefWidth(leftSide.getMaxWidth());
 	binaryInput.setPrefHeight(leftSide.getMaxHeight());
+
+	
+
         
         leftSide.getChildren().addAll(assemble, assemblerInput, execute, binaryInput);
         
@@ -84,7 +121,7 @@ public class Main extends Application{
 	GuiRegister.setParent(middleLeftSide);
 	GuiRegister.setRegisterSize(32);
 		
-	GuiRegister CSPR = new GuiRegister(42);
+	GuiRegister CSPR = new GuiRegister("CPSR", 42);
 	GuiRegister R0 = new GuiRegister(0);
 	GuiRegister R1 = new GuiRegister(1);
 	GuiRegister R2 = new GuiRegister(2);
@@ -126,7 +163,7 @@ public class Main extends Application{
 	memoryDump.setPrefHeight(scrollPane.getMaxHeight());
 		
 		
-	int MEMSIZE = 10000;
+	int MEMSIZE = 100;
 	GuiMemory.setParent(memoryDump);
 	GuiMemory.setMemSize(MEMSIZE);
 	GuiMemory.setMemLength(8);
@@ -137,7 +174,10 @@ public class Main extends Application{
         
         scrollPane.setContent(memoryDump);
 
-        middleRightSide.getChildren().addAll(memDumpTitle, scrollPane);
+	Button reset = new Button("Reset Memory");
+	reset.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+	reset.setAlignment(Pos.CENTER);
+        middleRightSide.getChildren().addAll(memDumpTitle, scrollPane, reset);
         
         VBox rightSide = new VBox();
         rightSide.setMaxWidth(halves.getMaxWidth() / 3);
@@ -187,6 +227,52 @@ public class Main extends Application{
 	rightSide.getChildren().addAll(status, parentStatus, stdout, standardOutput, stdin, standardInput);
 		
 	halves.getChildren().addAll(leftSide, middleLeftSide, middleRightSide, rightSide);
+	
+	execute.setOnAction(new EventHandler<ActionEvent>() {
+		@Override public void handle(ActionEvent e) {
+		    //Initialize gui to zeros
+		    GuiRegister.initialize();
+		    GuiMemory.initialize();
+		    GuiStatusBit.initialize();
+		    //set up input for interpreter
+		    byteStream = new ByteArrayInputStream(binaryInput.getText().getBytes());
+		    byteOutputStream = new ByteArrayOutputStream();
+		    String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
+			//Tokenise the tokens
+			Destination errorOut = new Destination(System.err);
+			try {
+				
+				Source source = new Source(new FileReader(path));
+				InfoLog errorLog = new InfoLog(errorOut);
+			    Lexer lex = new Lexer(source, errorLog);
+			    List<Token> tokens = lex.tokenize();
+			  //parse the tokens
+			    Parser parse = new Parser(tokens, errorLog);
+			    ModuleDeclaration moddec = parse.parseAST();
+			    //Type check the program
+			    TypeChecker typeChecker = new TypeChecker(errorLog);
+			    typeChecker.visit(moddec);
+			    
+			    Interpreter interpreter = new Interpreter(errorLog); //interpret the program and run the binary
+			    interpreter.visit(moddec);
+			    
+			    standardOutput.setText(byteOutputStream.toString()); //set the output to the output on the stream
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+		}
+	 });
+
+	reset.setOnAction(new EventHandler<ActionEvent>() {
+		@Override public void handle(ActionEvent e) {
+		    //Initialize gui to zeros
+		    GuiRegister.initialize();
+		    GuiMemory.initialize();
+		    GuiStatusBit.initialize();
+		}
+	 });
 		
 	Scene scene = new Scene(halves);
 	stage.setScene(scene);	

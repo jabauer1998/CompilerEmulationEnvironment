@@ -107,5 +107,11 @@ public class GuiMemory {
 	    return Long.parseLong(mem[(int)index].data.getText(), 2);
 	}
     }
+
+    public static void initialize(){
+	for(int i = 0; i < mem.length; i++){
+	    mem[i].data.setText(genZeros(length));
+	}
+    }
 	
 }

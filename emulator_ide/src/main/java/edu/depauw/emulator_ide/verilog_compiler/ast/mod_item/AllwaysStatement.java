@@ -47,10 +47,6 @@ public class AllwaysStatement extends ModItem implements Runnable{
 	while(tf){
 	    stat.accept(threadVisitor);
 	}
-	try{
-	    sema.acquire();
-	} catch (InterruptedException exp){
-	    exp.printStackTrace();
-	}
+	sema.release();
     }
 }

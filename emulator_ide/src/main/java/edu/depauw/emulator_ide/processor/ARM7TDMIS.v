@@ -63,27 +63,8 @@ module Arm();
     reg [WIDTH:0] R15;//Program Counter
    */
    
-   reg [`WIDTH:0] CSPR;//Status Register
-   
    //hidden registers
    reg [`WIDTH:0] INSTR;
-   
-   //CSPR register
-`define N CSPR[31]
-`define Z CSPR[30]
-`define C CSPR[29]
-`define V CSPR[28]
-`define Q CSPR[27]
-`define IT1 CSPR[26:25]
-`define J CSPR[24]
-`define GEE CSPR[19:16]
-`define IT2 CSPR[15:10]
-`define E CSPR[9]
-`define A CSPR[8]
-`define I CSPR[7]
-`define F CSPR[6]
-`define T CSPR[5]
-`define M CSPR[4:0]
 
    integer 	  InstructionCode;
 
@@ -92,24 +73,31 @@ module Arm();
       integer 	   status, handler;
       reg [31:0]   binaryLine;
       begin
-	 R[15] = address; // initialize stack pointer to address 0
-	 handler = $fopen("src/main/java/edu/depauw/emulator_ide/processor/memfile.txt", "r");
+	 $setRegister(15, address); // initialize stack pointer to address 0
+	 handler = $fopen("default", "r");
 	 while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
-	    MEM[R[15]] = binaryLine[31:24];
-	    MEM[R[15] + 1] = binaryLine[23:16];
-	    MEM[R[15] + 2] = binaryLine[15:8];
-	    MEM[R[15] + 3] = binaryLine[7:0];
-	    R[15] = R[15] + 4;
+	    $setMemory($getRegister(15), binaryLine[31:24]);
+	    $setMemory($getRegister(15) + 1, binaryLine[23:16]);
+	    $setMemory($getRegister(15) + 2, binaryLine[15:8]);
+	    $setMemory($getRegister(15) + 3, binaryLine[7:0]);
+	    $setRegister(15, $getRegister(15) + 4); //incriment program counter
 	 end
-	 $fclose(handler);
-	 R[15] = address;
+	 $fclose(handler); //close handler
+	 $setRegister(15, address); //set the program counter back to the beginning
       end
    endtask //loadProgram
 
    function reg [`WIDTH:0] fetch;
       input reg [`WIDTH:0] addr;
-      fetch = {MEM[addr], MEM[addr + 1], MEM[addr + 2], MEM[addr + 3]};
+      reg [`WIDTH:0] 	   store;
+      begin
+	 store[31:24] = $getMemory(addr); //get memory from gui in specified addresses
+	 store[23:16] = $getMemory(addr + 1);
+	 store[15:8] = $getMemory(addr + 2);
+	 store[7:0] = $getMemory(addr + 3);
+	 fetch = store; //return from function
+      end
    endfunction // fetch
 
    /*
@@ -153,20 +141,20 @@ module Arm();
       input [3:0] codecc;
       begin
 	 case(codecc)
-	   `EQ : checkCC = `Z;
-	   `NE : checkCC = ~`Z;
-	   `CS : checkCC = `C;
-	   `CC : checkCC = ~`C;
-	   `MI : checkCC = `N;
-	   `PL : checkCC = ~`N;
-	   `VS : checkCC = `V;
-	   `VC : checkCC = ~`V;
-	   `HI : checkCC = `C & ~`Z;
-	   `LS : checkCC = ~`C & `Z;
-	   `GE : checkCC = `N == `V;
-	   `LT : checkCC = `N != `V;
-	   `GT : checkCC = ~`Z & (`N == `V);
-	   `LE : checkCC = `Z | (`N != `V);
+	   `EQ : checkCC = $getStatus("Z");
+	   `NE : checkCC = ~$getStatus("Z");
+	   `CS : checkCC = $getStatus("C");
+	   `CC : checkCC = ~$getStatus("C");
+	   `MI : checkCC = $getStatus("N");
+	   `PL : checkCC = ~$getStatus("N");
+	   `VS : checkCC = $getStatus("V");
+	   `VC : checkCC = ~$getStatus("V");
+	   `HI : checkCC = $getStatus("C") & ~$getStatus("Z");
+	   `LS : checkCC = ~$getStatus("C") & $getStatus("Z");
+	   `GE : checkCC = $getStatus("N") == $getStatus("V");
+	   `LT : checkCC = $getStatus("N") != $getStatus("V");
+	   `GT : checkCC = ~$getStatus("Z") & ($getStatus("N") == $getStatus("V"));
+	   `LE : checkCC = $getStatus("Z") | ($getStatus("N") != $getStatus("V"));
 	   `AL : checkCC = 1; //allways exec
 	   default: begin
 	      $display("Error: Unidentified intsruction %d\n", code);
@@ -179,7 +167,7 @@ module Arm();
    
 
    task incriment;
-      R[15] = R[15] + 4; //incriment program counter by 4 bytes
+      $setRegister(15, $getRegister(15) + 4); //incriment program counter by 4 bytes
    endtask // incriment
 
    task execute;
@@ -192,19 +180,20 @@ module Arm();
       reg [32:0]   solution32;
       reg [64:0]   solution64;
       reg [31:0]   address;
+      reg [31:0]   totalholder;
       reg [15:0]   regList;
       integer 	   i;
       if(checkCC(INSTR[31:28]))
 	begin
 	case(code)
-	  0: R[15] = R[INSTR[3:0]]; //BX or BE
+	  0: $setRegister(15, $getRegister(INSTR[3:0])); //BX or BE
 	  1: begin //BL | B
 	     if(INSTR[24]) //check if Link bit is set
-	       R[14] = R[15];
-	     R[15] =  INSTR[23:0];
+	       $setRegister(14, $getRegister(15));
+	     $setRegister(15,  INSTR[23:0]);
 	  end
 	  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17: begin //AND Instruction
-	     op1 = R[INSTR[19:16]];
+	     op1 = $getRegister(INSTR[19:16]);
 	     
 	     if(INSTR[25]) begin //Operand 2 is rotated
 		op2 = INSTR[7:0];
@@ -215,16 +204,16 @@ module Arm();
 		op2 = R[INSTR[3:0]];
 		if(INSTR[4]) //shift is stored in register value
 		  case(INSTR[6:5])
-		    2'b00: op2 = op2 << (R[INSTR[11:8]] & 8'b11111111); //Logical left
-		    2'b01: op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111); //Logical right
+		    2'b00: op2 = op2 << ($getRegister(INSTR[11:8]) & 8'b11111111); //Logical left
+		    2'b01: op2 = op2 >> ($getRegister(INSTR[11:8]) & 8'b11111111); //Logical right
 		    2'b10: begin 
-		       op2 = op2 >> (R[INSTR[11:8]] & 8'b11111111);
+		       op2 = op2 >> ($getRegister(INSTR[11:8]) & 8'b11111111);
 		       if(op2[`WIDTH] == 1)
-			 op2 = op2 | (((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111))); //Arithmetic Right						
+			 op2 = op2 | (((1 << ($getRegister(INSTR[11:8]) & 8'b11111111)) - 1) << (`WIDTH + 1 - ($getRegister(INSTR[11:8]) & 8'b11111111))); //Arithmetic Right						
 		    end							 
 		    2'b11: begin
 		       for(i = 0; i <= `WIDTH; i = i + 1)
-			 copy[i] = op2[(i + (R[INSTR[11:8]] & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
+			 copy[i] = op2[(i + ($getRegister(INSTR[11:8]) & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
 		       op2 = copy;
 		    end
 		  endcase
@@ -251,9 +240,9 @@ module Arm();
 	       4, 12: solution32 = op1 - op2;
 	       5: solution32 = op2 - op1;
 	       6, 13: solution32 = op1 + op2;
-	       7: solution32 = op1 + op2 + `C;
-	       8: solution32 = op1 - op2 + `C - 1;
-	       9: solution32 = op2 - op1 + `C - 1;
+	       7: solution32 = op1 + op2 + $getStatus("C");
+	       8: solution32 = op1 - op2 + $getStatus("C") - 1;
+	       9: solution32 = op2 - op1 + $getStatus("C") - 1;
 	       14: solution32 = op1 | op2;
 	       15: solution32 = op2;
 	       16: solution32 = op1 & ~op2;
@@ -261,14 +250,14 @@ module Arm();
 	     endcase // case (code)
 	     
 	     if(INSTR[20]) begin //set the status bits if necessary
-		`C = solution32[32];
-		`Z = !solution32;
-		`N = solution32[31];
-                `V = (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]);
+		$setStatus("C", solution32[32]);
+		$setStatus("Z", !solution32);
+		$setStatus("N", solution32[31]);
+                $setStatus("V", (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]));
 	     end
 
 	     if(code >= 2 && code <= 9 || code >= 14 && code <= 17) //If the instruction wants a result return it
-	       R[INSTR[15:12]] = solution32[31:0];
+	       $setRegister(INSTR[15:12], solution32[31:0]);
 	     
 	  end
 	  18: begin //MRS Instruction
@@ -276,14 +265,14 @@ module Arm();
 		$display("Error: there is no SPSR on this machine");
 		$finish;	
 	     end
-	     R[INSTR[15:12]] = CSPR; 
+	     $setRegister(INSTR[15:12], $getRegister(42)); //CSPR = register 42 
 	  end 
 	  19:  begin //MSR1 Instruction
 	     if(INSTR[22]) begin 
 		$display("Error: there is no SPSR on this machine");
 		$finish;	
 	     end
-	     CSPR = R[INSTR[3:0]];
+	     $setRegister(42, $getRegister(INSTR[3:0]));
 	  end  
 	  20: begin //MSR2 Instruction
 	     if(INSTR[22]) begin
@@ -292,41 +281,43 @@ module Arm();
 	     end
 
 	     if(INSTR[11:4] == 0)
-	       CSPR = R[INSTR[3:0]];
+	       $setRegister(42, $getRegister(INSTR[3:0]));
 	     else begin
-		CSPR = INSTR[7:0]; //sign extend the value to 32 bits inside the CSPR register
+		$setRegister(42, INSTR[7:0]); //sign extend the value to 32 bits inside the CSPR register
 		for(i = 0; i <= `WIDTH; i = i + 1)
-		  copy = CSPR[(i + (INSTR[11:8] * 2)) % (`WIDTH+1)]; //rotate it
+		  //copy = CSPR[(i + (INSTR[11:8] * 2)) % (`WIDTH+1)]; //not implemented yet
 		CSPR = copy;
 	     end
 	     
           end
 	  21: begin //MUL | MLA Instruction
-	     op1 = R[INSTR[3:0]];
-	     op2 = R[INSTR[11:8]];
+	     op1 = $getRegister(INSTR[3:0]);
+	     op2 = $getRegister(INSTR[11:8]);
 	     solution32 = op1 * op2;
 	     if(INSTR[21])
-	       solution32 = solution32 + R[INSTR[15:12]];
+	       solution32 = solution32 + $getRegister(INSTR[15:12]);
 	     
-	     if(INSTR[20])
-	       `C = solution32[32];
-	     `Z = (solution32 == 0) ? 1 : 0;
-	     `N = (solution32[`WIDTH] == 1) ? 1 : 0;
-             `V = (solution32[`WIDTH] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[`WIDTH] & op1[`WIDTH] & op2[`WIDTH]);
+	     if(INSTR[20]) begin
+		$setStatus("C", solution32[32]);
+		$setStatus("Z", solution32 == 0 ? 1 : 0);
+		$setStatus("N", solution32[`WIDTH] == 1 ? 1 : 0);
+		$setStatus("V", (solution32[`WIDTH] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[`WIDTH] & op1[`WIDTH] & op2[`WIDTH]));
+	     end
+	     
 	  end
 	  22: begin //MULL | MLAL
-	     op1 = R[INSTR[3:0]]; //first op
-	     op2 = R[INSTR[11:8]]; //second opp
+	     op1 = $getRegister(INSTR[3:0]); //first op
+	     op2 = $getRegister(INSTR[11:8]); //second opp
 	     solution64 = op1 * op2;
 	     if(INSTR[21]) //is there a add in this instruction
 	       solution64 = solution64 + {R[INSTR[19:16]], R[INSTR[15:12]]};
 
-             if(INSTR[20])
-	       `C = solution64[64];
-	     `Z = (solution64 == 0) ? 1 : 0;
-	     `N = (solution64[63] == 1) ? 1 : 0;
-             `V = (solution64[63] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution64[63] & op1[`WIDTH] & op2[`WIDTH]);
-             
+             if(INSTR[20]) begin
+		$setStatus("C", solution64[64]);
+		$setStatus("Z", (solution64 == 0) ? 1 : 0);
+		$setStatus("N", (solution64[63] == 1) ? 1 : 0);
+		$setStatus("V", (solution64[63] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution64[63] & op1[`WIDTH] & op2[`WIDTH]));
+             end
 	     if(INSTR[19:16] != INSTR[15:12] && INSTR[19:16] != 15 && INSTR[15:12] != 15) begin
 		R[INSTR[19:16]] = solution64[63:32];
 		R[INSTR[15:12]] = solution64[31:0];
@@ -336,31 +327,31 @@ module Arm();
 	     if(INSTR[25])
 	       if(INSTR[4])
 		 case(INSTR[6:5])
-		   2'b00: offset = R[INSTR[3:0]] << (R[INSTR[11:8]] & 8'b11111111); //Logical left
-		   2'b01: offset = R[INSTR[3:0]] >> (R[INSTR[11:8]] & 8'b11111111); //Logical right
+		   2'b00: offset = $getRegister(INSTR[3:0]) << ($getRegister(INSTR[11:8]) & 8'b11111111); //Logical left
+		   2'b01: offset = $getRegister(INSTR[3:0]) >> ($getRegister(INSTR[11:8]) & 8'b11111111); //Logical right
 		   2'b10: begin 
-		      offset = R[INSTR[3:0]] >> (R[INSTR[11:8]] & 8'b11111111);
+		      offset = $getRegister(INSTR[3:0]) >> ($getRegister(INSTR[11:8]) & 8'b11111111);
 		      if(offset[`WIDTH] == 1)
-			offset = offset | (((1 << (R[INSTR[11:8]] & 8'b11111111)) - 1) << (`WIDTH + 1 - (R[INSTR[11:8]] & 8'b11111111))); //Arithmetic Right						
+			offset = offset | (((1 << ($getRegister(INSTR[11:8]) & 8'b11111111)) - 1) << (`WIDTH + 1 - ($getRegister(INSTR[11:8]) & 8'b11111111))); //Arithmetic Right						
 		   end							 
 		   2'b11: begin
-		      offset = R[INSTR[3:0]];
+		      offset = $getRegister(INSTR[3:0]);
 		      for(i = 0; i <= `WIDTH; i = i + 1)
-			copy[i] = offset[(i + (R[INSTR[11:8]] & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
+			copy[i] = offset[(i + ($getRegister(INSTR[11:8]) & 8'b11111111)) % (`WIDTH+1)]; //Rotate Right
 		      offset = copy;
 		   end
 		 endcase // case (INSTR[6:5])
 	       else
 		 case(INSTR[6:5])
-		   2'b00: offset = R[INSTR[3:0]] << INSTR[11:7]; //Logical left
-		   2'b01: offset = R[INSTR[3:0]] >> INSTR[11:7]; //Logical right
+		   2'b00: offset = $getRegister(INSTR[3:0]) << INSTR[11:7]; //Logical left
+		   2'b01: offset = $getRegister(INSTR[3:0]) >> INSTR[11:7]; //Logical right
 		   2'b10: begin 
-		      offset = R[INSTR[3:0]] >> INSTR[11:7];
+		      offset = $getRegister(INSTR[3:0]) >> INSTR[11:7];
 		      if(offset[`WIDTH] == 1)
 			offset = offset | ((1 << (INSTR[11:7]) - 1) << (`WIDTH + 1 - INSTR[11:7])); //Arithmetic Right						
 		   end							 
 		   2'b11: begin
-		      offset = R[INSTR[3:0]];
+		      offset = $getRegister(INSTR[3:0]);
 		      for(i = 0; i <= `WIDTH; i = i + 1)
 			copy[i] = offset[(i + (INSTR[11:7])) % (`WIDTH+1)]; //Rotate Right
 		      offset = copy;
@@ -372,104 +363,116 @@ module Arm();
 	     
 	     if(INSTR[24])//Pre indexed
 	       if(INSTR[23]) //up or down
-		 address = R[INSTR[19:16]] + offset;	        
+		 address = $getRegister(INSTR[19:16]) + offset;	        
 	       else
-		 address = R[INSTR[19:16]] - offset;
+		 address = $getRegister(INSTR[19:16]) - offset;
 	     else
-	       address = R[INSTR[19:16]];
+	       address = $getRegister(INSTR[19:16]);
 
 	     if(INSTR[21])//Write back enabled
-	       R[INSTR[19:16]] = address;
+	       $setRegister(INSTR[19:16], address);
 	     
 	     if(INSTR[20])// load
 	       if(INSTR[22]) begin //In byte mode
-		  R[INSTR[15:12]] = MEM[address];
-	       end else begin //In word mode
-		  R[INSTR[15:12]] = {MEM[address], MEM[address + 1]};
+		  $setRegister(INSTR[15:12], $getMemory(address));
+	       end else begin //In half word mode
+		  totalholder[15:8] = $getMemory(address);
+		  totalholder[7:0] = $getMemory(address + 1);
+		  $setRegister(INSTR[15:12], totalholder);
 	       end
 	     else //store
 	       if(INSTR[22])begin //In byte mode
-		  op2 = R[INSTR[15:12]];
-		  MEM[address] = R[INSTR[15:12]] & 8'b11111111;
+		  op2 = $getRegister(INSTR[15:12]);
+		  $setMemory(address, $getRegister(INSTR[15:12]) & 8'b11111111);
 	       end else begin //In word mode
-		  {MEM[address], MEM[address + 1], MEM[address + 2], MEM[address + 3]} = R[INSTR[15:12]]; //Set word in memory to value
+		  totalholder[31:24] =($getRegister(INSTR[15:12]) >> 24) & 8'b11111111;
+		  totalholder[23:16] = ($getRegister(INSTR[15:12]) >> 16) & 8'b11111111;
+		  totalholder[15:8] = ($getRegister(INSTR[15:12]) >> 8) & 8'b11111111;
+		  totalholder[7:0] = ($getRegister(INSTR[15:12]) & 8'b11111111);
+		  $setMemory(address, totalHolder);
 	       end
 
 	     if(!INSTR[24])//Post Indexed
 	       if(INSTR[23])//U bit
-		 R[INSTR[19:16]] = R[INSTR[19:16]] + offset;	        
+		 $setRegister(INSTR[19:16], $getRegister(INSTR[19:16]) + offset);	        
 	       else
-		 R[INSTR[19:16]] = R[INSTR[19:16]] - offset;
+		 $setRegister(INSTR[19:16], $getRegister(INSTR[19:16]) - offset);
 	     
 	  end // case: 23
 	  24: begin //LDRH | STRH | LDRSB | LDRSH
 	     
 	     if(INSTR[11:8] == 0)
-	       offset = R[INSTR[3:0]]; //register offset
+	       offset = $getMemory(INSTR[3:0]); //register offset
 	     else
 	       offset = {INSTR[11:8],INSTR[3:0]}; //immediate
 	     
 	     if(INSTR[24])// Pre indexed
 	       if(INSTR[23])//Add of subtract offset
-		 address = R[INSTR[19:16]] + offset;	        
+		 address = $getMemory(INSTR[19:16]) + offset;	        
 	       else
-		 address = R[INSTR[19:16]] - offset;
+		 address = $getMemory(INSTR[19:16]) - offset;
 	     else
-	       address = R[INSTR[19:16]];
+	       address = $getMemory(INSTR[19:16]);
 
 	     if(INSTR[21])
-	       R[INSTR[19:16]] = address;
+	       $setRegister(INSTR[19:16], address);
 	     
 	     if(INSTR[20])// load
 	       case(INSTR[6:5])
 		 2'b00: begin //SWP instruction
-		    op1 = MEM[address];
-		    op2 = R[INSTR[15:12]];
-		    MEM[address] = op2;
-		    R[INSTR[15:12]] = op1;
+		    op1 = $getMemory(address);
+		    op2 = $getRegister(INSTR[15:12]);
+		    $setMemory(address, op2);
+		    $setRegister(INSTR[15:12], op1);
 		 end
 		 2'b01: begin //Unsigned Halfwords
-		    R[INSTR[15:12]] = {MEM[address], MEM[address + 1]};
+		    totalholder[15:8] = $getMemory(address);
+		    totalholder[7:0] = $getMemory(address + 1);
+		    $setRegister(INSTR[15:12], totalholder);
 		 end
 		 2'b10: begin //Signed Bytes
-		    R[INSTR[15:12]] = MEM[address];
-		    if(R[INSTR[15:12]] & 8'b10000000)
-		      R[INSTR[15:12]] = R[INSTR[15:12]] | 32'b11111111111111111111111100000000;
+		    $setRegister(INSTR[15:12], $getMemory(address));
+		    if($getRegister(INSTR[15:12]) & 8'b10000000)
+		      $setRegister(INSTR[15:12], $getRegister(INSTR[15:12]) | 32'b11111111111111111111111100000000);
 		 end
 		 2'b11: begin //Signed Halfwords
-		    R[INSTR[15:12]] = {MEM[address], MEM[address + 1]};
-		    if(R[INSTR[15:12]] & 16'b1000000000000000)
-		      R[INSTR[15:12]] = R[INSTR[15:12]] | 32'b11111111111111110000000000000000;   
+		    totalholder[15:8] = $getMemory(address);
+		    totalholder[7:0] = $getMemory(address + 1);
+		    $setRegister(INSTR[15:12], totalholder);
+		    if($getRegister(INSTR[15:12]) & 16'b1000000000000000)
+		      $setRegister(INSTR[15:12], $getRegister(INSTR[15:12]) | 32'b11111111111111110000000000000000);   
 		 end
 	       endcase // case (INSTR[6:5])
 	     else //store
 	       case(INSTR[6:5])
 		 2'b00: begin //SWP
-		    op1 = MEM[address];
-		    op2 = R[INSTR[15:12]];
-		    MEM[address] = op2;
-		    R[INSTR[15:12]] = op1;
+		    op1 = $getMemory(address);
+		    op2 = $getRegister(INSTR[15:12]);
+		    $setMemory(address, op2);
+		    $setRegister(INSTR[15:12], op1);
 		 end
 		 2'b01: begin //Unsigned Halfwords
-		    {MEM[address], MEM[address + 1]} = R[INSTR[15:12]] & 16'b1111111111111111;
+		    $setMemory(address, ($getRegister(INSTR[15:12]) >> 8) & 8'b11111111);
+		    $setMemory(address + 1, $getRegister(INSTR[15:12]) & 8'b11111111);
 		 end
 		 2'b10: begin //Signed Bytes
-		    MEM[address] = R[INSTR[15:12]] & 8'b11111111;
+		    $setMemory(address, $getRegister(INSTR[15:12]) & 8'b11111111);
 		 end
 		 2'b11: begin //Signed Halfwords
-		    {MEM[address], MEM[address + 1]} = R[INSTR[15:12]] & 16'b1111111111111111;
+		    $setMemory(address, ($getRegister(INSTR[15:12]) >> 8) & 8'b11111111);
+		    $setMemory(address + 1, $getRegister(INSTR[15:12]) & 8'b11111111);
 		 end
 	       endcase // case (INSTR[6:5])
 
 	     if(!INSTR[24])//post indexed
 	       if(INSTR[23]) //Ubit offset
-		 R[INSTR[19:16]] = R[INSTR[19:16]] + offset;	        
+		 $setRegister(INSTR[19:16], $getRegister(INSTR[19:16]) + offset);	        
 	       else
-		 R[INSTR[19:16]] = R[INSTR[19:16]] - offset;
+		 $setRegister(INSTR[19:16], $getRegister(INSTR[19:16]) - offset);
 	     
 	  end // case: 24
 	  25: begin //LDM | STM
-	     address = R[INSTR[19:16]];
+	     address = $getRegister(INSTR[19:16]);
 	     regList = INSTR[15:0];
 
 	     if(INSTR[20])begin //load
@@ -489,7 +492,7 @@ module Arm();
 		   
 		   for(i = 15; i >= 0; i = i - 1)
 		     if(regList[i] == 1) begin
-			R[i] = MEM[address];
+			$setRegister(i, $getMemory(address));
 			address = address - 4;
 		     end
 		   
@@ -502,7 +505,7 @@ module Arm();
 		   
 		   for(i = 0; i < 16; i = i + 1)
 		     if(regList[i] == 1) begin
-			MEM[address] = R[i];
+			$setMemory(address, $getRegister(i));
 			address = address + 4;
 		     end
 		   
@@ -512,7 +515,7 @@ module Arm();
 		   
 		   for(i = 15; i >= 0; i = i - 1)
 		     if(regList[i] == 1) begin
-			MEM[address] = R[i];
+			$setMemory(address, $getRegister(i));
 			address = address - 4;
 		     end
 		   
@@ -522,23 +525,26 @@ module Arm();
 	  end // case: 25
 	  26: begin //data swap
 	     if(INSTR[22]) begin //swap byte
-		address = R[INSTR[19:16]];
-		op1 = MEM[address];
-		op2 = R[INSTR[3:0]];
-		R[INSTR[15:12]] = op1;
-		MEM[address] = op2;
+		address = $getRegister(INSTR[19:16]);
+		op1 = $getRegister(address);
+		op2 = $getMemory(INSTR[3:0]);
+		$setRegister(INSTR[15:12], op1);
+		$setmemory(address, op2);
 	     end else begin //swap word
-		address = R[INSTR[19:16]];
-		op1 = {MEM[address], MEM[address + 1], MEM[address + 2], MEM[address + 3]};
-		op2 = R[INSTR[3:0]];
-		R[INSTR[15:12]] = op1;
-		MEM[address] = op2;
+		address = $getMemory(INSTR[19:16]);
+		op1[31:24] = $getMemory(address);
+		op1[23:16] = $getmemory(address + 1);
+		op1[15:8] = $getMemory(address + 2);
+		op1[7:0] = $getMemory(address + 3);
+		op2 = $getRegister(INSTR[3:0]);
+		$setRegister(INSTR[15:12], op1);
+		$setMemory(address, op2);
 	     end
 	  end // case: 26
 	  27: begin //software interupt
 	     case(INSTR[23:0])
 	       //0: R[0] = $input;
-	       1: $display(R[0]); //displays value in RO
+	       1: $display($getRegister(0)); //displays value in RO
 	       default: begin
 		  $display("Error: invalid interupt vector number");
 		  $finish;
@@ -548,7 +554,6 @@ module Arm();
 
 	  28: begin //stop
 	     $display("Program executed succesfully!!!");
-             $finish;
 	  end // case: 28
 
 	  default: begin
@@ -562,8 +567,8 @@ module Arm();
 
    initial begin
       loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
-      while(R[15] < `MEMSIZE) begin
-	 INSTR = fetch(R[15]); //Fetch next memory
+      while(InstructionCode != 28 && $getRegister(15) < `MEMSIZE) begin
+	 INSTR = fetch($getRegister(15)); //old Fetch
 	 InstructionCode = decode(INSTR);
 	 incriment; //increment the program counter by a word or 4 bytes
 	 execute(InstructionCode);

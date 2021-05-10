@@ -23,6 +23,10 @@ import edu.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
 import edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry.InterpreterVariableData;
 import edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry.InterpreterFunctionData;
 import edu.depauw.emulator_ide.common.io.*;
+import edu.depauw.emulator_ide.gui.GuiMemory;
+import edu.depauw.emulator_ide.gui.GuiRegister;
+import edu.depauw.emulator_ide.gui.GuiStatusBit;
+import edu.depauw.emulator_ide.gui.Main;
 import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
 
@@ -961,17 +965,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	} else if(data.getObject() instanceof Vector){
 	    Vector<CircuitElem> vec = (Vector<CircuitElem>)data.getObject(); //returns the vector stored in the symbol table
 	    if(lValue instanceof Identifier){
-		if(result instanceof Vector){
-		    OpUtil.shallowAssign(vec, (Vector<CircuitElem>)result);
-		} else if(result instanceof CircuitElem){
-		    OpUtil.shallowAssign(vec, (CircuitElem)result);
-		} else if(result instanceof Long){
-		    OpUtil.shallowAssign(vec, (long)result);
-		} else if(result instanceof Boolean){
-		    OpUtil.shallowAssign(vec, (boolean)result);
-		} else {
-		    errorAndExit("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition());
-		}
+			if(result instanceof Vector){
+			    OpUtil.shallowAssign(vec, (Vector<CircuitElem>)result);
+			} else if(result instanceof CircuitElem){
+			    OpUtil.shallowAssign(vec, (CircuitElem)result);
+			} else if(result instanceof Long){
+			    OpUtil.shallowAssign(vec, (long)result);
+			} else if(result instanceof Boolean){
+			    OpUtil.shallowAssign(vec, (boolean)result);
+			} else {
+			    errorAndExit("Incompatible assignment from " + result.getClass() + " to " + vec.getClass(), lValue.getPosition());
+			}
 	    } else if(lValue instanceof VectorCall){
 		int index = (int)longValue(((VectorCall)lValue).getExpression().accept(this));
 
@@ -991,7 +995,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    } else if (lValue instanceof VectorSlice){
 		int index1 = (int)longValue(((VectorSlice)lValue).getExpression1().accept(this));
 		int index2 = (int)longValue(((VectorSlice)lValue).getExpression2().accept(this));
-
 		if(result instanceof Vector){
 		    OpUtil.shallowAssign(vec, index1, index2, (Vector<CircuitElem>)result);
 		} else if(result instanceof CircuitElem){
@@ -1054,7 +1057,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    errorAndExit("Unexpected Type for Object " + data.getObject().getClass(), assign.getPosition());
 	}
 
-	if(inFunctionReturn){
+	if(inFunctionReturn && name.getLexeme().equals(getTopFunctionName())){
 	    changeTopExit(true);
 	}
 	return null;
@@ -1545,15 +1548,27 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    if(task.numExpressions() == 2){
 		String fString = (String)task.getExpression(0).accept(this);
 		Object data = task.getExpression(1).accept(this);
-		System.out.println(fString + " " + data);
+		Main.getByteOutputStream().writeBytes((fString + " " + data + "\n").getBytes()); //write to standard output in the gui
 	    } else if(task.numExpressions() == 1){
 		Object data = task.getExpression(0).accept(this);
-		System.out.println(data);
+		Main.getByteOutputStream().writeBytes(("\t" + data.toString() + '\n').getBytes()); //write to standard output in the gui
 	    } else {
 		errorAndExit("Unknown number of print arguments in " + taskName.getLexeme(), taskName.getPosition());
 	    }
 	} else if (taskName.getLexeme().equals("finish")){
-	    System.exit(0);
+	    System.out.println("Program is finished!!!");
+	} else if (taskName.getLexeme().equals("setMemory")){
+		long arg1 = longValue(task.getExpression(0).accept(this));
+		long arg2 = longValue(task.getExpression(1).accept(this));
+		GuiMemory.setMemory(arg1, arg2);
+	} else if (taskName.getLexeme().equals("setRegister")) {
+		long arg1 = longValue(task.getExpression(0).accept(this));
+		long arg2 = longValue(task.getExpression(1).accept(this));
+		GuiRegister.setRegister(arg1, arg2);
+	} else if (taskName.getLexeme().equals("setStatus")) {
+		String arg1 = (String)task.getExpression(0).accept(this);
+		long arg2 = longValue(task.getExpression(1).accept(this));
+		GuiStatusBit.setStatus(arg1, arg2);
 	} else {
 	    errorAndExit("Unknown system task declaration " + taskName.getLexeme(), taskName.getPosition());
 	}
@@ -1818,7 +1833,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
      */
     
     public Object visit(ConstantExpression expr, Object... argv){
-	return expr.getExpression().accept(this);
+    return expr.getExpression().accept(this);
     }
 
     /**
@@ -1895,40 +1910,43 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	if(functionName.getLexeme().equals("fopen")){
 	    String fname = (String)call.getExpression(0).accept(this);
 	    String basePath = new File("").getAbsolutePath();
-	    File filename = new File(basePath + '/' + fname);
 	    String access = (String)call.getExpression(1).accept(this);
-
-	   
-	    if(access.equals("r")){
-		filename.setReadOnly();
-
-		Scanner ref = null;
-		
-		try{
-		    ref = new Scanner(filename);
-		} catch (FileNotFoundException exp) {
-		    exp.printStackTrace();
-		    System.exit(1);
-		}
-		return ref;
-	    } else if(access.equals("w")){
-		filename.setWritable(true, false);
-
-		FileWriter ref = null;
-		try{
-		    ref = new FileWriter(filename);
-		} catch (IOException exp) {
-		    exp.printStackTrace();
-		    System.exit(1);
-		}
-		return ref;
+	    if(fname.equals("default")) {
+	    	return new Scanner(Main.getByteInputStream());
 	    } else {
-		errorAndExit("Unexpected Access type " + access + " for file " + basePath + '/' + fname, call.getPosition());
+		File filename = new File(basePath + '/' + fname);
+		if(access.equals("r")){
+		    filename.setReadOnly();
+			
+		    Scanner ref = null;
+				    			
+		    try{
+			ref = new Scanner(filename);
+		    } catch (FileNotFoundException exp) {
+			exp.printStackTrace();
+			System.exit(1);
+		    }
+		    return ref;
+		} else if(access.equals("w")){
+		    filename.setWritable(true, false);
+
+		    FileWriter ref = null;
+		    try{
+			ref = new FileWriter(filename);
+		    } catch (IOException exp) {
+			exp.printStackTrace();
+			System.exit(1);
+		    }
+		    return ref;
+		} else {
+		    errorAndExit("Unexpected Access type " + access + " for file " + basePath + '/' + fname, call.getPosition());
+		}
+		return null;
 	    }
-	    return null;
 	} else if(functionName.getLexeme().equals("feof")){
 	    Scanner fReader = (Scanner)call.getExpression(0).accept(this);
-	    return !fReader.hasNextLine();
+	    boolean hasNextLine = fReader.hasNextLine();
+	    return !hasNextLine;
 	} else if(functionName.getLexeme().equals("fscanf")){
 	    Scanner fReader = (Scanner)call.getExpression(0).accept(this);
 	    String fString = (String)call.getExpression(1).accept(this);
@@ -1937,6 +1955,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	    //data = String.format(fString, data);
 	    OpUtil.shallowAssign(location, data);
 	    return (long)0; //allways true just for consistency with verilog
+	} else if (functionName.getLexeme().equals("getMemory")) {
+	    long arg1 = longValue(call.getExpression(0).accept(this));
+	    return GuiMemory.getMemory(arg1);
+	} else if (functionName.getLexeme().equals("getRegister")) {
+	    long arg1 = longValue(call.getExpression(0).accept(this));
+	    return GuiRegister.getRegister(arg1);
+	} else if (functionName.getLexeme().equals("getStatus")) { 
+	    String arg1 = (String)call.getExpression(0).accept(this);
+	    return GuiStatusBit.getStatus(arg1);
 	} else {
 	    errorAndExit("Could not find a systemcall with the name " + functionName.getLexeme(), call.getPosition());
 	}
@@ -2346,3 +2373,4 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	return null;
     }
 }
+

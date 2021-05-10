@@ -105,11 +105,27 @@ public class GuiRegister {
 	parent = node;
     }
 	
-    public static long getRegValue(long register){
+    public static long getRegister(long register){
 	return memFile.get((int)register).getValue();
     }
 	
-    public static void setRegValue(long register, long value){
+    public static void setRegister(long register, long value){
 	memFile.get((int)register).setValue(value);
+    }
+
+    private static String genZeros(int number){
+	StringBuilder sb = new StringBuilder();
+	for(int i = 0; i < number; i++){
+	    sb.append('0');
+	}
+	return sb.toString();
+    }
+
+    public static void initialize(){
+	for(GuiRegister reg : memFile.values()){
+	    for(int i = 0; i < registerSize; i++){
+		reg.data.setText(genZeros(registerSize));
+	    }
+	}
     }
 }

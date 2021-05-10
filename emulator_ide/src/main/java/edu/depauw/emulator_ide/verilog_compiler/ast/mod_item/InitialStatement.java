@@ -45,11 +45,6 @@ public class InitialStatement extends ModItem implements Runnable{
 	    System.exit(1);
 	}
 	stat.accept(threadVisitor);
-
-	try{
-	    sema.acquire();
-	} catch (InterruptedException exp) {
-	    exp.printStackTrace();
-	}
+	sema.release();
     }
 }
