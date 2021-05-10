@@ -236,33 +236,35 @@ public class Main extends Application{
 		    GuiStatusBit.initialize();
 		    //set up input for interpreter
 		    byteStream = new ByteArrayInputStream(binaryInput.getText().getBytes());
-		    byteOutputStream = new ByteArrayOutputStream();
-		    String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
-			//Tokenise the tokens
-			Destination errorOut = new Destination(System.err);
-			try {
+		    if(binaryInput.getText().length() > 0) {
+		    	byteOutputStream = new ByteArrayOutputStream();
+			    String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
+				//Tokenise the tokens
+				Destination errorOut = new Destination(System.err);
+				try {
+					
+					Source source = new Source(new FileReader(path));
+					InfoLog errorLog = new InfoLog(errorOut);
+				    Lexer lex = new Lexer(source, errorLog);
+				    List<Token> tokens = lex.tokenize();
+				  //parse the tokens
+				    Parser parse = new Parser(tokens, errorLog);
+				    ModuleDeclaration moddec = parse.parseAST();
+				    //Type check the program
+				    TypeChecker typeChecker = new TypeChecker(errorLog);
+				    typeChecker.visit(moddec);
+				    
+				    Interpreter interpreter = new Interpreter(errorLog); //interpret the program and run the binary
+				    interpreter.visit(moddec);
+				    
+				    standardOutput.setText(byteOutputStream.toString()); //set the output to the output on the stream
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				
-				Source source = new Source(new FileReader(path));
-				InfoLog errorLog = new InfoLog(errorOut);
-			    Lexer lex = new Lexer(source, errorLog);
-			    List<Token> tokens = lex.tokenize();
-			  //parse the tokens
-			    Parser parse = new Parser(tokens, errorLog);
-			    ModuleDeclaration moddec = parse.parseAST();
-			    //Type check the program
-			    TypeChecker typeChecker = new TypeChecker(errorLog);
-			    typeChecker.visit(moddec);
-			    
-			    Interpreter interpreter = new Interpreter(errorLog); //interpret the program and run the binary
-			    interpreter.visit(moddec);
-			    
-			    standardOutput.setText(byteOutputStream.toString()); //set the output to the output on the stream
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
-			
-		}
+		    }
 	 });
 
 	reset.setOnAction(new EventHandler<ActionEvent>() {
