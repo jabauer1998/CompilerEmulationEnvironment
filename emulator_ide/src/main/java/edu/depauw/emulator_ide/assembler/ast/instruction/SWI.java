@@ -4,8 +4,9 @@ import edu.depauw.emulator_ide.common.Position;
 
 public class SWI extends Instruction{
     
-    public SWI(byte cond, boolean b, byte Rn, byte Rd, byte Rm, Position position){
-	super(cond, position);
-	super.storedValue |= 0b1111 << 24;
+    public SWI(int cond, int command, Position position){
+    	super(cond, position);
+    	super.storedValue |= command;
+    	super.storedValue |= 0b1111 << 24;
     }
 }

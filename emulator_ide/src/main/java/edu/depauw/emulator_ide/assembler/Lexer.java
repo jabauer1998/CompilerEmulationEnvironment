@@ -243,7 +243,7 @@ public class Lexer {
 		}
 	}
 	
-	private List<Token> tokenize(){
+	public List<Token> tokenize(){
 		ArrayList<Token> tokenList = new ArrayList<>();
 		while(!source.atEOD()){
 		    Token nextToken = genNextToken();

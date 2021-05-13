@@ -29,6 +29,8 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.util.List;
 
+import edu.depauw.emulator_ide.assembler.ast.AstNode;
+import edu.depauw.emulator_ide.assembler.ast.instruction.Instruction;
 import edu.depauw.emulator_ide.common.debug.InfoLog;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
@@ -53,10 +55,6 @@ public class Main extends Application{
     
     public static ByteArrayOutputStream getByteOutputStream() {
     	return byteOutputStream;
-    }
-
-    private void initializeCPU(){
-
     }
     
     @Override
@@ -265,6 +263,29 @@ public class Main extends Application{
 				
 			}
 		    }
+	 });
+	
+	assemble.setOnAction(new EventHandler<ActionEvent>() {
+		@Override 
+		public void handle(ActionEvent e) {
+				Destination errorOut = new Destination(System.err);
+				InfoLog errorLog = new InfoLog(errorOut);
+				Source source = new Source(new ByteArrayInputStream(assemblerInput.getText().getBytes()));
+		    	edu.depauw.emulator_ide.assembler.Lexer lex = new edu.depauw.emulator_ide.assembler.Lexer(source, errorLog);
+		    	
+		    	List<edu.depauw.emulator_ide.assembler.Token> toks = lex.tokenize();
+		    	
+		    	edu.depauw.emulator_ide.assembler.Parser parse = new edu.depauw.emulator_ide.assembler.Parser(toks, errorLog);
+		    	
+		    	List<AstNode> instrs = parse.parseAssembly();
+		    	
+		    	StringBuilder sb = new StringBuilder();
+		    	for(AstNode instr : instrs) {
+		    		sb.append(instr.toString());
+		    	}
+		    	
+		    	binaryInput.setText(sb.toString());
+		}
 	 });
 
 	reset.setOnAction(new EventHandler<ActionEvent>() {

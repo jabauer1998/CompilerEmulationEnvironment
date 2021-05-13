@@ -4,7 +4,7 @@ import edu.depauw.emulator_ide.common.Position;
 
 public class MUL extends Instruction{
     
-    public MUL(byte cond, boolean a, boolean s, byte Rd, byte Rn, byte Rs, byte Rm, Position position){
+    public MUL(int cond, boolean a, boolean s, int Rd, int Rn, int Rs, int Rm, Position position){
 	super(cond, position);
 	super.storedValue |= (a ? 1 : 0) << 21;
 	super.storedValue |= (s ? 1 : 0) << 20;

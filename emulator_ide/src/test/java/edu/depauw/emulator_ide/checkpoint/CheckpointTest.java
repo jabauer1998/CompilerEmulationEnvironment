@@ -158,38 +158,6 @@ public class CheckpointTest{
     @Test
     public void Checkpoint3(){
 		System.out.print("\n\n-----------Checkpoint 3 Full Program Parser Test---------------\n\n");
-		String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
-		
-		//Tokenise the tokens
-		Destination display = new Destination(System.out);
-		try{
-		    Source source = new Source(new FileReader(path));
-		    InfoLog errorLog = new InfoLog(display);
-		    Lexer lex = new Lexer(source, errorLog);
-		
-		    List<Token> tokens = lex.tokenize();
-	
-		    
-		    //parse the tokens
-		    Parser parse = new Parser(tokens, errorLog);
-		    ModuleDeclaration moddec = parse.parseAST();
-		    
-		    System.out.print("\n\n-----------Checkpoint 3 Full Program TypeChecker Test---------------\n\n");
-	
-		    TypeChecker typeChecker = new TypeChecker(errorLog);
-		    typeChecker.visit(moddec);
-	
-		    System.out.print("\n\n---------------------------------------------------------\n\n");
-	
-		    System.out.print("\n\n-----------Checkpoint 3 Full Program Interpreter Test---------------\n\n");
-	
-		    Interpreter interpreter = new Interpreter(errorLog);
-		    interpreter.visit(moddec);
-	
-		    System.out.print("\n\n---------------------------------------------------------\n\n");
-		    
-		} catch (FileNotFoundException e){
-		    e.printStackTrace();
-		}
+		System.out.println("The checkpoint 3 test was removed because the application now requires a gui to run");
     }
 }
