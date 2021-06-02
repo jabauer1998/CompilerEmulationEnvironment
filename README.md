@@ -19,8 +19,8 @@ Verilog - Used to Design Test Processor
     <li> Created a Graphical User Interface with JavaFX that works with the Verilog Processor </li>
     <li> Created an assembler for the ARMTDMI7 processor </li>
   </ul>
-# Features in Development <br>
-<p>Currently due to Java having no unsigned types I am converting this project into C++ for future use. With a 32 bit processor this works absolutely fine however if the user wanted to design a 64 bit processor this can become a bottleneck with the Verilog Compiler or interpreter.</p>
+# Features in Development
+<p> Currently due to Java having no unsigned types I am converting this project into C++ for future use. With a 32 bit processor this works absolutely fine however if the user wanted to design a 64 bit processor this can become a bottleneck with the Verilog Compiler or interpreter. </p>
 
 # Future Plans(reach ot to me if you would like to work on some of these)
 <ul>
