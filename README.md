@@ -26,8 +26,8 @@ Currently due to Java having no unsigned types I am converting this project into
   <li> FPGA sythesis tool built into the GUI to upload designs to an FPGA </li>
   <li> Built in Logic Analysis to analyse waveforms etc... </li>
   <li> Configuration file generator to generate Configuration files </li>
-  <li> PEP9 like symbol table viewer <li>
-  <li> Keyword highlighting configuration to be used by the assembler window <li>
+  <li> PEP9 like symbol table viewer </li>
+  <li> Keyword highlighting configuration to be used by the assembler window </li>
 </ul>
   
 
