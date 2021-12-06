@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>edu.depauw.emulator_ide</groupId>
@@ -10,8 +10,8 @@
   <packaging>jar</packaging>
   <name>emulator_ide</name>
   <!-- FIXME change it to the project's website -->
-  <url>https://github.com/h20man13/Emulator-Debug-Enviroment</url>
-	
+  <url>https://github.com/h20man13/Ludo-Board_Game</url>
+  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -66,17 +66,17 @@
           <version>2.8.2</version>
         </plugin>
         <plugin>
-        	<artifactId>maven-assembly-plugin</artifactId>
-        	<configuration>
-        		<archive>
-        			<manifest>
-        			<mainClass>edu.depauw.emulator_ide.gui.Main</mainClass>
-        			</manifest>
-        		</archive>
-        		<descriptorRefs>
-        		<descriptorRef>jar-with-dependencies</descriptorRef>
-        		</descriptorRefs>
-        	</configuration>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <configuration>
+            <archive>
+              <manifest>
+        	<mainClass>edu.depauw.emulator_ide.gui.Main</mainClass>
+              </manifest>
+            </archive>
+            <descriptorRefs>
+              <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+          </configuration>
         </plugin>
         <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
         <plugin>
@@ -87,14 +87,14 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
-		<plugin>
+	<plugin>
           <groupId>org.openjfx</groupId>
           <artifactId>javafx-maven-plugin</artifactId>
           <version>0.0.6</version>
           <configuration>
             <mainClass>edu.depauw.emulator_ide.gui.Main</mainClass>
           </configuration>
-		</plugin>
+	</plugin>
       </plugins>
     </pluginManagement>
   </build>
