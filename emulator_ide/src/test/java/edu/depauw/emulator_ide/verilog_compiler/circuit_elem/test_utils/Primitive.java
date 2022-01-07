@@ -2,21 +2,20 @@ package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils;
 
 
 import static org.junit.Assert.*;
-
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Primitive {
 
-    public ArrayList<ArrayList<Boolean>> primitiveInputs;
-    public ArrayList<ArrayList<Boolean>> primitiveOutputs;
+    public LinkedList<LinkedList<Boolean>> primitiveInputs;
+    public LinkedList<LinkedList<Boolean>> primitiveOutputs;
     private final int                    inputs;
     private final int                    outputs;
 
     public Primitive(int inputs, int outputs) {
         this.inputs = inputs;
         this.outputs = outputs;
-        primitiveInputs = new ArrayList<>();
-        primitiveOutputs = new ArrayList<>();
+        primitiveInputs = new LinkedList<>();
+        primitiveOutputs = new LinkedList<>();
     }
 
     public void addRow(Tuple<Boolean> inputRow, Tuple<Boolean> outputRow){
@@ -32,7 +31,7 @@ public class Primitive {
 
     public int getNumRows(){ return primitiveOutputs.size(); }
 
-    public ArrayList<Boolean> getRowInputs(int rowNum){ return primitiveInputs.get(rowNum); }
+    public LinkedList<Boolean> getRowInputs(int rowNum){ return primitiveInputs.get(rowNum); }
 
-    public ArrayList<Boolean> getRowOutputs(int rowNum){ return primitiveOutputs.get(rowNum); }
+    public LinkedList<Boolean> getRowOutputs(int rowNum){ return primitiveOutputs.get(rowNum); }
 }

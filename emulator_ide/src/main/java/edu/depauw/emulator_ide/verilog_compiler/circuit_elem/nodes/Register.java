@@ -35,9 +35,7 @@ public class Register extends Node {
      */
     public void update(){
 
-        if (super.output != null) { toUpdate.add(super.output); }
-
-        if (toUpdate.peek() != null) { toUpdate.remove().update(); }
+        if (super.output != null) { super.output.update(); }
 
     }
 
@@ -50,9 +48,9 @@ public class Register extends Node {
 
     public void setSignal(boolean signal){
 
-        if (signal != stateSignal) {
-            stateSignal = signal;
-            update();
+        if (signal != super.stateSignal) {
+            super.stateSignal = signal;
+            this.update();
         }
 
     }

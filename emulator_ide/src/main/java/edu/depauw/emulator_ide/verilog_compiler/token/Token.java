@@ -11,7 +11,23 @@ public class Token {
 		IDENT, // identifiers
 		NUM, // Numbers
 		STRING, // String constants
-		MACRODEF, MACROIDENT,
+
+		//White Space characters
+		NEWLINE, // /n
+		ESCAPEDLINE, //n or when typed in a text editor it is just a /
+
+		//For dealing with Macros
+		MACRO_DEFINE,
+		MACRO_INCLUDE,
+		MACRO_IFDEF,
+		MACRO_IFNDEF,
+		MACRO_ENDIF,
+		MACRO_ELSEIF,
+		MACRO_ELSE,
+		MACRO_IDENT,
+
+		//EOF
+		EOF,
 
 		// Operators
 		LPAR, // (
@@ -63,6 +79,7 @@ public class Token {
 
 	private static HashMap<String, Type> OPS;
 	private static HashMap<String, Type> KEY;
+	private static HashMap<String, Type> MACRO;
 
 	static {
 		OPS = new HashMap<>(); // hashmap to store all of the operators
@@ -148,6 +165,15 @@ public class Token {
 		KEY.put("not", Type.NOTGATE);
 		KEY.put("case", Type.CASE);
 		KEY.put("endcase", Type.ENDCASE);
+
+		MACRO = new HashMap<>();
+		MACRO.put("`define", Type.MACRO_DEFINE);
+		MACRO.put("`include", Type.MACRO_INCLUDE);
+		MACRO.put("`ifdef", Type.MACRO_IFDEF);
+		MACRO.put("`ifndef", Type.MACRO_IFNDEF);
+		MACRO.put("`elseif", Type.MACRO_ELSEIF);
+		MACRO.put("`else", Type.MACRO_ELSE);
+		MACRO.put("`endif", Type.MACRO_ENDIF);
 	}
 
 	private final Type     type;
@@ -167,11 +193,25 @@ public class Token {
 	public Position getPosition(){ return position; }
 
 	@Override
-	public String toString(){ return "Token " + this.type + " (" + this.lexeme + ") at " + this.position.toString(); }
+	public String toString(){ 
+		if( this.type == Type.NEWLINE ) return "Token " + this.type + " ( \\n ) at " + this.position.toString();
+		else if (this.type == Type.ESCAPEDLINE ) return "Token " + this.type + " ( \\\\n ) at " + this.position.toString();
+		else return "Token " + this.type + " ( " + this.lexeme + " ) at " + this.position.toString();
+	}
 
 	private static Token makeToken(String lexeme, Position position, Type type){ return new Token(lexeme, position, type); }
 
-	public static Token makeNumToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.NUM); }
+    public static Token makeEofToken(Position position) { return new Token("EOF", position, Type.EOF); }
+
+	public static Token makeNumToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.NUM); } 
+		
+	public static Token makeNewLineToken(String lexeme, Position position){
+		if(lexeme == "\\n"){
+			return new Token(lexeme, position, Token.Type.ESCAPEDLINE);
+		} else {
+			return new Token(lexeme, position, Token.Type.NEWLINE);
+		}
+	}
 
 	public static Token makeIdToken(String lexeme, Position position){
 
@@ -185,10 +225,10 @@ public class Token {
 
 	public static Token makeMacroToken(String lexeme, Position position){
 
-		if (lexeme.equals("`define")) {
-			return makeToken(lexeme, position, Type.MACRODEF);
+		if (MACRO.containsKey(lexeme)) {
+			return makeToken(lexeme, position, MACRO.get(lexeme));
 		} else {
-			return makeToken(lexeme, position, Type.MACROIDENT);
+			return makeToken(lexeme, position, Type.MACRO_IDENT);
 		}
 
 	}

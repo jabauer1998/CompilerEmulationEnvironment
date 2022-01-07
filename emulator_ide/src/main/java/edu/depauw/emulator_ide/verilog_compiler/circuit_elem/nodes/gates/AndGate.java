@@ -38,13 +38,13 @@ public class AndGate extends Gate {
 
 		this.inputs = new HashSet<Web>(); // initialize an array for inputs
 
-		this.inputs.add(input1); // Add input 1 and 2 to the LinkedList of Gates
+		this.inputs.add(input1); //Add input 1 and 2 to the HashSet of Gates
 		this.inputs.add(input2);
 
 		List<Web> asList = Arrays.asList(optional);
 		this.inputs.addAll(asList);
 
-		for (Web input : inputs) { // Loop through all of newly created outputs and add this as an input
+		for (Web input: inputs) { // Loop through all of newly created outputs and add this as an input
 			input.addOutput(this);
 		}
 
@@ -62,7 +62,7 @@ public class AndGate extends Gate {
 
 		if (super.stateSignal == false) {
 
-			for (CircuitElem input : inputs) { if (input.getStateSignal() == false) return; }
+			for (Web input : inputs) { if (input.getStateSignal() == false) return; }
 
 			super.stateSignal = true;
 			super.updateOutput();

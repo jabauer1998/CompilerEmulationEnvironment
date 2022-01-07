@@ -5,6 +5,7 @@ import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
 import edu.depauw.emulator_ide.verilog_compiler.main.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.common.Position;
 
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import static org.junit.Assert.*;
 
 import java.util.LinkedList;
+import java.util.List;
 /**
  * Supplied are the Test utility functions for the main classes. So far these are just
  * classes to examine lexing
@@ -45,10 +47,12 @@ public class TestUtils {
 	public static void testLexer(Lexer myLexer){
 		assertTrue("Error: expected prepareErrorLog statement before testLexer method", errorLogPrepared);
 		assertTrue("Error: expected prepareLexer statement before testLexer method", lexerPrepared);
-		ArrayList<Token> lexedTokens = myLexer.tokenize();
-		ArrayList<Token.Type> tokenTypes = testTokens.getList();
-		assertTrue("Expected number of tokens provided to be equal the number of tokens found [found -> " + lexedTokens.size()
-			+ " | Provided -> " + tokenTypes.size() + ']', lexedTokens.size() == tokenTypes.size());
+		List<Token> lexedTokens = myLexer.tokenize();
+		List<Token> filteredTokens = Lexer.filterWhiteSpace(lexedTokens);
+		
+		LinkedList<Token.Type> tokenTypes = testTokens.getList();
+		assertTrue("Expected number of tokens provided to be equal the number of tokens found [found -> " + filteredTokens.size()
+			+ " | Provided -> " + tokenTypes.size() + ']', filteredTokens.size() == tokenTypes.size());
 
 		if (myLexer.getErrorLog().size() != 0) { myLexer.getErrorLog().printLog(); }
 
@@ -57,7 +61,7 @@ public class TestUtils {
 
 		for (int i = 0; i < testTokens.size(); i++) {
 			assertTrue("Error: token mismatch at token " + i + " [Expected -> " + tokenTypes.get(i) + " | Got -> "
-				+ lexedTokens.get(i).getTokenType() + ']', tokenTypes.get(i) == lexedTokens.get(i).getTokenType());
+				+ filteredTokens.get(i).getTokenType() + ']', tokenTypes.get(i) == filteredTokens.get(i).getTokenType());
 		}
 
 		errorLogPrepared = false;

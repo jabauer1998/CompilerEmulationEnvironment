@@ -2,12 +2,12 @@ package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.web;
 
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
-
+import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Node;
 import java.util.HashSet;
 
 /**
- * The wire class is used to attach all of the Circuit Elems together The wire class
- * should work just like a Wire Net in html
+ * The wire class is used to attach all of the CircuitElems together. The wire class
+ * should work just like a Wire Net in Verilog
  * 
  * @author Jacob Bauer
  */
@@ -38,9 +38,7 @@ public class Wire extends Web {
      */
     public void update(){
 
-        for (CircuitElem output : outputs) { toUpdate.add(output); }
-
-        if (toUpdate.peek() != null) { toUpdate.remove().update(); }
+        for (CircuitElem output : outputs) { output.update(); }
 
     }
 
@@ -63,8 +61,18 @@ public class Wire extends Web {
         return input.getStateSignal();
     }
 
-    public void setInput(CircuitElem input){
+    /**
+     * The assign input method is used to attach an input to the Wire
+     * @param input
+     */
+
+    public void assignInput(CircuitElem input){
         this.input = input;
-        this.input.update();
+        
+        if(this.input instanceof Web){
+            ((Web)this.input).addOutput(this);
+        } else {
+            ((Node)this.input).attachOutput(this);
+        }
     }
 }

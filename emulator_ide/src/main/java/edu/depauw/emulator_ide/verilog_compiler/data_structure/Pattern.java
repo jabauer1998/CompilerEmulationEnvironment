@@ -4,7 +4,7 @@ package edu.depauw.emulator_ide.verilog_compiler.data_structure;
 import java.lang.Integer;
 
 /**
- * The vectorcall class is used to par.E a call to an array cell
+ * The VectorElement class is used to par.E a call to an array cell
  * 
  * @author Jacob Bauer
  */

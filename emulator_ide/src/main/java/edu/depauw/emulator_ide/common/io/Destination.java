@@ -34,8 +34,6 @@ public class Destination {
 	}
 
 	public void print(String toPrint){
-		int length = toPrint.length();
-
 		try {
 			output.write(toPrint);
 		} catch (Exception e) {

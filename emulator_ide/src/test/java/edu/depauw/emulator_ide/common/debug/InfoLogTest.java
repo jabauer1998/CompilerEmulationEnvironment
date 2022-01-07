@@ -17,7 +17,7 @@ public class InfoLogTest {
 	public void TestInfoLog(){
 		Destination destination = new Destination(new StringWriter());
 		Position position = new Position(0, 0);
-		InfoLog log = new InfoLog(destination);
+		ErrorLog log = new ErrorLog(destination);
 
 		for (int i = 0; i < 30; i++) { log.addItem(new ErrorItem("" + i, position)); }
 

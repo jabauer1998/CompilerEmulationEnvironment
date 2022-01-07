@@ -4,15 +4,12 @@ package edu.depauw.emulator_ide.verilog_compiler.main;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 
-import edu.depauw.emulator_ide.common.debug.InfoLog;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
+import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.web.Wire;
-
+import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils.*;
 
 import org.junit.Test;
@@ -26,20 +23,20 @@ public class LexerTest {
 		String input = "This is test1";
 
 		prepareErrorLog(0);
-		prepareLexer(new Tuple(Token.Type.IDENT, Token.Type.IDENT, Token.Type.IDENT));
+		prepareLexer(new Tuple(Token.Type.IDENT, Token.Type.IDENT, Token.Type.IDENT, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
 	public void testMacroIdentifiers(){
 		System.err.println("-----MacroIdentifier Test----");
-		String input = "`define `COOL `cooler `define";
+		String input = "`define `include `ifndef `ifdef `elseif `endif `else `cool";
 
 		prepareErrorLog(0);
-		prepareLexer(new Tuple(Token.Type.MACRODEF, Token.Type.MACROIDENT, Token.Type.MACROIDENT, Token.Type.MACRODEF));
+		prepareLexer(new Tuple(Token.Type.MACRO_DEFINE, Token.Type.MACRO_INCLUDE, Token.Type.MACRO_IFNDEF, Token.Type.MACRO_IFDEF, Token.Type.MACRO_ELSEIF, Token.Type.MACRO_ENDIF, Token.Type.MACRO_ELSE, Token.Type.MACRO_IDENT, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -53,9 +50,9 @@ public class LexerTest {
 			Token.Type.ASSIGN, Token.Type.POSEGE, Token.Type.NEGEGE, Token.Type.ORGATE, Token.Type.ANDGATE, Token.Type.NANDGATE,
 			Token.Type.NORGATE, Token.Type.XORGATE, Token.Type.XNORGATE, Token.Type.NOTGATE, Token.Type.IF, Token.Type.ELSE,
 			Token.Type.WHILE, Token.Type.WAIT, Token.Type.FOREVER, Token.Type.REPEAT, Token.Type.FOR, Token.Type.INTEGER,
-			Token.Type.REAL, Token.Type.REG, Token.Type.WIRE, Token.Type.OUTPUT, Token.Type.INPUT));
+			Token.Type.REAL, Token.Type.REG, Token.Type.WIRE, Token.Type.OUTPUT, Token.Type.INPUT, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -64,9 +61,9 @@ public class LexerTest {
 		String input = "0 11 9999 0123456789 'D893084 4'd98349";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM));
+		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -75,9 +72,9 @@ public class LexerTest {
 		String input = "'h98f08 4'Hfffff 54'h0984903";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM));
+		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -86,9 +83,9 @@ public class LexerTest {
 		String input = "'o07 4'O74343 34'O01713";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM));
+		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -97,9 +94,9 @@ public class LexerTest {
 		String input = "'b0101010 4'b011101 34'B011010";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM));
+		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -109,9 +106,9 @@ public class LexerTest {
 
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.STRING, Token.Type.STRING, Token.Type.STRING));
+		prepareLexer(new Tuple(Token.Type.STRING, Token.Type.STRING, Token.Type.STRING, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -119,8 +116,8 @@ public class LexerTest {
 		System.err.println("-----Comment Test----");
 		String input = "/* this is a comment */ //this is another comment";
 		prepareErrorLog(0);
-		prepareLexer(new Tuple());
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		prepareLexer(new Tuple(Token.Type.EOF));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -135,9 +132,9 @@ public class LexerTest {
 			Token.Type.SEMI, Token.Type.AT, Token.Type.DOLLAR, Token.Type.EQ1, Token.Type.EQ2, Token.Type.EQ3, Token.Type.NE1,
 			Token.Type.NE2, Token.Type.LAND, Token.Type.LOR, Token.Type.LNEG, Token.Type.BAND, Token.Type.BNEG, Token.Type.BOR,
 			Token.Type.BXOR, Token.Type.BXNOR, Token.Type.BXNOR, Token.Type.BNAND, Token.Type.BNOR, Token.Type.LSHIFT,
-			Token.Type.RSHIFT));
+			Token.Type.RSHIFT, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -147,9 +144,9 @@ public class LexerTest {
 
 		prepareErrorLog(1);
 
-		prepareLexer(new Tuple());
+		prepareLexer(new Tuple(Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 
 	@Test
@@ -171,8 +168,8 @@ public class LexerTest {
 			Token.Type.SEMI, Token.Type.OUTPUT, Token.Type.IDENT, Token.Type.SEMI, Token.Type.OUTPUT, Token.Type.IDENT,
 			Token.Type.SEMI, Token.Type.ASSIGN, Token.Type.IDENT, Token.Type.EQ1, Token.Type.IDENT, Token.Type.BXOR,
 			Token.Type.IDENT, Token.Type.SEMI, Token.Type.ASSIGN, Token.Type.IDENT, Token.Type.EQ1, Token.Type.IDENT,
-			Token.Type.BAND, Token.Type.IDENT, Token.Type.SEMI, Token.Type.ENDMODULE));
+			Token.Type.BAND, Token.Type.IDENT, Token.Type.SEMI, Token.Type.ENDMODULE, Token.Type.EOF));
 
-		testLexer(new Lexer(new Source(new StringReader(input)), new InfoLog(new Destination(System.out))));
+		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
 }

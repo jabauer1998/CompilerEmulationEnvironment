@@ -24,20 +24,19 @@ public class AndGateTest {
 		Wire in2 = new Wire();
 		Wire out1 = new Wire();
 
-		in1.setInput(input1);
-		in2.setInput(input2);
+		in1.assignInput(input1);
+		in2.assignInput(input2);
 
 		CircuitElem andGate = new AndGate(out1, in1, in2); // put wires through a basic and gate
 
 		Primitive table = new Primitive(2, 1); // two input one output table
-		table.addRow(new Tuple<Boolean>(true, true), new Tuple<Boolean>(true));
 		table.addRow(new Tuple<Boolean>(true, false), new Tuple<Boolean>(false));
 		table.addRow(new Tuple<Boolean>(false, true), new Tuple<Boolean>(false));
 		table.addRow(new Tuple<Boolean>(false, false), new Tuple<Boolean>(false));
+		table.addRow(new Tuple<Boolean>(true, true), new Tuple<Boolean>(true));
 
 		primitiveVerify(table, new Tuple<Register>(input1, input2), new Tuple<CircuitElem>(out1)); // check if the boolean logic
 																									// table playes out correctly
 																									// in the circuit created
-
 	}
 }

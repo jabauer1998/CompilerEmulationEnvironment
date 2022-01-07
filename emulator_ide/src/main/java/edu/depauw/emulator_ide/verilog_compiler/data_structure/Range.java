@@ -1,13 +1,12 @@
 package edu.depauw.emulator_ide.verilog_compiler.data_structure;
 
 
-import edu.depauw.emulator_ide.verilog_compiler.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.ast.AstNode;
-
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
 import java.lang.Long;
 
 /**
- * The vectorcall class is used to par.E a call to an array cell
+ * The VectorElement class is used to par.E a call to an array cell
  * 
  * @author Jacob Bauer
  */

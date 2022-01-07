@@ -23,16 +23,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
-import java.util.List;
+import java.util.LinkedList;
 
-import edu.depauw.emulator_ide.common.debug.InfoLog;
+import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
-import edu.depauw.emulator_ide.verilog_compiler.ast.ModuleDeclaration;
-import edu.depauw.emulator_ide.verilog_compiler.main.Interpreter;
-import edu.depauw.emulator_ide.verilog_compiler.main.Lexer;
-import edu.depauw.emulator_ide.verilog_compiler.main.Parser;
-import edu.depauw.emulator_ide.verilog_compiler.main.TypeChecker;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.passes.Interpreter;
+import edu.depauw.emulator_ide.verilog_compiler.passes.TypeChecker;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
 public class Main extends Application {
@@ -228,9 +228,9 @@ public class Main extends Application {
 					try {
 
 						Source source = new Source(new FileReader(path));
-						InfoLog errorLog = new InfoLog(errorOut);
+						ErrorLog errorLog = new ErrorLog(errorOut);
 						Lexer lex = new Lexer(source, errorLog);
-						List<Token> tokens = lex.tokenize();
+						LinkedList<Token> tokens = lex.tokenize();
 						// parse the tokens
 						Parser parse = new Parser(tokens, errorLog);
 						ModuleDeclaration moddec = parse.parseAST();

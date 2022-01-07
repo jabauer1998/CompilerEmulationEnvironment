@@ -21,11 +21,12 @@ public class WireTest {
 
 		Wire output = new Wire();
 
-		output.setInput(input);
+		output.assignInput(input);
 
 		Primitive table = new Primitive(1, 1); // two input one output table
 		table.addRow(new Tuple<Boolean>(true), new Tuple<Boolean>(true));
 		table.addRow(new Tuple<Boolean>(false), new Tuple<Boolean>(false));
+		table.addRow(new Tuple<Boolean>(true), new Tuple<Boolean>(true));
 
 		primitiveVerify(table, new Tuple<Register>(input), new Tuple<CircuitElem>(output)); // check if the boolean logic table
 																							// playes out correctly in the circuit

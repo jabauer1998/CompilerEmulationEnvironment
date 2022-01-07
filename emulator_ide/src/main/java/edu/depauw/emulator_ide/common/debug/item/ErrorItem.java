@@ -16,6 +16,10 @@ public class ErrorItem implements InfoItem {
 		this.position = position;
 	}
 
+	public ErrorItem(String message){
+		this(message, null);
+	}
+
 	public String toString(){
 		StringBuilder result = new StringBuilder("\u001b[31;1mError\u001b[37m:\u001b[0m ");
 		result.append(message);

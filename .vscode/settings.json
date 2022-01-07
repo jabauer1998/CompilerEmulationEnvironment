@@ -4,5 +4,6 @@
         "*~": true
     },
     "java.format.settings.url": "./VsCodeFormatter_EDE.xml",
-    "java.format.settings.profile": "H20man13"
+    "java.format.settings.profile": "H20man13",
+    "git.ignoreLimitWarning": true
 }

@@ -29,9 +29,9 @@ public class FullAdderTest {
 		Wire bW = new Wire();
 		Wire CinW = new Wire();
 
-		aW.setInput(A);
-		bW.setInput(B);
-		CinW.setInput(Cin);
+		aW.assignInput(A);
+		bW.assignInput(B);
+		CinW.assignInput(Cin);
 
 		Wire iW1 = new Wire();
 		Wire iW2 = new Wire();

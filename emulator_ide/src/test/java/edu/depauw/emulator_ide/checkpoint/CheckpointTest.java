@@ -4,31 +4,22 @@ package edu.depauw.emulator_ide.checkpoint;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 
-import edu.depauw.emulator_ide.common.debug.InfoLog;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
+import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
-import edu.depauw.emulator_ide.verilog_compiler.main.*;
 
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.web.Wire;
-import edu.depauw.emulator_ide.verilog_compiler.main.Indexer;
-import edu.depauw.emulator_ide.verilog_compiler.main.TypeChecker;
-import edu.depauw.emulator_ide.verilog_compiler.ast.ModuleDeclaration;
-
-import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.passes.Indexer;
+import edu.depauw.emulator_ide.verilog_compiler.passes.TypeChecker;
 
 import org.junit.Test;
 import java.io.StringReader;
-import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.util.concurrent.TimeUnit;
 import java.io.File;
-import java.util.List;
+import java.util.LinkedList;
 
 public class CheckpointTest {
 
@@ -49,10 +40,10 @@ public class CheckpointTest {
 
 		Destination display = new Destination(System.out);
 		Source source = new Source(new StringReader(input));
-		InfoLog errorLog = new InfoLog(display);
+		ErrorLog errorLog = new ErrorLog(display);
 		Lexer lex = new Lexer(source, errorLog);
 
-		List<Token> tokens = lex.tokenize();
+		LinkedList<Token> tokens = lex.tokenize();
 
 		for (Token i : tokens) { System.out.println(i.toString()); }
 
@@ -119,10 +110,10 @@ public class CheckpointTest {
 		// tokenise the tokens
 		Destination display = new Destination(System.out);
 		Source source = new Source(new StringReader(input));
-		InfoLog errorLog = new InfoLog(display);
+		ErrorLog errorLog = new ErrorLog(display);
 		Lexer lex = new Lexer(source, errorLog);
 
-		List<Token> tokens = lex.tokenize();
+		LinkedList<Token> tokens = lex.tokenize();
 
 		// parse the tokens
 		Parser parse = new Parser(tokens, errorLog);

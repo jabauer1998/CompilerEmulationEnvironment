@@ -10,4 +10,5 @@ public abstract class Web extends CircuitElem {
     public abstract void addOutput(CircuitElem elem);
 
     public abstract boolean getStateSignal();
+    
 }

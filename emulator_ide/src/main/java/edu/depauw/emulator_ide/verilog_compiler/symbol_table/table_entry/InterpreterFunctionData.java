@@ -2,8 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.symbol_table.table_entry;
 
 
 import edu.depauw.emulator_ide.common.Position;
-import edu.depauw.emulator_ide.verilog_compiler.ast.mod_item.ModItem;
-
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.ModItem;
 import java.util.ArrayList;
 import java.util.Stack;
 

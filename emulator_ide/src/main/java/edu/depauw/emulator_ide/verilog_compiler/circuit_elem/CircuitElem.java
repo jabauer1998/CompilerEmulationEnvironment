@@ -10,8 +10,6 @@ import java.util.LinkedList;
  */
 public abstract class CircuitElem {
 
-    protected static Queue<CircuitElem> toUpdate = new LinkedList<>(); // queue to store next field to update
-
     /**
      * method to update the output of the component
      * 

@@ -3,13 +3,12 @@ package edu.depauw.emulator_ide.verilog_compiler.data_structure;
 
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
-import edu.depauw.emulator_ide.verilog_compiler.main.util.OpUtil;
-
+import edu.depauw.emulator_ide.verilog_compiler.passes.util.OpUtil;
 import java.util.ArrayList;
 import java.lang.StringBuilder;
 
 /**
- * The vectorcall class is used to par.E a call to an array cell
+ * The VectorElement class is used to par.E a call to an array cell
  * 
  * @author Jacob Bauer
  */

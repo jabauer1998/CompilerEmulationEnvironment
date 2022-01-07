@@ -6,9 +6,8 @@ import org.junit.Test;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Vector;
-
+import edu.depauw.emulator_ide.verilog_compiler.passes.util.OpUtil;
 import static org.junit.Assert.*;
-import java.io.StringReader;
 
 public class OpUtilTest {
 

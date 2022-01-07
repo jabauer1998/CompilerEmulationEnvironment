@@ -7,11 +7,12 @@ import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.lang.StringBuilder;
 
 public class TestUtils {
 
-	private static void setRowInputs(ArrayList<Boolean> inputs, ArrayList<Register> realInputs){
+	private static void setRowInputs(LinkedList<Boolean> inputs, LinkedList<Register> realInputs){
 		assertTrue("Total Registers provided does not match primative input size " + inputs.size(),
 			realInputs.size() == inputs.size());
 		int size = inputs.size();
@@ -20,7 +21,7 @@ public class TestUtils {
 
 	}
 
-	private static void checkRowOutputs(ArrayList<Boolean> outputs, ArrayList<CircuitElem> realOutputs, int row){
+	private static void checkRowOutputs(LinkedList<Boolean> outputs, LinkedList<CircuitElem> realOutputs, int row){
 		assertTrue("Total Registers provided does not match primative input size " + outputs.size(),
 			realOutputs.size() == outputs.size());
 		int size = outputs.size();
@@ -46,8 +47,8 @@ public class TestUtils {
 		assertTrue("Outputs provided does not match primative output size " + table.getNumOutputs(),
 			table.getNumOutputs() == outputs.size());
 		int rows = table.getNumRows();
-		ArrayList<Register> realInputs = inputs.getList();
-		ArrayList<CircuitElem> realOutputs = outputs.getList();
+		LinkedList<Register> realInputs = inputs.getList();
+		LinkedList<CircuitElem> realOutputs = outputs.getList();
 
 		for (int i = 0; i < rows; i++) {
 			setRowInputs(table.getRowInputs(i), realInputs); // Set the inputs to the next vales

@@ -25,28 +25,28 @@ public class Source {
 		linePosition = 0;
 
 		try {
-			next = input.read();
+		   next = input.read();
 		} catch (Exception e) {
-			System.err.println("Error could not read incoming character and could not advance");
+		   System.err.println("Error could not read incoming character and could not advance");
 		}
 
-		if (next == -1) {
-			current = -1;
-			past = -1;
+		if (!hasNext()) {
+		     current = -1;
+		     past = -1;
 		} else {
-			current = -1;
-			advance();
+		    current = -1;
+		    advance();
 		}
 
 	}
 
 	public void advance(){
 
-		if (!atEOD()) {
+	    if (!atEOD() || hasNext()) {
 			past = current;
 			current = next;
 
-			if ('\n' == current) {
+			if (current == '\n') {
 				lineNumber++;
 			} else {
 				linePosition++;
@@ -57,8 +57,7 @@ public class Source {
 			} catch (Exception e) {
 				System.err.println("Error could not read incoming character and could not advance");
 			}
-
-		}
+	    }
 
 	}
 
