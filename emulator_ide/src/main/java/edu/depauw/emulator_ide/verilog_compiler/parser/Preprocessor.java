@@ -216,8 +216,16 @@ public class Preprocessor {
         while(!willMatch(Token.Type.MACRO_ENDIF) && !willMatch(Token.Type.EOF)) skip();
     }
 
-    private void skipToElseIfOrEndIf(){
-        while(!willMatch(Token.Type.MACRO_ENDIF) && !willMatch(Token.Type.MACRO_ELSEIF) && !willMatch(Token.Type.EOF)) skip();
+    private void skipToElseIfOrElseOrEndIf(){
+        while(!willMatch(Token.Type.MACRO_ENDIF) && !willMatch(Token.Type.MACRO_ELSEIF) && !willMatch(Token.Type.MACRO_ELSE) && !willMatch(Token.Type.EOF)) skip();
+    }
+
+    private void processElse(){
+        match(Token.Type.MACRO_ELSE);
+        
+        while(!willMatch(Token.Type.MACRO_ENDIF)) processToken();
+        
+        match(Token.Type.MACRO_ENDIF);
     }
 
     private void processElseIf(){
@@ -232,9 +240,10 @@ public class Preprocessor {
 
             match(Token.Type.MACRO_ENDIF);
         } else {
-            skipToElseIfOrEndIf();
+            skipToElseIfOrElseOrEndIf();
 
             if(willMatch(Token.Type.MACRO_ELSEIF)) processElseIf();
+            else if(willMatch(Token.Type.MACRO_ELSE)) processElse();
             else match(Token.Type.MACRO_ENDIF);
         }
 
@@ -253,15 +262,16 @@ public class Preprocessor {
 
             match(Token.Type.MACRO_ENDIF);
         } else {
-            skipToElseIfOrEndIf();
+            skipToElseIfOrElseOrEndIf();
 
             if(willMatch(Token.Type.MACRO_ELSEIF)) processElseIf();
+            else if(willMatch(Token.Type.MACRO_ELSE)) processElse();
             else match(Token.Type.MACRO_ENDIF);
         }
     }
 
     private void processIfNDef(){
-        match(Token.Type.MACRO_IFDEF);
+        match(Token.Type.MACRO_IFNDEF);
         Token flag = match(Token.Type.IDENT);
         String flagLexeme = flag.getLexeme();
 
@@ -273,9 +283,10 @@ public class Preprocessor {
 
             match(Token.Type.MACRO_ENDIF);
         } else {
-            skipToElseIfOrEndIf();
+            skipToElseIfOrElseOrEndIf();
 
             if(willMatch(Token.Type.MACRO_ELSEIF)) processElseIf();
+            else if(willMatch(Token.Type.MACRO_ELSE)) processElse();
             else match(Token.Type.MACRO_ENDIF);
         }
     }

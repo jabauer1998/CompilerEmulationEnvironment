@@ -124,6 +124,198 @@ public class PreprocessorTest {
         testPreprocessor(tokTypes, preProcessorResultList);
     }
 
+    @Test
+    public void testBasicIfTrue(){
+        
+        System.out.println("-----Basic If True Test ----");
+		
+        String input = "`define a 50\n `ifdef a \n90\n`endif"; //The input string to pass into the file
+        Destination display = new Destination(System.out); //The output to pass into the errorlog
+		Source source = new Source(new StringReader(input));
+
+        ErrorLog errorLog = new ErrorLog(display);
+
+        Lexer lexer = new Lexer(source, errorLog);
+
+        //Preprocesses the lexed token list and fetch the result
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize());
+        Preprocessor preProcessor = new Preprocessor(errorLog);
+        preProcessor.attachList(tokens);
+        preProcessor.executePass();
+        List<Token> preProcessorResultList = preProcessor.fetchResult();
+        
+        //Check to see if error log was empty after preprocessing
+        assertTrue("Error: the error log isnt empty", errorLog.size() == 0);
+
+        //Create array list of types to check against
+        //30 + 30 - 50 + 50
+        ArrayList<Token.Type> tokTypes = new ArrayList<>();
+        tokTypes.add(Token.Type.NUM); //90
+
+        testPreprocessor(tokTypes, preProcessorResultList);
+    }
+
+    @Test
+    public void testBasicIfFalse(){
+        
+        System.out.println("-----Basic If False Test ----");
+		
+        String input = "`define b 50\n `ifdef a \n90\n`endif"; //The input string to pass into the file
+        Destination display = new Destination(System.out); //The output to pass into the errorlog
+		Source source = new Source(new StringReader(input));
+
+        ErrorLog errorLog = new ErrorLog(display);
+
+        Lexer lexer = new Lexer(source, errorLog);
+
+        //Preprocesses the lexed token list and fetch the result
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize());
+        Preprocessor preProcessor = new Preprocessor(errorLog);
+        preProcessor.attachList(tokens);
+        preProcessor.executePass();
+        List<Token> preProcessorResultList = preProcessor.fetchResult();
+        
+        //Check to see if error log was empty after preprocessing
+        assertTrue("Error: the error log isnt empty", errorLog.size() == 0);
+
+        //Create array list of types to check against
+        //30 + 30 - 50 + 50
+        ArrayList<Token.Type> tokTypes = new ArrayList<>();
+
+        testPreprocessor(tokTypes, preProcessorResultList);
+    }
+
+    @Test
+    public void testIfElseTest(){
+        
+        System.out.println("-----Basic If Else Test ----");
+		
+        String input = "`define b 50\n `ifdef a\n90\n`elseif b\n30 + 30 + 30\n`elseif c\n40 - 40\n`endif"; //The input string to pass into the file
+        Destination display = new Destination(System.out); //The output to pass into the errorlog
+		Source source = new Source(new StringReader(input));
+
+        ErrorLog errorLog = new ErrorLog(display);
+
+        Lexer lexer = new Lexer(source, errorLog);
+
+        //Preprocesses the lexed token list and fetch the result
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize());
+        Preprocessor preProcessor = new Preprocessor(errorLog);
+        preProcessor.attachList(tokens);
+        preProcessor.executePass();
+        List<Token> preProcessorResultList = preProcessor.fetchResult();
+        
+        //Check to see if error log was empty after preprocessing
+        assertTrue("Error: the error log isnt empty", errorLog.size() == 0);
+
+        //Create array list of types to check against
+        //30 + 30 - 50 + 50
+        ArrayList<Token.Type> tokTypes = new ArrayList<>();
+        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.PLUS);
+        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.PLUS);
+        tokTypes.add(Token.Type.NUM);
+
+        testPreprocessor(tokTypes, preProcessorResultList);
+    }
+
+    @Test
+    public void testIfNot(){
+        
+        System.out.println("-----Basic If Not Else Test ----");
+		
+        String input = "`define b 50\n `ifndef c\n90\n`endif"; //The input string to pass into the file
+        Destination display = new Destination(System.out); //The output to pass into the errorlog
+		Source source = new Source(new StringReader(input));
+
+        ErrorLog errorLog = new ErrorLog(display);
+
+        Lexer lexer = new Lexer(source, errorLog);
+
+        //Preprocesses the lexed token list and fetch the result
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize());
+        Preprocessor preProcessor = new Preprocessor(errorLog);
+        preProcessor.attachList(tokens);
+        preProcessor.executePass();
+        List<Token> preProcessorResultList = preProcessor.fetchResult();
+        
+        //Check to see if error log was empty after preprocessing
+        assertTrue("Error: the error log isnt empty", errorLog.size() == 0);
+
+        //Create array list of types to check against
+        //30 + 30 - 50 + 50
+        ArrayList<Token.Type> tokTypes = new ArrayList<>();
+        tokTypes.add(Token.Type.NUM);
+
+        testPreprocessor(tokTypes, preProcessorResultList);
+    }
+
+    @Test 
+    public void testBasicElse(){
+        System.out.println("----- Basic Else  ----");
+		
+        String input = "`define c 50\n `ifndef c\n`elseif d\n50\n`else\n50 + 50\n`endif"; //The input string to pass into the file
+        Destination display = new Destination(System.out); //The output to pass into the errorlog
+		Source source = new Source(new StringReader(input));
+
+        ErrorLog errorLog = new ErrorLog(display);
+
+        Lexer lexer = new Lexer(source, errorLog);
+
+        //Preprocesses the lexed token list and fetch the result
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize());
+        Preprocessor preProcessor = new Preprocessor(errorLog);
+        preProcessor.attachList(tokens);
+        preProcessor.executePass();
+        List<Token> preProcessorResultList = preProcessor.fetchResult();
+        
+        //Check to see if error log was empty after preprocessing
+        assertTrue("Error: the error log isnt empty", errorLog.size() == 0);
+
+        //Create array list of types to check against
+        //30 + 30 - 50 + 50
+        ArrayList<Token.Type> tokTypes = new ArrayList<>();
+        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.PLUS);
+        tokTypes.add(Token.Type.NUM);
+
+        testPreprocessor(tokTypes, preProcessorResultList);
+    }
+
+    @Test
+    public void testNestedIfElse(){
+        
+        System.out.println("----- Nested If Else  ----");
+		
+        String input = "`define b 50\n `ifndef c\n`ifdef d\n50\n`else\n50 + 50\n`endif\n`endif"; //The input string to pass into the file
+        Destination display = new Destination(System.out); //The output to pass into the errorlog
+		Source source = new Source(new StringReader(input));
+
+        ErrorLog errorLog = new ErrorLog(display);
+
+        Lexer lexer = new Lexer(source, errorLog);
+
+        //Preprocesses the lexed token list and fetch the result
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize());
+        Preprocessor preProcessor = new Preprocessor(errorLog);
+        preProcessor.attachList(tokens);
+        preProcessor.executePass();
+        List<Token> preProcessorResultList = preProcessor.fetchResult();
+        
+        //Check to see if error log was empty after preprocessing
+        assertTrue("Error: the error log isnt empty", errorLog.size() == 0);
+
+        //Create array list of types to check against
+        //30 + 30 - 50 + 50
+        ArrayList<Token.Type> tokTypes = new ArrayList<>();
+        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.PLUS);
+        tokTypes.add(Token.Type.NUM);
+
+        testPreprocessor(tokTypes, preProcessorResultList);
+    }
+
     public static void testPreprocessor(ArrayList<Token.Type> tokTypes, List<Token> preProcResList){
         tokTypes.add(Token.Type.EOF);
         assertNotNull("Null list from preprocessor provided", preProcResList);
