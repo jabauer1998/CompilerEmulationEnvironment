@@ -24,12 +24,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.util.LinkedList;
-
+import java.util.List;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Preprocessor;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
 import edu.depauw.emulator_ide.verilog_compiler.passes.Interpreter;
 import edu.depauw.emulator_ide.verilog_compiler.passes.TypeChecker;
@@ -231,8 +232,14 @@ public class Main extends Application {
 						ErrorLog errorLog = new ErrorLog(errorOut);
 						Lexer lex = new Lexer(source, errorLog);
 						LinkedList<Token> tokens = lex.tokenize();
+						
+						//Preprocess the tokens
+						Preprocessor preProcessor = new Preprocessor(errorLog);
+						preProcessor.attachList(tokens);
+						preProcessor.executePass();
+						List <Token> toks = preProcessor.fetchResult();
 						// parse the tokens
-						Parser parse = new Parser(tokens, errorLog);
+						Parser parse = new Parser(toks, errorLog);
 						ModuleDeclaration moddec = parse.parseAST();
 						// Type check the program
 						TypeChecker typeChecker = new TypeChecker(errorLog);

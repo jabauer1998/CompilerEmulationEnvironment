@@ -20,6 +20,13 @@
             "type": "shell",
             "command": "mvn -f ./emulator_ide test",
             "group": "test"
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "mvn -f ./emulator_ide clean javafx:run",
+            "group": "none",
+            "problemMatcher": []
         }
     ]
 }
