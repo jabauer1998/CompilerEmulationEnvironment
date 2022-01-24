@@ -1,18 +1,11 @@
 package edu.depauw.emulator_ide.verilog_compiler.passes.util;
 
 
-/**
- * The number utils class was designed to keep track of methods to help with the
- * conversion from String to numerical values
- * 
- * @author Jacob Bauer
- */
-
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.*;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.web.*;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.*;
-
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Vector;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.*;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.nodes.Register;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.web.*;
 import java.lang.String;
 import java.lang.Number;
 import java.lang.Integer;

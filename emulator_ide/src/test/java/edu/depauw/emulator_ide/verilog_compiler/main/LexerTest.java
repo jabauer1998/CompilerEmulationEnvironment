@@ -61,7 +61,7 @@ public class LexerTest {
 		String input = "0 11 9999 0123456789 'D893084 4'd98349";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
+		prepareLexer(new Tuple(Token.Type.DEC, Token.Type.DEC, Token.Type.DEC, Token.Type.DEC, Token.Type.DEC, Token.Type.DEC, Token.Type.DEC));
 
 		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
@@ -72,7 +72,7 @@ public class LexerTest {
 		String input = "'h98f08 4'Hfffff 54'h0984903";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
+		prepareLexer(new Tuple(Token.Type.HEX, Token.Type.HEX, Token.Type.HEX, Token.Type.EOF));
 
 		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
@@ -83,7 +83,7 @@ public class LexerTest {
 		String input = "'o07 4'O74343 34'O01713";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
+		prepareLexer(new Tuple(Token.Type.OCT, Token.Type.OCT, Token.Type.OCT, Token.Type.EOF));
 
 		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}
@@ -94,7 +94,7 @@ public class LexerTest {
 		String input = "'b0101010 4'b011101 34'B011010";
 		prepareErrorLog(0);
 
-		prepareLexer(new Tuple(Token.Type.NUM, Token.Type.NUM, Token.Type.NUM, Token.Type.EOF));
+		prepareLexer(new Tuple(Token.Type.BIN, Token.Type.BIN, Token.Type.BIN, Token.Type.EOF));
 
 		testLexer(new Lexer(new Source(new StringReader(input)), new ErrorLog(new Destination(System.out))));
 	}

@@ -10,10 +10,10 @@ import edu.depauw.emulator_ide.common.Position;
  * 
  * @author Jacob Bauer
  */
-public class PortConnection extends Expression {
+public class PortConnection extends AstNode implements Expression {
 
-    private final Identifier ident;// name of the port connection
-    private Expression       exp;  // what the port connection equals
+    private final String connectingTo;// name of the port connection
+    private final Expression connectingFrom;  // what the port connection connects to
 
     /**
      * The port connection constructor takes in an identifier
@@ -21,10 +21,10 @@ public class PortConnection extends Expression {
      * @param ident          name of the port connecting to
      * @param exp.expression representing what is being connected
      */
-    public PortConnection(Identifier ident, Expression exp) {
-        super(ident.getPosition());
-        this.ident = ident;
-        this.exp = exp;
+    public PortConnection(Position start, String connectingTo, Expression connectingFrom) {
+        super(start);
+        this.connectingTo= connectingTo;
+        this.connectingFrom = connectingFrom;
     }
 
     /**
@@ -32,21 +32,14 @@ public class PortConnection extends Expression {
      * 
      * @param none
      */
-    public Expression getExpression(){ return exp; }
-
-    /**
-     * Retr.Eves the.expression that represents what is being connected
-     * 
-     * @param none
-     */
-    public void setExpression(Expression exp){ this.exp = exp; }
+    public Expression getPortConnectingFrom(){ return connectingFrom; }
 
     /**
      * Returns the name of the identifier that we are connected to
      * 
      * @param none
      */
-    public Identifier getIdentifier(){ return ident; }
+    public String getPortConnectingTo(){ return connectingTo; }
 
     /**
      * The accept method will make it so the visitor interface will work

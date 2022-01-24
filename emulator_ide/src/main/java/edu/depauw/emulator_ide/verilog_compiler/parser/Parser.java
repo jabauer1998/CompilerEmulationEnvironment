@@ -1,29 +1,110 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.ConstantExpression;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.EmptyExpression;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.PortConnection;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.FunctionCall;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.SystemFunctionCall;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.Concatenation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.TernaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Add;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BasicEquality;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BasicInequality;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitshiftLeft;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitshiftRight;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseAnd;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseNand;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseNor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseOr;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseXnor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseXor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Divide;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.GreaterThan;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.GreaterThanOrEqualTo;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LessThan;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LessThanOrEqualTo;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LogicalAnd;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LogicalOr;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Modulo;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Multiply;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.StrictEquality;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.StrictInequality;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Subtract;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.BitwiseNegation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.LogicalNegation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.Negation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionAnd;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionNand;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionNor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionOr;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionXnor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionXor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.BinaryNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.DecimalNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.HexadecimalNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.OctalNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.StringNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Element;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Identifier;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.LValue;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Slice;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ContinuousAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.AndGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.NandGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.NorGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.NotGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.OrGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.XnorGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.XorGateDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstance;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstantiation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.TaskDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.AllwaysProcess;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.InitialProcess;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Input;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Int;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Output;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Real;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Reg;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.RegValueList;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Unidentified;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.EmptyStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.SeqBlockStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.WaitStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseXStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseZStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.CaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.DefCaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.ExprCaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.BlockingAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.NonBlockingAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForeverStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.RepeatStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.WhileStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfElseStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.SystemTaskStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.TaskStatement;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
-import edu.depauw.emulator_ide.verilog_compiler.data_structure.Context;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.general.case_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.general.list.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.gate_declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.reg_value.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Parser {
 
 	private final List<Token>               lexedTokens;
 	private final ErrorLog                  errorLog;
-	private Context context;
 
 	/**
 	 * This is the consturctor to the parser class
@@ -33,11 +114,15 @@ public class Parser {
 	 */
 
 	public Parser(List<Token> tokens, ErrorLog errorLog) {
-		this.context = Context.getContext();
 
 		this.lexedTokens = Lexer.filterWhiteSpace(tokens);
 		
 		this.errorLog = errorLog;
+	}
+
+	private Position getStart(){
+		Token tok = peek();
+		return tok.getPosition();
 	}
 
 	private boolean willMatch(Token.Type... types){
@@ -120,9 +205,20 @@ public class Parser {
 
 	}
 
-	public ModuleDeclaration parseAST(){
-		ModuleDeclaration modDec = parseModuleDeclaration();
-		return modDec;
+	//
+	public List<ModuleDeclaration> parseAST(){
+		List<ModuleDeclaration> verilogFileContents = parseVerilogFile();
+		return verilogFileContents;
+	}
+
+	public List<ModuleDeclaration> parseVerilogFile(){
+		List<ModuleDeclaration> moduleList = new ArrayList<>();
+		do{
+			ModuleDeclaration moduleDeclaration = parseModuleDeclaration();
+			moduleList.add(moduleDeclaration);
+		} while(willMatch(Token.Type.MODULE));
+
+		return moduleList;
 	}
 
 	/**
@@ -133,36 +229,30 @@ public class Parser {
 
 	// ModuleDeclaration -> MODULE IDENT ( ModuleDeclarationList ) ; ModItemList ENDMODULE
 	private ModuleDeclaration parseModuleDeclaration(){
+		Position start = getStart();
 		match(Token.Type.MODULE);
-		Identifier ident = parseIdentifier();
+		
+		Token modTok = match(Token.Type.IDENT);
+		String moduleName = modTok.getLexeme();
 
-		if (skipIfYummy(Token.Type.LPAR)) {
+		List<ModuleItem> moduleItemList = new ArrayList<>();
 
-			DeclarationList declList;
-
-			if (willMatch(Token.Type.RPAR))
-				declList = new DeclarationList(new ArrayList<>());
-			else
-				declList = parseModuleParDeclarationList();
-
-			match(Token.Type.RPAR, STRATEGY.REPAIR);
-			match(Token.Type.SEMI, STRATEGY.REPAIR);
-
-			if (skipIfYummy(Token.Type.ENDMODULE)) return new ModuleDeclaration(ident, declList);
-
-			ModItemList modList = parseModItemList();
-			match(Token.Type.ENDMODULE, STRATEGY.REPAIR);
-			return new ModuleDeclaration(ident, declList, modList);
-
-		} else {
-			match(Token.Type.SEMI, STRATEGY.REPAIR);
-
-			if (skipIfYummy(Token.Type.ENDMODULE)) return new ModuleDeclaration(ident);
-
-			ModItemList modList = parseModItemList();
-			match(Token.Type.ENDMODULE, STRATEGY.REPAIR);
-			return new ModuleDeclaration(ident, modList);
+		if(skipIfYummy(Token.Type.LPAR) && !willMatch(Token.Type.RPAR)){
+			moduleItemList = parseModuleParDeclarationList();
+			match(Token.Type.RPAR);
 		}
+
+		match(Token.Type.SEMI, STRATEGY.REPAIR);
+
+		if(!willMatch(Token.Type.ENDMODULE)){
+			List<ModuleItem> modList = parseModuleItemList();
+			moduleItemList.addAll(modList);
+		}
+
+		match(Token.Type.ENDMODULE);
+
+
+		return new ModuleDeclaration(start, moduleName, moduleItemList);
 
 	}
 
@@ -174,52 +264,45 @@ public class Parser {
 
 	// ModuleDeclarationList -> ModuleParam ModuleDeclarationListRest
 	// ModuleDeclarationListRest -> , ModuleParam ModuleDeclarationListRest | NULL
-	private DeclarationList parseModuleParDeclarationList(){
-		ArrayList<Declaration> declList = new ArrayList<>();
+	private List<ModuleItem> parseModuleParDeclarationList(){
+		ArrayList<ModuleItem> declList = new ArrayList<>();
 
 		do {
-			Declaration decl = parseModuleParDeclaration();
+			ModuleItem decl = parseModuleParDeclaration();
 			declList.add(decl);
 		} while(skipIfYummy(Token.Type.COMMA));
 
-		return new DeclarationList(declList);
+		return declList;
 	}
 
 	// ModuleDeclaration -> OutputDeclaration | InputDeclaration | OutputWireDeclaration |
 	// OutputRegDeclaration | InputWireDeclaration
-	private Declaration parseModuleParDeclaration(){
+	private ModuleItem parseModuleParDeclaration(){
+		Position start = getStart();
 
 		if (skipIfYummy(Token.Type.INPUT)) {
-
 			skipIfYummy(Token.Type.WIRE);
-
 			if (skipIfYummy(Token.Type.LBRACK)) {
-
 				ConstantExpression exp1 = parseConstantExpression();
 				match(Token.Type.COLON, STRATEGY.REPAIR);
 				ConstantExpression exp2 = parseConstantExpression();
 				match(Token.Type.RBRACK, STRATEGY.REPAIR);
 
-				Identifier ident = parseIdentifier();
+				Input.Wire.Vector vector = new Input().new Wire().new Vector(exp1, exp2);
+				String variableName = parseRawIdentifier(); //fetch name to declare
 
-				ArrayList<Identifier> identList = new ArrayList<>();
-				identList.add(ident);
+				Input.Wire.Vector.Ident item = vector.new Ident(start, variableName);
 
-				IdentifierList list = new IdentifierList(identList);
-
-				return new InputWireVectorDeclaration(exp1, exp2, list);
+				return item;
 			} else {
-				Identifier ident = parseIdentifier();
-				ArrayList<Identifier> identList = new ArrayList<>();
-				identList.add(ident);
+				String declarationIdent = parseRawIdentifier();
+				Input.Wire.Scalar.Ident scalar = new Input().new Wire().new Scalar().new Ident(start, declarationIdent);
 
-				return new InputWireScalarDeclaration(new IdentifierList(identList));
+				return scalar;
 			}
 
 		} else if (skipIfYummy(Token.Type.OUTPUT)) {
-
-			if (skipIfYummy(Token.Type.REG)) {
-
+			if (skipIfYummy(Token.Type.REG)) {	
 				if (skipIfYummy(Token.Type.LBRACK)) {
 
 					ConstantExpression exp1 = parseConstantExpression();
@@ -227,63 +310,42 @@ public class Parser {
 					ConstantExpression exp2 = parseConstantExpression();
 					match(Token.Type.RBRACK, STRATEGY.REPAIR);
 
-					Identifier ident = parseIdentifier();
 
-					ArrayList<RegValue> regValList = new ArrayList<>();
-					regValList.add(new RegVectorIdent(ident));
+					Output.Reg.Vector vector = new Output().new Reg().new Vector(exp1, exp2);
+					String variableName = parseRawIdentifier(); //fetch name to declare
 
-					return new OutputRegVectorDeclaration(exp1, exp2, new RegValueList(regValList));
+					Output.Reg.Vector.Ident item = vector.new Ident(start, variableName);
+
+					return item;
 				} else {
-					Identifier ident = parseIdentifier();
-					ArrayList<RegValue> regList = new ArrayList<>();
-					regList.add(new RegScalarIdent(ident));
-					return new OutputRegScalarDeclaration(new RegValueList(regList));
-				}
-
-			} else if (willMatch(Token.Type.WIRE)) {
-				skip();
-
-				if (willMatch(Token.Type.LBRACK)) {
-					skip();
-					ConstantExpression exp1 = parseConstantExpression();
-					match(Token.Type.COLON, STRATEGY.REPAIR);
-					ConstantExpression exp2 = parseConstantExpression();
-					match(Token.Type.RBRACK, STRATEGY.REPAIR);
-					Identifier ident = parseIdentifier();
-					ArrayList<Identifier> identList = new ArrayList<>();
-					identList.add(ident);
-					return new OutputWireVectorDeclaration(exp1, exp2, new IdentifierList(identList));
-				} else {
-					Identifier ident = parseIdentifier();
-					ArrayList<Identifier> identList = new ArrayList<>();
-					identList.add(ident);
-					return new OutputWireScalarDeclaration(new IdentifierList(identList));
+					String declarationIdent = parseRawIdentifier();
+					Output.Reg.Scalar.Ident scalar = new Output().new Reg().new Scalar().new Ident(start, declarationIdent);
+					return scalar;
 				}
 
 			} else {
-
-				if (willMatch(Token.Type.LBRACK)) {
-					skip();
+				skipIfYummy(Token.Type.WIRE);
+				if (skipIfYummy(Token.Type.LBRACK)) {
 					ConstantExpression exp1 = parseConstantExpression();
 					match(Token.Type.COLON, STRATEGY.REPAIR);
 					ConstantExpression exp2 = parseConstantExpression();
 					match(Token.Type.RBRACK, STRATEGY.REPAIR);
-					Identifier ident = parseIdentifier();
-					ArrayList<Identifier> identList = new ArrayList<>();
-					identList.add(ident);
-					return new OutputWireVectorDeclaration(exp1, exp2, new IdentifierList(identList));
+
+					Output.Wire.Vector vector = new Output().new Wire().new Vector(exp1, exp2);
+					String variableName = parseRawIdentifier(); //fetch name to declare
+
+					Output.Wire.Vector.Ident item = vector.new Ident(start, variableName);
+
+					return item;
 				} else {
-					Identifier ident = parseIdentifier();
-					ArrayList<Identifier> identList = new ArrayList<>();
-					identList.add(ident);
-					return new OutputWireScalarDeclaration(new IdentifierList(identList));
+					String declarationIdent = parseRawIdentifier();
+					Output.Wire.Scalar.Ident scalar = new Output().new Wire().new Scalar().new Ident(start, declarationIdent);
+					return scalar;
 				}
-
 			}
-
 		} else {
-			Identifier ident = parseIdentifier();
-			return new UnidentifiedDeclaration(ident);
+			String ident = parseRawIdentifier();
+			return new Unidentified().new Declaration(start, ident);
 		}
 
 	}
@@ -291,7 +353,7 @@ public class Parser {
 	// ModItem -> Function | Task | IntegerDeclaration | RealDeclaration | OutputDeclaration
 	// | InitialDeclaration | AllwaysDeclaration | RegDeclaration | ContinuousAssignment |
 	// ModuleInstantiation | GateDeclaration
-	private ModItem parseModItem(){
+	private ModuleItem parseModuleItem(){
 
 		if (willMatch(Token.Type.FUNCTION)) return parseFunctionDeclaration();
 		else if (willMatch(Token.Type.TASK)) return parseTaskDeclaration();
@@ -303,9 +365,7 @@ public class Parser {
 		else if (willMatch(Token.Type.WIRE)) return parseWireDeclaration();
 		else if (willMatch(Token.Type.ASSIGN)) return parseContinuousAssignment();
 		else if (willMatch(Token.Type.IDENT)) return parseModInstantiation();
-		else if (willMatch(Token.Type.OUTPUT)) {
-			
-			skip();
+		else if (skipIfYummy(Token.Type.OUTPUT)) {
 
 			if (willMatch(Token.Type.WIRE)) {
 				return parseOutputWireDeclaration();
@@ -337,31 +397,32 @@ public class Parser {
 
 	// ModItemList -> ModItem ModItemListRest | NULL
 	// ModItemListRest -> ModItem ModItemListRest | NULL
-	private ModItemList parseModItemList(){
-		List<ModItem> modList = new ArrayList<>();
+	private List<ModuleItem> parseModuleItemList(){
+		List<ModuleItem> modList = new ArrayList<>();
 
 		while(!willMatch(Token.Type.ENDMODULE)) {
-			ModItem modItem = parseModItem();
+			ModuleItem modItem = parseModuleItem();
 			modList.add(modItem);
 		}
 
-		return new ModItemList(modList);
+		return modList;
 	}
 
 	// Function -> Function FunctionName DeclarationList Statement ENDFUNCTION
-	private ModItem parseFunctionDeclaration(){
+	private ModuleItem parseFunctionDeclaration(){
+		Position start = getStart();
 		match(Token.Type.FUNCTION);
-		Declaration decl = parseFunctionName();
+		ModuleItem decl = parseFunctionName();
 		match(Token.Type.SEMI);
-		DeclarationList declList = parseDeclarationList(true);
+		List<ModuleItem> declList = parseDeclarationList(true);
 		Statement stat = parseStatement();
 		match(Token.Type.ENDFUNCTION);
-		return new FunctionDeclaration(decl, declList, stat);
+		return new FunctionDeclaration(start, decl, declList, stat);
 	}
 
 	// FunctionName -> (REG | REG [ : ] | INTEGER | REAL) IDENT | UNIDENTIFIED
-	private Declaration parseFunctionName(){
-
+	private ModuleItem parseFunctionName(){
+		Position start = getStart();
 		if (willMatch(Token.Type.REG)) {
 			skip();
 
@@ -371,62 +432,65 @@ public class Parser {
 				match(Token.Type.COLON);
 				ConstantExpression exp2 = parseConstantExpression();
 				match(Token.Type.RBRACK);
-				Identifier ident = parseIdentifier();
-				ArrayList<RegValue> exprList = new ArrayList<>();
-				exprList.add(new RegVectorIdent(ident));
-				return new RegVectorDeclaration(exp1, exp2, new RegValueList(exprList));
+				Reg.Vector vector = new Reg().new Vector(exp1, exp2);
+
+				String ident = parseRawIdentifier();
+
+				Reg.Vector.Ident rValueIdent = vector.new Ident(start, ident);
+
+				return rValueIdent;
 			} else {
-				Identifier ident = parseIdentifier();
-				ArrayList<RegValue> expList = new ArrayList<>();
-				expList.add(new RegScalarIdent(ident));
-				return new RegScalarDeclaration(new RegValueList(expList));
+				String ident = parseRawIdentifier();
+				Reg.Scalar.Ident rValueIdent = new Reg().new Scalar().new Ident(start, ident);
+				return rValueIdent;
 			}
 
 		} else if (willMatch(Token.Type.INTEGER)) {
 			skip();
-			Identifier ident = parseIdentifier();
-			ArrayList<RegValue> exprList = new ArrayList<>();
-			exprList.add(new IntegerIdent(ident));
-			return new IntegerDeclaration(new RegValueList(exprList));
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Int.Ident rValueIdent = new Int().new Ident(localStart, ident);
+			return rValueIdent;
 		} else if (willMatch(Token.Type.REAL)) {
 			skip();
-			Identifier ident = parseIdentifier();
-			ArrayList<Identifier> identList = new ArrayList<>();
-			identList.add(ident);
-			return new RealDeclaration(new IdentifierList(identList));
+			String ident = parseRawIdentifier();
+			return new Real().new Ident(start, ident);
 		} else if (willMatch(Token.Type.LBRACK)) {
 			skip();
 			ConstantExpression exp1 = parseConstantExpression();
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			Identifier ident = parseIdentifier();
-			ArrayList<RegValue> exprList = new ArrayList<>();
-			exprList.add(new RegVectorIdent(ident));
-			return new RegVectorDeclaration(exp1, exp2, new RegValueList(exprList));
+
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Reg.Vector vector = new Reg().new Vector(exp1, exp2);
+			Reg.Vector.Ident var = vector.new Ident(localStart, ident);
+			return var;
 		} else {
-			Identifier ident = parseIdentifier();
-			ArrayList<RegValue> expList = new ArrayList<>();
-			expList.add(new RegScalarIdent(ident));
-			return new RegScalarDeclaration(new RegValueList(expList));
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Reg.Scalar.Ident var = new Reg().new Scalar().new Ident(localStart, ident);
+			return var;
 		}
 
 	}
 
 	// Task -> TASK IDENT ; DeclarationList StatementOrNull ENDTASK
-	private ModItem parseTaskDeclaration(){
+	private ModuleItem parseTaskDeclaration(){
+		Position start = getStart();
 		match(Token.Type.TASK);
-		Identifier ident = parseIdentifier();
+		String ident = parseRawIdentifier();
 		match(Token.Type.SEMI);
-		DeclarationList declList = parseDeclarationList(false);
+		List<ModuleItem> declList = parseDeclarationList(false);
 		Statement stat = parseStatementOrNull();
 		match(Token.Type.ENDTASK);
-		return new TaskDeclaration(ident, declList, stat);
+		return new TaskDeclaration(start, ident, declList, stat);
 	}
 
 	// Declaration -> IntegerDeclaration | WireDeclaration | RealDeclaration |
 	// RegDeclaration | OutputDeclaration | InputDeclaration
-	private Declaration parseDeclaration(){
+	private ModuleItem parseDeclaration(){
 
 		if (willMatch(Token.Type.INTEGER)) {
 			return parseIntegerDeclaration();
@@ -460,10 +524,8 @@ public class Parser {
 
 		} else {
 			Token matched = peek();
-			errorLog.addItem(new ErrorItem("Unexpected Declaration token of type " + matched.getTokenType() + " and lexeme "
-				+ matched.getLexeme() + " found", matched.getPosition()));
-			errorLog.printLog();
-			System.exit(1);
+			errorAndExit("Unexpected Declaration token of type " + matched.getTokenType() + " and lexeme "
+				+ matched.getLexeme() + " found", matched.getPosition());
 			return null;
 		}
 
@@ -471,44 +533,50 @@ public class Parser {
 
 	// DeclarationList -> NULL | Declaration DeclarationListRest
 	// DeclarationListRest -> Declaration DeclarationListRest | NULL
-	private DeclarationList parseDeclarationList(boolean atLeastOne){
-		List<Declaration> declList = new ArrayList<>();
+	private List<ModuleItem> parseDeclarationList(boolean atLeastOne){
+		List<ModuleItem> declList = new ArrayList<>();
 
-		if (atLeastOne) { declList.add(parseDeclaration()); }
-
-		while(willMatch(Token.Type.INTEGER) || willMatch(Token.Type.REAL) || willMatch(Token.Type.WIRE)
-			|| willMatch(Token.Type.REG) || willMatch(Token.Type.INPUT) || willMatch(Token.Type.OUTPUT)) {
-			declList.add(parseDeclaration());
+		if (atLeastOne) {
+			ModuleItem decl = parseDeclaration();
+			declList.add(decl);
 		}
 
-		return new DeclarationList(declList);
+		while(willMatch(Token.Type.INTEGER, Token.Type.REAL, Token.Type.WIRE, Token.Type.REG, Token.Type.INPUT, Token.Type.OUTPUT)) {
+			ModuleItem decl = parseDeclaration();
+			declList.add(decl);
+		}
+
+		return declList;
 	}
 
 	// AllwaysStatement -> Allways Statement
-	private ModItem parseAllwaysStatement(){
+	private ModuleItem parseAllwaysStatement(){
+		Position start = getStart();
 		match(Token.Type.ALLWAYS);
 		Statement stat = parseStatement();
-		return new AllwaysStatement(stat);
+		return new AllwaysProcess(start, stat);
 	}
 
 	// InitialStatement -> Initial Statement
-	private ModItem parseInitialStatement(){
+	private ModuleItem parseInitialStatement(){
+		Position start = getStart();
 		match(Token.Type.INITIAL);
 		Statement stat = parseStatement();
-		return new InitialStatement(stat);
+		return new InitialProcess(start, stat);
 	}
 
 	// ContinuousAssignment -> ASSIGN AssignmentList ;
-	private ModItem parseContinuousAssignment(){
+	private ModuleItem parseContinuousAssignment(){
+		Position start = getStart();
 		match(Token.Type.ASSIGN);
-		AssignmentList assignList = parseAssignmentList();
+		List<BlockingAssignment> assignList = parseAssignmentList();
 		match(Token.Type.SEMI);
-		return new ContinuousAssignment(assignList);
+		return new ContinuousAssignment(start, assignList);
 	}
 
 	// RegDeclaration -> REG RegValueList ; | REG [ ConstExpression : ConstExpression ]
 	// RegValueList ;
-	private Declaration parseRegDeclaration(){
+	private RegValueList parseRegDeclaration(){
 		match(Token.Type.REG);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -517,20 +585,79 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseRegVectorValueList();
+			RegValueList identList = parseRegVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new RegVectorDeclaration(exp1, exp2, identList);
+			return identList;
 		} else {
-			RegValueList identList = parseRegScalarValueList();
+			RegValueList identList = parseRegScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new RegScalarDeclaration(identList);
+			return identList;
 		}
 
+	}
+
+	private RegValueList parseRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Reg.Vector vector = new Reg().new Vector(vectorIndex1, vectorIndex2);
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+
+			if(willMatch(Token.Type.LBRACK)){
+				skip();
+				ConstantExpression begin = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression end = parseConstantExpression();
+				match(Token.Type.RBRACK);
+
+				Reg.Vector.Array decl = vector.new Array(start, ident, begin, end);
+				result.add(decl);
+
+			} else {
+				Reg.Vector.Ident decl = vector.new Ident(localStart, ident);
+				result.add(decl);
+			}
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start,result);
+	}
+
+	private RegValueList parseRegScalarDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Reg.Scalar scalar = new Reg().new Scalar();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			if(willMatch(Token.Type.LBRACK)){
+				skip();
+				ConstantExpression begin = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression end = parseConstantExpression();
+				match(Token.Type.RBRACK);
+
+				Reg.Scalar.Array decl = scalar.new Array(start, ident, begin, end);
+				result.add(decl);
+
+			} else {
+				Reg.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+				result.add(decl);
+			}
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
 	}
 
 	// OutputRegDeclaration -> OUTPUT REG RegValueList ; | OUTPUT REG [ ConstExpression :
 	// ConstExpression ] RegValueList ;
-	private Declaration parseOutputRegDeclaration(){
+	private ModuleItem parseOutputRegDeclaration(){
 		match(Token.Type.REG);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -539,20 +666,79 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseOutputRegVectorValueList();
+			RegValueList identList = parseOutputRegVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new OutputRegVectorDeclaration(exp1, exp2, identList);
+			return identList;
 		} else {
-			RegValueList identList = parseOutputRegScalarValueList();
+			RegValueList identList = parseOutputRegScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new OutputRegScalarDeclaration(identList);
+			return identList;
 		}
 
+	}
+
+	private RegValueList parseOutputRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Output.Reg.Vector vector = new Output().new Reg().new Vector(vectorIndex1, vectorIndex2);
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+
+			if(willMatch(Token.Type.LBRACK)){
+				skip();
+				ConstantExpression begin = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression end = parseConstantExpression();
+				match(Token.Type.RBRACK);
+
+				Output.Reg.Vector.Array decl = vector.new Array(start, ident, begin, end);
+				result.add(decl);
+
+			} else {
+				Output.Reg.Vector.Ident decl = vector.new Ident(localStart, ident);
+				result.add(decl);
+			}
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start,result);
+	}
+
+	private RegValueList parseOutputRegScalarDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Output.Reg.Scalar scalar = new Output().new Reg().new Scalar();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			if(willMatch(Token.Type.LBRACK)){
+				skip();
+				ConstantExpression begin = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression end = parseConstantExpression();
+				match(Token.Type.RBRACK);
+
+				Output.Reg.Scalar.Array decl = scalar.new Array(start, ident, begin, end);
+				result.add(decl);
+
+			} else {
+				Output.Reg.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+				result.add(decl);
+			}
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
 	}
 
 	// WireDeclaration -> WIRE IdentifierList ; | WIRE [ ConstExpression : ConstExpression ]
 	// IdentifierList ;
-	private Declaration parseWireDeclaration(){
+	private ModuleItem parseWireDeclaration(){
 		match(Token.Type.WIRE);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -561,20 +747,54 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			IdentifierList identList = parseIdentifierList();
+			RegValueList regValList = parseWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new WireVectorDeclaration(exp1, exp2, identList);
+			return regValList;
 		} else {
-			IdentifierList identList = parseIdentifierList();
+			RegValueList regValList = parseWireScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new WireScalarDeclaration(identList);
+			return regValList;
 		}
 
+	}
+
+	private RegValueList parseWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Wire.Vector vector = new Wire().new Vector(vectorIndex1, vectorIndex2);
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Wire.Vector.Ident decl = vector.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start,result);
+	}
+
+	private RegValueList parseWireScalarDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Wire.Scalar scalar = new Wire().new Scalar();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Wire.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
 	}
 
 	// OutputWireDeclaration -> INPUT WIRE IdentifierList ; | INPUT WIRE [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private Declaration parseOutputWireDeclaration(){
+	private ModuleItem parseOutputWireDeclaration(){
 		match(Token.Type.WIRE);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -583,20 +803,56 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			IdentifierList identList = parseIdentifierList();
+
+			RegValueList declList = parseOutputWireVectorDeclarationList(exp1, exp2);
+			
 			match(Token.Type.SEMI);
-			return new OutputWireVectorDeclaration(exp1, exp2, identList);
+			return declList;
 		} else {
-			IdentifierList identList = parseIdentifierList();
+			RegValueList declList = parseOutputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new OutputWireScalarDeclaration(identList);
+			return declList;
 		}
 
+	}
+
+	private RegValueList parseOutputWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Output.Wire.Vector vector = new Output().new Wire().new Vector(vectorIndex1, vectorIndex2);
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Output.Wire.Vector.Ident decl = vector.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start,result);
+	}
+
+	private RegValueList parseOutputWireScalarDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Output.Wire.Scalar scalar = new Output().new Wire().new Scalar();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Output.Wire.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
 	}
 
 	// InputWireDeclaration -> INPUT WIRE IdentifierList ; | INPUT WIRE [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private Declaration parseInputWireDeclaration(){
+	private ModuleItem parseInputWireDeclaration(){
 		match(Token.Type.WIRE);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -605,20 +861,55 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseInputWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new InputWireVectorDeclaration(exp1, exp2, identList);
+			return identList;
 		} else {
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseInputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new InputWireScalarDeclaration(identList);
+			return identList;
 		}
 
 	}
 
-	// InputWireDeclaration -> INPUT REG IdentifierList ; | INPUT REG [ ConstExpression :
+	private RegValueList parseInputWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Input.Wire.Vector vector = new Input().new Wire().new Vector(vectorIndex1, vectorIndex2);
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Input.Wire.Vector.Ident decl = vector.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start,result);
+	}
+
+	private RegValueList parseInputWireScalarDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Input.Wire.Scalar scalar = new Input().new Wire().new Scalar();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Input.Wire.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
+	}
+
+
+	// InputRegDeclaration -> INPUT REG IdentifierList ; | INPUT REG [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private Declaration parseInputRegDeclaration(){
+	private ModuleItem parseInputRegDeclaration(){
 		match(Token.Type.REG);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -627,127 +918,202 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseInputRegVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new InputRegVectorDeclaration(exp1, exp2, identList);
+			return identList;
 		} else {
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseInputRegScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new InputRegScalarDeclaration(identList);
+			return identList;
 		}
 
 	}
 
+	private RegValueList parseInputRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Input.Reg.Vector vector = new Input().new Reg().new Vector(vectorIndex1, vectorIndex2);
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Input.Reg.Vector.Ident decl = vector.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start,result);
+	}
+
+	private RegValueList parseInputRegScalarDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		Input.Reg.Scalar scalar = new Input().new Reg().new Scalar();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Input.Reg.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
+	}
+
 	// OutputRegDeclaration -> INPUT IdentifierList ; | INPUT [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private Declaration parseInputDeclaration(){
-
+	private ModuleItem parseInputDeclaration(){
 		if (willMatch(Token.Type.LBRACK)) {
 			skip();
 			ConstantExpression exp1 = parseConstantExpression();
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseInputWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new InputWireVectorDeclaration(exp1, exp2, identList);
+			return identList;
 		} else {
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseInputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new InputWireScalarDeclaration(identList);
+			return identList;
 		}
 
 	}
 
 	// OutputDeclaration -> OUTPUT IdentifierList ; | OUTPUT [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private Declaration parseOutputDeclaration(){
-
+	private ModuleItem parseOutputDeclaration(){
 		if (willMatch(Token.Type.LBRACK)) {
 			skip();
 			ConstantExpression exp1 = parseConstantExpression();
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseOutputWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
-			return new OutputWireVectorDeclaration(exp1, exp2, identList);
+			return identList;
 		} else {
-			IdentifierList identList = parseIdentifierList();
+			RegValueList identList = parseOutputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
-			return new OutputWireScalarDeclaration(identList);
+			return identList;
 		}
 
 	}
 
 	// RealDeclaration -> REAL IdentifierList ;
-	private Declaration parseRealDeclaration(){
+	private ModuleItem parseRealDeclaration(){
 		match(Token.Type.REAL);
-		IdentifierList identList = parseIdentifierList();
+		RegValueList identList = parseRealDeclarationList();
 		match(Token.Type.SEMI);
-		return new RealDeclaration(identList);
+		return identList;
+	}
+
+	private RegValueList parseRealDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			Real.Ident decl = new Real().new Ident(localStart, ident);
+			result.add(decl);
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
 	}
 
 	// IntegerDeclaration -> INTEGER IdentifierList ;
-	private Declaration parseIntegerDeclaration(){
+	private ModuleItem parseIntegerDeclaration(){
 		match(Token.Type.INTEGER);
-		RegValueList identList = parseIntegerValueList();
+		RegValueList identList = parseIntegerDeclarationList();
 		match(Token.Type.SEMI);
-		return new IntegerDeclaration(identList);
+		return identList;
+	}
+
+	private RegValueList parseIntegerDeclarationList(){
+		Position start = getStart();
+
+		List<ModuleItem> result = new ArrayList<>();
+
+		do{
+			Position localStart = getStart();
+			String ident = parseRawIdentifier();
+			if(willMatch(Token.Type.LBRACK)){
+				skip();
+				Expression exp1 = parseConstantExpression();
+				match(Token.Type.COLON);
+				Expression exp2 = parseConstantExpression();
+				match(Token.Type.RBRACK);
+
+				Int.Array decl = new Int().new Array(localStart, ident, exp1, exp2);
+				result.add(decl);
+			} else {
+				Int.Ident decl = new Int().new Ident(localStart, ident);
+				result.add(decl);
+			}
+		} while (skipIfYummy(Token.Type.COMMA));
+
+		return new RegValueList(start, result);
 	}
 
 	// GateDeclaration -> GATYPE ( ExpressionList );
-	private ModItem parseGateDeclaration(){
+	private ModuleItem parseGateDeclaration(){
+
+		Position start = getStart();
 
 		if (willMatch(Token.Type.ORGATE)) {
 			skip();
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new OrGateDeclaration(expList);
+			return new OrGateDeclaration(start, expList);
 		} else if (willMatch(Token.Type.ANDGATE)) {
 			skip();
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new AndGateDeclaration(expList);
+			return new AndGateDeclaration(start, expList);
 		} else if (willMatch(Token.Type.NANDGATE)) {
 			skip();
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new NandGateDeclaration(expList);
+			return new NandGateDeclaration(start, expList);
 		} else if (willMatch(Token.Type.NORGATE)) {
 			skip();
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new NorGateDeclaration(expList);
+			return new NorGateDeclaration(start, expList);
 		} else if (willMatch(Token.Type.XORGATE)) {
 			skip();
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new XorGateDeclaration(expList);
+			return new XorGateDeclaration(start, expList);
 		} else if (willMatch(Token.Type.XNORGATE)) {
 			skip();
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new XnorGateDeclaration(expList);
+			return new XnorGateDeclaration(start, expList);
 		} else if (willMatch(Token.Type.NOTGATE)) {
 			match(Token.Type.NOTGATE);
 			match(Token.Type.LPAR);
-			ExpressionList expList = parseExpressionList();
+			Expression exp = parseExpression();
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new NotGateDeclaration(expList);
+			return new NotGateDeclaration(start, exp);
 		} else {
 			Token matched = peek();
 			errorLog.addItem(new ErrorItem("Unexpected GateDeclaration token of type " + matched.getTokenType() + " and lexeme "
@@ -760,34 +1126,33 @@ public class Parser {
 	}
 
 	// ModInstantiation -> IDENT ModuleInstanceList
-	private ModItem parseModInstantiation(){
-		Identifier ident = parseIdentifier();
-		ModInstanceList modList = parseModInstanceList();
+	private ModuleItem parseModInstantiation(){
+		Position start = getStart();
+		String ident = parseRawIdentifier();
+		List<ModuleInstance> modList = parseModInstanceList();
 		match(Token.Type.SEMI);
-		return new ModInstantiation(ident, modList);
+		return new ModuleInstantiation(start, ident, modList);
 	}
 
 	// ModInstanceList -> ModInstance ModInstanceListRest
 	// ModInstance -> , ModInstance ModInstanceListRest | null
-	private ModInstanceList parseModInstanceList(){
-		List<ModInstance> modList = new ArrayList<>();
-		ModInstance inst = parseModInstance();
-		modList.add(inst);
+	private List<ModuleInstance> parseModInstanceList(){
+		List<ModuleInstance> modList = new ArrayList<>();
 
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			inst = parseModInstance();
+		do{
+			ModuleInstance inst = parseModInstance();
 			modList.add(inst);
-		}
+		} while(skipIfYummy(Token.Type.COMMA));
 
-		return new ModInstanceList(modList);
+		return modList;
 	}
 
 	// ModInstance -> IDENT ( ExpressionList )
-	private ModInstance parseModInstance(){
-		Identifier ident = parseIdentifier();
+	private ModuleInstance parseModInstance(){
+		Position start = getStart();
+		String ident = parseRawIdentifier();
 		match(Token.Type.LPAR);
-		ExpressionList expList;
+		List<Expression> expList;
 
 		if (willMatch(Token.Type.DOT)) {
 			expList = parsePortConnectionList();
@@ -796,7 +1161,7 @@ public class Parser {
 		}
 
 		match(Token.Type.RPAR);
-		return new ModInstance(ident, expList);
+		return new ModuleInstance(start, ident, expList);
 	}
 
 	/**
@@ -810,7 +1175,7 @@ public class Parser {
 	// SeqBlock | NonBlockAssign | ContinuousAssign | BlockAssign | NONBlockAssign |
 	// TaskCall
 	public Statement parseStatement(){
-
+		Position start = getStart();
 		if (willMatch(Token.Type.IF)) return parseIfStatement();
 		else if (willMatch(Token.Type.CASE)) return parseCaseStatement();
 		else if (willMatch(Token.Type.CASEZ)) return parseCaseZStatement();
@@ -828,46 +1193,37 @@ public class Parser {
 			return stat;
 		} else if (willMatch(Token.Type.DOLLAR)) { // system tasks
 			skip();
-			Identifier ident = parseIdentifier();
+			String ident = parseRawIdentifier();
 
 			if (willMatch(Token.Type.SEMI)) {
 				skip();
-				return new SystemTaskStatement(ident);
+				return new SystemTaskStatement(start, ident, new ArrayList<>());
 			} else {
 				match(Token.Type.LPAR);
 
 				if (willMatch(Token.Type.RPAR)) {
 					skip();
 					match(Token.Type.SEMI);
-					return new SystemTaskStatement(ident);
+					return new SystemTaskStatement(start, ident, new ArrayList<>());
 				} else {
-					ExpressionList expList = parseExpressionList();
+					List<Expression> expList = parseExpressionList();
 					match(Token.Type.RPAR);
 					match(Token.Type.SEMI);
-					return new SystemTaskStatement(ident, expList);
+					return new SystemTaskStatement(start, ident, expList);
 				}
 
 			}
 
 		} else if (willMatch(Token.Type.LCURL)) {
-			Expression concat = parseConcatenation();
-
-			if (willMatch(Token.Type.EQ1)) { // it is a blocking assignment
-				skip();
-				Expression exp = parseExpression();
-				Statement stat = new BlockAssign(concat, exp);
-				match(Token.Type.SEMI);
-				return stat;
+			LValue concat = parseConcatenation();
+			if (willMatch(Token.Type.LE)) { // it is a blocking assignment
+				return parseNonBlockingAssignment(start, concat);
 			} else { // it is a non blocking assignment
-				match(Token.Type.LE);
-				Expression exp = parseExpression();
-				Statement stat = new NonBlockAssign(concat, exp);
-				match(Token.Type.SEMI);
-				return stat;
+				return parseBlockingAssignment(start, concat);
 			}
 
 		} else { // lvalue or task_enable
-			Identifier ident = parseIdentifier();
+			String ident = parseRawIdentifier();
 
 			if (willMatch(Token.Type.LPAR)) {
 				skip();
@@ -875,73 +1231,51 @@ public class Parser {
 				if (willMatch(Token.Type.RPAR)) {
 					skip();
 					match(Token.Type.SEMI);
-					return new TaskStatement(ident);
+					return new TaskStatement(start, ident, new ArrayList<>());
 				} else {
-					ExpressionList expList = parseExpressionList();
+					List<Expression> expList = parseExpressionList();
 					match(Token.Type.RPAR);
 					match(Token.Type.SEMI);
-					return new TaskStatement(ident, expList);
+					return new TaskStatement(start, ident, expList);
 				}
 
-			} else if (willMatch(Token.Type.SEMI)) {
-				skip();
-				return new TaskStatement(ident);
+			} else if (skipIfYummy(Token.Type.SEMI)) {
+				return new TaskStatement(start, ident, new ArrayList<>());
 			} else if (willMatch(Token.Type.LBRACK)) { // It must be an assignment
 				skip();
 				Expression exp1 = parseExpression();
 
 				if (willMatch(Token.Type.RBRACK)) {
 					skip();
-					Expression vec = new VectorElement(ident, exp1);
+					LValue vec = new Element(start, ident, exp1);
 
 					if (willMatch(Token.Type.EQ1)) { // it is a blocking assignment
-						skip();
-						Expression exp = parseExpression();
-						Statement stat = new BlockAssign(vec, exp);
-						match(Token.Type.SEMI);
-						return stat;
+						return parseBlockingAssignment(start, vec);
 					} else { // it is a non blocking assignment
-						match(Token.Type.LE);
-						Expression exp = parseExpression();
-						Statement stat = new NonBlockAssign(vec, exp);
-						match(Token.Type.SEMI);
-						return stat;
+						return parseNonBlockingAssignment(start, vec);
 					}
 
 				} else {
 					match(Token.Type.COLON);
 					ConstantExpression exp2 = parseConstantExpression();
 					match(Token.Type.RBRACK);
-					Expression vec = new VectorSlice(ident, new ConstantExpression(exp1), exp2);
+					ConstantExpression cexp1 = new ConstantExpression(start, exp1);
+					LValue vec = new Slice(start, ident, cexp1, exp2);
 
 					if (willMatch(Token.Type.EQ1)) { // it is a blocking assignment
-						skip();
-						Expression exp = parseExpression();
-						Statement stat = new BlockAssign(vec, exp);
-						match(Token.Type.SEMI);
-						return stat;
+						return parseBlockingAssignment(start, vec);
 					} else { // it is a non blocking assignment
-						match(Token.Type.LE);
-						Expression exp = parseExpression();
-						Statement stat = new NonBlockAssign(vec, exp);
-						match(Token.Type.SEMI);
-						return stat;
+						return parseNonBlockingAssignment(start, vec);
 					}
 
 				}
 
 			} else if (willMatch(Token.Type.EQ1)) { // it is a blocking assignment
-				skip();
-				Expression exp = parseExpression();
-				Statement stat = new BlockAssign(ident, exp);
-				match(Token.Type.SEMI);
-				return stat;
+				LValue lvalue = new Identifier(start, ident);
+				return parseBlockingAssignment(start,lvalue);
 			} else if (willMatch(Token.Type.LE)) { // it is a non blocking assignment
-				skip();
-				Expression exp = parseExpression();
-				Statement stat = new NonBlockAssign(ident, exp);
-				match(Token.Type.SEMI);
-				return stat;
+				LValue lvalue = new Identifier(start, ident);
+				return parseNonBlockingAssignment(start, lvalue);
 			} else {
 				Token matched = peek();
 				errorAndExit("Unexpected Statement token of type " + matched.getTokenType() + " and lexeme "
@@ -951,6 +1285,37 @@ public class Parser {
 
 		}
 
+	}
+
+
+	//NonBlockingAssignment -> LValue <= Expression; NonBlockingAssignment | NULL
+	private NonBlockingAssignment parseNonBlockingAssignment(Position start, LValue value){
+		List<LValue> lValues = new ArrayList<LValue>();
+		List<Expression> expressions = new ArrayList<Expression>();
+		match(Token.Type.LE);
+		Expression expression = parseExpression();
+		match(Token.Type.SEMI, STRATEGY.REPAIR);
+		expressions.add(expression);
+		lValues.add(value);
+		
+		while(willMatch(Token.Type.IDENT, Token.Type.LCURL)){
+			LValue lvalue = parseLValue();
+			match(Token.Type.LE);
+			expression = parseExpression();
+			match(Token.Type.SEMI);
+			lValues.add(lvalue);
+			expressions.add(expression);
+		}
+
+		return new NonBlockingAssignment(start, lValues, expressions);
+	}
+
+	//NonBlockingAssignment -> LValue <= Expression; NonBlockingAssignment | NULL
+	private BlockingAssignment parseBlockingAssignment(Position start, LValue value){
+		match(Token.Type.EQ1);
+		Expression expression = parseExpression();
+		match(Token.Type.SEMI, STRATEGY.REPAIR);
+		return new BlockingAssignment(start, value, expression);
 	}
 
 	// StatementOrNull -> {Statement | NULL} ;
@@ -966,23 +1331,21 @@ public class Parser {
 	}
 
 	// StatementList -> Statement StatementList | NULL
-	private StatementList parseStatementList(){
+	private List<Statement> parseStatementList(){
 		List<Statement> statList = new ArrayList<>();
 
 		if (!willMatch(Token.Type.END)) {
-
 			do {
 				Statement stat = parseStatement();
 				statList.add(stat);
 			} while(!willMatch(Token.Type.END));
-
 		}
 
-		return new StatementList(statList);
+		return statList;
 	}
 
 	// CaseItemList -> CaseItemList CaseItem
-	private CaseItemList parseCaseItemList(){
+	private List<CaseItem> parseCaseItemList(){
 		List<CaseItem> caseList = new ArrayList<>();
 		CaseItem item = parseCaseItem();
 		caseList.add(item);
@@ -992,11 +1355,13 @@ public class Parser {
 			caseList.add(item);
 		}
 
-		return new CaseItemList(caseList);
+		return caseList;
 	}
 
 	// CaseItem -> DEFAULT : Statement | DEFAULT Statement | ExpressionList : Statement
 	private CaseItem parseCaseItem(){
+
+		Position start = getStart();
 
 		if (willMatch(Token.Type.DEFAULT)) {
 			skip();
@@ -1004,12 +1369,12 @@ public class Parser {
 			if (willMatch(Token.Type.COLON)) { skip(); }
 
 			Statement stat = parseStatementOrNull();
-			return new DefCaseItem(stat);
+			return new DefCaseItem(start, stat);
 		} else {
-			ExpressionList expList = parseExpressionList();
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.COLON, STRATEGY.REPAIR);
 			Statement stat = parseStatementOrNull();
-			return new ExprCaseItem(expList, stat);
+			return new ExprCaseItem(start, expList, stat);
 		}
 
 	}
@@ -1017,6 +1382,7 @@ public class Parser {
 	// IfStatement -> IF ( expression ) StatementOrNull
 	// IfElseStatement -> IF ( expression ) StatementOrNull ELSE StatementOrNull
 	private Statement parseIfStatement(){
+		Position start = getStart();
 		match(Token.Type.IF, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression expr = parseExpression();
@@ -1026,125 +1392,134 @@ public class Parser {
 		if (willMatch(Token.Type.ELSE)) {
 			skip();
 			Statement stat2 = parseStatementOrNull();
-			return new IfElseStatement(expr, stat, stat2);
+			return new IfElseStatement(start, expr, stat, stat2);
 		} else {
-			return new IfStatement(expr, stat);
+			return new IfStatement(start, expr, stat);
 		}
 
 	}
 
 	// ForStatement -> FOR ( Assignment ; Expression ; Assignment ) Statement
 	private Statement parseForStatement(){
+		Position start = getStart();
 		match(Token.Type.FOR, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
-		Assignment init = parseAssignment();
+		BlockingAssignment init = parseAssignment();
 		match(Token.Type.SEMI, STRATEGY.REPAIR);
 		Expression expr = parseExpression();
 		match(Token.Type.SEMI, STRATEGY.REPAIR);
-		Assignment change = parseAssignment();
+		BlockingAssignment change = parseAssignment();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
 		Statement stat = parseStatement();
-		return new ForStatement(init, expr, change, stat);
+		return new ForStatement(start, init, expr, change, stat);
 	}
 
 	// Assignment -> LValue = Expression
-	private Assignment parseAssignment(){
-		Expression exp = parseLValue();
+	private BlockingAssignment parseAssignment(){
+		Position start = getStart();
+		LValue exp = parseLValue();
 		match(Token.Type.EQ1, STRATEGY.REPAIR);
 		Expression exp1 = parseExpression();
-		return new Assignment(exp, exp1);
+		return new BlockingAssignment(start, exp, exp1);
 	}
 
 	// AssignmentList -> Assignment AssignmentListRest
 	// AssignmentListRest -> , Assignment AssignmentListRest | NULL
-	private AssignmentList parseAssignmentList(){
-		List<Assignment> assignList = new ArrayList<>();
-		assignList.add(parseAssignment());
+	private List<BlockingAssignment> parseAssignmentList(){
+		List<BlockingAssignment> assignList = new ArrayList<>();
 
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			assignList.add(parseAssignment());
-		}
+		do{
+			BlockingAssignment assignment = parseAssignment();
+			assignList.add(assignment);
+		} while(skipIfYummy(Token.Type.COMMA));
 
-		return new AssignmentList(assignList);
+		return assignList;
 	}
 
 	// CaseStatement -> CASE ( Expression ) CaseItemList ENDCASE
 	private Statement parseCaseStatement(){
+		Position start = getStart();
 		match(Token.Type.CASE, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
-		CaseItemList caseList = parseCaseItemList();
+		List<CaseItem> caseList = parseCaseItemList();
 		match(Token.Type.ENDCASE, STRATEGY.REPAIR);
-		return new CaseStatement(exp, caseList);
+		return new CaseStatement(start, exp, caseList);
 	}
 
 	// CaseZStatement -> CASEZ ( Expression ) CaseItemList ENDCASE
 	private Statement parseCaseZStatement(){
+		Position start = getStart();
 		match(Token.Type.CASEZ, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
-		CaseItemList caseList = parseCaseItemList();
+		List<CaseItem> caseList = parseCaseItemList();
 		match(Token.Type.ENDCASE, STRATEGY.REPAIR);
-		return new CaseZStatement(exp, caseList);
+		return new CaseZStatement(start, exp, caseList);
 	}
 
 	// CaseXStatement -> CASEX ( Expression ) CaseItemList ENDCASE
 	private Statement parseCaseXStatement(){
+		Position start = getStart();
 		match(Token.Type.CASEX, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
-		CaseItemList caseList = parseCaseItemList();
+		List<CaseItem> caseList = parseCaseItemList();
 		match(Token.Type.ENDCASE, STRATEGY.REPAIR);
-		return new CaseXStatement(exp, caseList);
+		return new CaseXStatement(start, exp, caseList);
 	}
 
 	// ForeverStatement -> FOREVER Statement
 	private Statement parseForeverStatement(){
+		Position start = getStart();
 		match(Token.Type.FOREVER, STRATEGY.REPAIR);
 		Statement stat = parseStatement();
-		return new ForeverStatement(stat);
+		return new ForeverStatement(start, stat);
 	}
 
 	// RepeatStatement -> REPEAT Statement
 	private Statement parseRepeatStatement(){
+		Position start = getStart();
 		match(Token.Type.REPEAT, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
 		Statement stat = parseStatement();
-		return new RepeatStatement(exp, stat);
+		return new RepeatStatement(start, exp, stat);
 	}
 
 	// WhileStatement -> WHILE Statement
 	private Statement parseWhileStatement(){
+		Position start = getStart();
 		match(Token.Type.WHILE, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
 		Statement stat = parseStatement();
-		return new WhileStatement(exp, stat);
+		return new WhileStatement(start, exp, stat);
 	}
 
 	// WaitStatement -> WAIT Statement
 	private Statement parseWaitStatement(){
+		Position start = getStart();
 		match(Token.Type.WAIT, STRATEGY.REPAIR);
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
 		Statement stat = parseStatementOrNull();
-		return new WaitStatement(exp, stat);
+		return new WaitStatement(start, exp, stat);
 	}
 
 	// SeqBlock -> BEGIN StatementList END
 	private Statement parseSeqBlock(){
+		Position start = getStart();
 		match(Token.Type.BEGIN, STRATEGY.REPAIR);
-		StatementList statList = parseStatementList();
+		List<Statement> statList = parseStatementList();
 		match(Token.Type.END, STRATEGY.REPAIR);
-		return new SeqBlockStatement(statList);
+		return new SeqBlockStatement(start, statList);
 	}
 
 	/**
@@ -1160,18 +1535,20 @@ public class Parser {
 
 	public Expression parseExpression(){
 
+		Position start = getStart();
+
 		if (willMatch(Token.Type.STRING)) {
-			Token string = skip();
-			return new StrValue(string);
+			Token stringTok = skip();
+			String tokenLexeme = stringTok.getLexeme();
+			return new StringNode(start, tokenLexeme);
 		} else {
 			Expression expression = parseLOR_Expression();
 
-			if (willMatch(Token.Type.QUEST)) {
-				skip();
-				Expression left = parseExpression();
+			if (skipIfYummy(Token.Type.QUEST)) {
+				Expression left = parseLOR_Expression();
 				match(Token.Type.COLON);
 				Expression right = parseExpression();
-				expression = new TernaryOperation(expression, left, right);
+				expression = new TernaryOperation(start, expression, left, right);
 			}
 
 			return expression;
@@ -1194,255 +1571,94 @@ public class Parser {
 
 	// lvalue -> IDENT | IDENT [ Expression ] | IDENT [ Expression : Expression ] |
 	// Concatenation
-	private Expression parseLValue(){
+	private LValue parseLValue(){
 
 		if (willMatch(Token.Type.LCURL)) {
 			return parseConcatenation();
 		} else {
-			Token ident = match(Token.Type.IDENT);
+			Position start = getStart();
+			String ident = parseRawIdentifier();
 
 			if (willMatch(Token.Type.LBRACK)) {
 				skip();
+				Position localStart = getStart();
 				Expression exp = parseExpression();
 
 				if (willMatch(Token.Type.RBRACK)) {
 					skip();
-					return new VectorElement(new Identifier(ident), exp);
+					return new Element(start, ident, exp);
 				} else {
 					match(Token.Type.COLON);
 					ConstantExpression exp2 = parseConstantExpression();
 					match(Token.Type.RBRACK);
-					return new VectorSlice(new Identifier(ident), new ConstantExpression(exp), exp2);
+					return new Slice(start, ident, new ConstantExpression(localStart, exp), exp2);
 				}
 
 			} else {
-				return new Identifier(ident);
+				return new Identifier(start, ident);
 			}
 
 		}
 
 	}
 
-	// RegIntegerValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
-	private RegValue parseIntegerValue(){
-		Token ident = match(Token.Type.IDENT);
-
-		if (willMatch(Token.Type.LBRACK)) {
-			skip();
-			ConstantExpression exp1 = parseConstantExpression();
-			match(Token.Type.COLON);
-			ConstantExpression exp2 = parseConstantExpression();
-			match(Token.Type.RBRACK);
-			return new IntegerArray(new Identifier(ident), exp1, exp2);
-		} else {
-			return new IntegerIdent(new Identifier(ident));
-		}
-
-	}
-
-	// RegVectorValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
-	private RegValue parseRegVectorValue(){
-		Token ident = match(Token.Type.IDENT);
-
-		if (willMatch(Token.Type.LBRACK)) {
-			skip();
-			ConstantExpression exp1 = parseConstantExpression();
-			match(Token.Type.COLON);
-			ConstantExpression exp2 = parseConstantExpression();
-			match(Token.Type.RBRACK);
-			return new RegVectorArray(new Identifier(ident), exp1, exp2);
-		} else {
-			return new RegVectorIdent(new Identifier(ident));
-		}
-
-	}
-
-	// RegVectorValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
-	private RegValue parseOutputRegVectorValue(){
-		Token ident = match(Token.Type.IDENT);
-
-		if (willMatch(Token.Type.LBRACK)) {
-			skip();
-			ConstantExpression exp1 = parseConstantExpression();
-			match(Token.Type.COLON);
-			ConstantExpression exp2 = parseConstantExpression();
-			match(Token.Type.RBRACK);
-			return new OutputRegVectorArray(new Identifier(ident), exp1, exp2);
-		} else {
-			return new OutputRegVectorIdent(new Identifier(ident));
-		}
-
-	}
-
-	// RegScalarValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
-	private RegValue parseRegScalarValue(){
-		Token ident = match(Token.Type.IDENT);
-
-		if (willMatch(Token.Type.LBRACK)) {
-			skip();
-			ConstantExpression exp1 = parseConstantExpression();
-			match(Token.Type.COLON);
-			ConstantExpression exp2 = parseConstantExpression();
-			match(Token.Type.RBRACK);
-			return new RegScalarArray(new Identifier(ident), exp1, exp2);
-		} else {
-			return new RegScalarIdent(new Identifier(ident));
-		}
-
-	}
-
-	// RegScalarValue -> IDENT [ ConstExpr : ConstExpr ] | IDENT
-	private RegValue parseOutputRegScalarValue(){
-		Token ident = match(Token.Type.IDENT);
-
-		if (willMatch(Token.Type.LBRACK)) {
-			skip();
-			ConstantExpression exp1 = parseConstantExpression();
-			match(Token.Type.COLON);
-			ConstantExpression exp2 = parseConstantExpression();
-			match(Token.Type.RBRACK);
-			return new OutputRegScalarArray(new Identifier(ident), exp1, exp2);
-		} else {
-			return new OutputRegScalarIdent(new Identifier(ident));
-		}
-
-	}
-
-	// RegValueList -> RegValue RegValueRest
-	// RegValueRest -> , RegValue RegValueRest | NULL
-	private RegValueList parseIntegerValueList(){
-		List<RegValue> expList = new ArrayList<>();
-
-		expList.add(parseIntegerValue());
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			RegValue exp = parseIntegerValue();
-			expList.add(exp);
-		}
-
-		return new RegValueList(expList);
-	}
-
-	private RegValueList parseRegScalarValueList(){
-		List<RegValue> expList = new ArrayList<>();
-
-		expList.add(parseRegScalarValue());
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			RegValue exp = parseRegScalarValue();
-			expList.add(exp);
-		}
-
-		return new RegValueList(expList);
-	}
-
-	private RegValueList parseOutputRegScalarValueList(){
-		List<RegValue> expList = new ArrayList<>();
-
-		expList.add(parseRegScalarValue());
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			RegValue exp = parseOutputRegScalarValue();
-			expList.add(exp);
-		}
-
-		return new RegValueList(expList);
-	}
-
-	private RegValueList parseOutputRegVectorValueList(){
-		List<RegValue> expList = new ArrayList<>();
-
-		expList.add(parseRegVectorValue());
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			RegValue exp = parseOutputRegVectorValue();
-			expList.add(exp);
-		}
-
-		return new RegValueList(expList);
-	}
-
-	private RegValueList parseRegVectorValueList(){
-		List<RegValue> expList = new ArrayList<>();
-
-		expList.add(parseRegVectorValue());
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			RegValue exp = parseRegVectorValue();
-			expList.add(exp);
-		}
-
-		return new RegValueList(expList);
-	}
-
 	// ConstantExpression -> expression
 	private ConstantExpression parseConstantExpression(){
+		Position start = getStart();
 		Expression constant = parseExpression();
-		return new ConstantExpression(constant);
+		return new ConstantExpression(start, constant);
 	}
 
 	// ExpressionList -> Expression ExpressionListRest
-	// ExpressionListRest -> , Expression ExpressionListRest | null
-	private ExpressionList parseExpressionList(){
+	// ExpressionListRest -> , Expression ExpressionListRest | NULL
+	// ExpressionOrNullList -> ExpressionOrNull ExpressionOrNullListRest
+	// ExpressionOrNullListRest -> , ExpressionOrNull ExpressionOrNullListRest | NULL
+	private List<Expression> parseExpressionList(){
 		List<Expression> expList = new ArrayList<>();
-		expList.add(parseExpression());
 
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
+		do{
 			Expression exp = parseExpression();
 			expList.add(exp);
-		}
+		}while(skipIfYummy(Token.Type.COMMA));
 
-		return new ExpressionList(expList);
+		return expList;
 	}
 
 	// ExpressionOrNullList -> ExpressionOrNull ExpressionOrNullListRest
-	// ExpressionOrNullListRest -> , ExpressionOrNull ExpressionOrNullListRest
-	private ExpressionList parseExpressionOrNullList(){
+	// ExpressionOrNullListRest -> , ExpressionOrNull ExpressionOrNullListRest | NULL
+	private List<Expression> parseExpressionOrNullList(){
 		List<Expression> expList = new ArrayList<>();
 
-		Expression exp = parseExpressionOrNull();
-		expList.add(exp);
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			exp = parseExpressionOrNull();
+		do{
+			Expression exp = parseExpressionOrNull();
 			expList.add(exp);
-		}
+		}while(skipIfYummy(Token.Type.COMMA));
 
-		return new ExpressionList(expList);
+		return expList;
 	}
 
 	// PortConnectionList -> PortConnection PortConnectionListRest
 	// PortConnectionListRest -> , PortConenction
-	private ExpressionList parsePortConnectionList(){
+	private List<Expression> parsePortConnectionList(){
 		List<Expression> expList = new ArrayList<>();
 
-		Expression exp = parsePortConnection();
-		expList.add(exp);
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			exp = parsePortConnection();
+		do{
+			Expression exp = parsePortConnection();
 			expList.add(exp);
-		}
+		}while(skipIfYummy(Token.Type.COMMA));
 
-		return new ExpressionList(expList);
+		return expList;
 	}
 
 	// PortConnection -> . IDENT ( Expression )
-	private Expression parsePortConnection(){
+	private PortConnection parsePortConnection(){
+		Position start = getStart();
 		match(Token.Type.DOT, STRATEGY.REPAIR);
-		Identifier ident = parseIdentifier();
+		String ident = parseRawIdentifier();
 		match(Token.Type.LPAR, STRATEGY.REPAIR);
 		Expression exp = parseExpression();
 		match(Token.Type.RPAR, STRATEGY.REPAIR);
-		return new PortConnection(ident, exp);
+		return new PortConnection(start, ident, exp);
 	}
 
 	// LOR_Expression -> LAND_Expression BinOp LAND_Expression
@@ -1450,10 +1666,10 @@ public class Parser {
 		Expression left = parseLAND_Expression();
 
 		while(willMatch(Token.Type.LOR)) {
-			Token opToken = skip();
-			Token.Type opType = opToken.getTokenType();
+			Position start = getStart();
+			skip();
 			Expression right = parseLAND_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			left = new LogicalOr(start, left, right);
 		}
 
 		return left;
@@ -1461,13 +1677,15 @@ public class Parser {
 
 	// LAND_Expression -> BOR_Expression BinOp BOR_Expression
 	private Expression parseLAND_Expression(){
+		Position start = getStart();
+
 		Expression left = parseBOR_Expression();
 
 		while(willMatch(Token.Type.LAND)) {
-			Token opToken = skip();
-			Token.Type opType = opToken.getTokenType();
+			start = getStart();
+			skip();
 			Expression right = parseBOR_Expression();
-			left = new BinaryOperation(left,  BinaryOperation.tokentoBinOp(opType), right);
+			left = new LogicalAnd(start, left, right);
 		}
 
 		return left;
@@ -1478,10 +1696,15 @@ public class Parser {
 		Expression left = parseBXOR_Expression();
 
 		while(willMatch(Token.Type.BOR, Token.Type.BNOR)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseBXOR_Expression();
-			left = new BinaryOperation(left,  BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.BOR){
+				left = new BitwiseOr(start, left, right);
+			} else {
+				left = new BitwiseNor(start, left, right);
+			}
 		}
 
 		return left;
@@ -1492,10 +1715,15 @@ public class Parser {
 		Expression left = parseBAND_Expression();
 
 		while(willMatch(Token.Type.BXOR, Token.Type.BXNOR)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseBAND_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.BXOR){
+				left = new BitwiseXor(start, left, right);
+			} else {
+				left = new BitwiseXnor(start, left, right);
+			}
 		}
 
 		return left;
@@ -1506,10 +1734,15 @@ public class Parser {
 		Expression left = parseNE_Expression();
 
 		while(willMatch(Token.Type.BNAND, Token.Type.BAND)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseNE_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.BAND){
+				left = new BitwiseAnd(start, left, right);
+			} else {
+				left = new BitwiseNand(start, left, right);
+			}
 		}
 
 		return left;
@@ -1519,11 +1752,20 @@ public class Parser {
 	private Expression parseNE_Expression(){
 		Expression left = parseREL_Expression();
 
-		while(willMatch(Token.Type.NE1, Token.Type.NE2, Token.Type.EQ2, Token.Type.EQ3)) {
+		if(willMatch(Token.Type.NE1, Token.Type.NE2, Token.Type.EQ2, Token.Type.EQ3)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseREL_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.NE1){
+				left = new BasicInequality(start, left, right);
+			} else if(opType == Token.Type.NE2){
+				left = new StrictInequality(start, left, right);
+			} else if(opType == Token.Type.EQ2){
+				left = new BasicEquality(start, left, right);
+			} else {
+				left = new StrictEquality(start, left, right);
+			}
 		}
 
 		return left;
@@ -1534,10 +1776,19 @@ public class Parser {
 		Expression left = parseSHIFT_Expression();
 
 		if(willMatch(Token.Type.GE, Token.Type.GT, Token.Type.LT, Token.Type.LE)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseSHIFT_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.GT){
+				left = new GreaterThan(start, left, right);
+			} else if(opType == Token.Type.GE){
+				left = new GreaterThanOrEqualTo(start, left, right);
+			} else if(opType == Token.Type.LT){
+				left = new LessThan(start, left, right);
+			} else {
+				left = new LessThanOrEqualTo(start, left, right);
+			}
 		}
 
 		return left;
@@ -1546,12 +1797,16 @@ public class Parser {
 	// SHIFT_Expression -> BIN_Expression BinOp BIN_Expression
 	private Expression parseSHIFT_Expression(){
 		Expression left = parseBIN_Expression();
-
 		while(willMatch(Token.Type.LSHIFT, Token.Type.RSHIFT)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseBIN_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.LSHIFT){
+				left = new BitshiftLeft(start, left, right);
+			} else {
+				left = new BitshiftRight(start, left, right);
+			}
 		}
 
 		return left;
@@ -1562,10 +1817,15 @@ public class Parser {
 		Expression left = parseMULT_Expression();
 
 		while(willMatch(Token.Type.PLUS, Token.Type.MINUS)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseMULT_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.PLUS){
+				left = new Add(start, left, right);
+			} else {
+				left = new Subtract(start, left, right);
+			}
 		}
 
 		return left;
@@ -1576,10 +1836,17 @@ public class Parser {
 		Expression left = parseUNARY_Expression();
 
 		while(willMatch(Token.Type.TIMES, Token.Type.MOD, Token.Type.DIV)) {
+			Position start = getStart();
 			Token opToken = skip();
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseUNARY_Expression();
-			left = new BinaryOperation(left, BinaryOperation.tokentoBinOp(opType), right);
+			if(opType == Token.Type.TIMES){
+				left = new Multiply(start, left, right);
+			}else if(opType == Token.Type.DIV){
+				left = new Divide(start, left, right);
+			} else {
+				left = new Modulo(start, left, right);
+			}
 		}
 
 		return left;
@@ -1588,11 +1855,32 @@ public class Parser {
 	// UNARY_Expression -> UnOp Primary | Primary
 	private Expression parseUNARY_Expression(){
 
-		if (willMatch(Token.Type.PLUS, Token.Type.MINUS, Token.Type.BNEG, Token.Type.LNEG, Token.Type.BAND, Token.Type.BNAND, Token.Type.BOR, Token.Type.BXOR, Token.Type.BXNOR)) {
+		if (willMatch(Token.Type.PLUS, Token.Type.MINUS, Token.Type.BNEG, Token.Type.LNEG, Token.Type.BAND, Token.Type.BNAND, Token.Type.BOR, Token.Type.BNOR, Token.Type.BXOR, Token.Type.BXNOR)) {
+			Position start = getStart();
 			Token op = skip();
 			Token.Type opType = op.getTokenType();
-			Expression right = parsePrimary();
-			return new UnaryOperation(UnaryOperation.tokenToUnaryOp(opType), right);
+			Expression rightHandSideExpression = parsePrimary();
+			if(opType == Token.Type.PLUS){
+				return rightHandSideExpression;
+			} else if(opType == Token.Type.MINUS) {
+				return new Negation(start, rightHandSideExpression);
+			} else if(opType == Token.Type.BNEG){
+				return new BitwiseNegation(start, rightHandSideExpression);
+			} else if(opType == Token.Type.LNEG){
+				return new LogicalNegation(start, rightHandSideExpression);
+			} else if(opType == Token.Type.BAND){
+				return new ReductionAnd(start, rightHandSideExpression);
+			} else if(opType == Token.Type.BNAND){
+				return new ReductionNand(start, rightHandSideExpression);
+			} else if(opType == Token.Type.BOR){
+				return new ReductionOr(start, rightHandSideExpression);
+			} else if(opType == Token.Type.BNOR){
+				return new ReductionNor(start, rightHandSideExpression);
+			} else if(opType == Token.Type.BXOR){
+				return new ReductionXor(start, rightHandSideExpression);
+			} else {
+				return new ReductionXnor(start, rightHandSideExpression);
+			}
 		} else {
 			return parsePrimary();
 		}
@@ -1603,59 +1891,63 @@ public class Parser {
 	// MACROIDENT
 	private Expression parsePrimary(){
 
-		if (willMatch(Token.Type.NUM)) {
-			return parseNumValue();
+		if (willMatch(Token.Type.DEC)) {
+			return parseDecimalNode();
+		} else if (willMatch(Token.Type.HEX)) {
+			return parseHexaDecimalNode();
+		} else if (willMatch(Token.Type.OCT)) {
+			return parseOctalNode();
+		} else if (willMatch(Token.Type.BIN)) {
+			return parseBinaryNode();
+		} else if (willMatch(Token.Type.LCURL)) {
+			return parseConcatenation();
+		} else if (willMatch(Token.Type.DOLLAR)) {
+			return parseSystemCall();
+		} else if (skipIfYummy(Token.Type.LPAR)) {
+			Expression exp = parseExpression();
+			match(Token.Type.RPAR);
+			return exp;
 		} else if (willMatch(Token.Type.IDENT)) {
+			Position start = getStart();
 			Token identToken = skip();
 
-			if (willMatch(Token.Type.LBRACK)) {
-				skip();
-				Identifier ident = parseIdentifier(identToken);
+			if (skipIfYummy(Token.Type.LBRACK)) {
+				String ident = identToken.getLexeme();
+				
+				Position index1Position = getStart();
 				Expression index1 = parseExpression();
 
 				if (willMatch(Token.Type.COLON)) {
 					skip();
 					ConstantExpression index2 = parseConstantExpression();
 					match(Token.Type.RBRACK);
-					return new VectorSlice(ident, new ConstantExpression(index1), index2);
+					return new Slice(start, ident, new ConstantExpression(index1Position, index1), index2);
 				} else {
 					match(Token.Type.RBRACK);
-					return new VectorElement(ident, index1);
+					return new Element(start, ident, index1);
 				}
 
-			} else if (willMatch(Token.Type.LPAR)) {
-				skip();
-				Identifier ident = parseIdentifier(identToken);
+			} else if (skipIfYummy(Token.Type.LPAR)){
+				String ident = identToken.getLexeme();
 
 				if (!willMatch(Token.Type.RPAR)) {
-					ExpressionList expList = parseExpressionList();
+					List<Expression> expList = parseExpressionList();
 					match(Token.Type.RPAR);
-					return new FunctionCall(ident, expList);
+					return new FunctionCall(start, ident, expList);
 				} else {
 					match(Token.Type.RPAR);
-					return new FunctionCall(ident);
+					return new FunctionCall(start, ident, new ArrayList<>());
 				}
 
 			} else {
-				Identifier ident = new Identifier(identToken);
+				String lexeme = identToken.getLexeme();
+				Identifier ident = new Identifier(start, lexeme);
 				return ident;
 			}
-
-		} else if (willMatch(Token.Type.LCURL)) {
-			return parseConcatenation();
-		} else if (willMatch(Token.Type.LPAR)) {
-			skip();
-			Expression exp = parseExpression();
-			match(Token.Type.RPAR);
-			return exp;
-		} else if (willMatch(Token.Type.DOLLAR)) {
-			return parseSystemCall();
 		} else {
 			Token matched = peek();
-			errorLog.addItem(new ErrorItem("Unexpected Primary Expression token of type " + matched.getTokenType()
-				+ " and lexeme " + matched.getLexeme() + " found", matched.getPosition()));
-			errorLog.printLog();
-			System.exit(1);
+			errorAndExit("Unexpected Primary Expression token of type " + matched.getTokenType()
+			+ " and lexeme " + matched.getLexeme() + " found", matched.getPosition());
 			return null;
 		}
 
@@ -1663,57 +1955,66 @@ public class Parser {
 
 	// SystemCall -> $ IDENT ( ExpressionList )
 	private Expression parseSystemCall(){
+		Position start = getStart();
 		match(Token.Type.DOLLAR);
-		Token identToken = match(Token.Type.IDENT);
-		Identifier ident = new Identifier(identToken);
 
-		if (willMatch(Token.Type.LPAR)) {
-			skip();
-			ExpressionList expList = parseExpressionList();
+		String ident = parseRawIdentifier();
+
+		if (skipIfYummy(Token.Type.LPAR)) {
+			List<Expression> expList = parseExpressionList();
 			match(Token.Type.RPAR);
-			return new SystemFunctionCall(ident, expList);
+			return new SystemFunctionCall(start, ident, expList);
 		} else {
-			return new SystemFunctionCall(ident);
+			return new SystemFunctionCall(start, ident, new ArrayList<>());
 		}
 
 	}
 
 	// Concatenation -> { ExpressionList }
-	private Expression parseConcatenation(){
+	private Concatenation parseConcatenation(){
+		Position start = getStart();
 		match(Token.Type.LCURL);
-		ExpressionList expList = parseExpressionList();
+		List<Expression> expList = parseExpressionList();
 		match(Token.Type.RCURL);
-		return new Concatenation(expList);
+		return new Concatenation(start, expList);
 	}
 
-	// Identifier -> IDENT
-	private Identifier parseIdentifier(Token identToken){ return new Identifier(identToken); }
-
-	// Identifier -> IDENT
-	private Identifier parseIdentifier(){
+	// RawIdentifier -> IDENT
+	private String parseRawIdentifier(){
 		Token ident = match(Token.Type.IDENT);
-		return new Identifier(ident);
+		return ident.getLexeme();
 	}
 
-	// IdentifierList -> Identifier IdentifierListRest
-	// IdentifierListRest -> , Identifier IdentifierListRest | NULL
-	private IdentifierList parseIdentifierList(){
-		List<Identifier> identList = new ArrayList<>();
-
-		identList.add(parseIdentifier());
-
-		while(willMatch(Token.Type.COMMA)) {
-			skip();
-			identList.add(parseIdentifier());
-		}
-
-		return new IdentifierList(identList);
+	//DecimalNode -> DEC
+	private DecimalNode parseDecimalNode(){
+		Position start = getStart();
+		Token numToken = match(Token.Type.DEC);
+		String numLexeme = numToken.getLexeme();
+		return new DecimalNode(start, numLexeme);
 	}
 
-	// NumValue -> NUM
-	private NumValue parseNumValue(){
-		Token numToken = match(Token.Type.NUM);
-		return new NumValue(numToken);
+	//HexadecimalNode -> HEX
+	private HexadecimalNode parseHexaDecimalNode(){
+		Position start = getStart();
+		Token numToken = match(Token.Type.DEC);
+		String numLexeme = numToken.getLexeme();
+		return new HexadecimalNode(start, numLexeme);
+	}
+
+	//OctalNode -> OCT
+	private OctalNode parseOctalNode(){
+		Position start = getStart();
+		Token numToken = match(Token.Type.DEC);
+		String numLexeme = numToken.getLexeme();
+		return new OctalNode(start, numLexeme);
+	}
+
+	//OctalNode -> OCT
+	private BinaryNode parseBinaryNode(){
+		Position start = getStart();
+		Token numToken = match(Token.Type.DEC);
+		String numLexeme = numToken.getLexeme();
+		return new BinaryNode(start, numLexeme);
 	}
 
 }

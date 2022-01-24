@@ -367,7 +367,7 @@ public class Lexer {
 						state = STATE.REAL;
 						continue;
 					} else {
-						return Token.makeNumToken(lexeme.toString(), position);
+						return Token.makeDecToken(lexeme.toString(), position);
 					}
 				case OCT:
 					if (((int)c >= (int)'0' && (int)c <= (int)'7') || c == 'X' || c == 'x' || c == 'z' || c == 'Z') {
@@ -375,7 +375,7 @@ public class Lexer {
 						source.advance();
 						continue;
 					} else {
-						return Token.makeNumToken(lexeme.toString(), position);
+						return Token.makeOctToken(lexeme.toString(), position);
 					}
 				case HEX:
 					if (Character.isDigit(c) || ((int)c >= (int)'a' && (int)c <= (int)'f')
@@ -384,7 +384,7 @@ public class Lexer {
 						source.advance();
 						continue;
 					} else {
-						return Token.makeNumToken(lexeme.toString(), position);
+						return Token.makeHexToken(lexeme.toString(), position);
 					}
 				case BIN:
 					if (c == '0' || c == '1' || c == 'X' || c == 'x' || c == 'z' || c == 'Z') {
@@ -392,7 +392,7 @@ public class Lexer {
 						source.advance();
 						continue;
 					} else {
-						return Token.makeNumToken(lexeme.toString(), position);
+						return Token.makeBinToken(lexeme.toString(), position);
 					}
 				case REAL:
 					if (hasE) {
@@ -402,7 +402,7 @@ public class Lexer {
 							source.advance();
 							continue;
 						} else {
-							return Token.makeNumToken(lexeme.toString(), position);
+							return Token.makeRealToken(lexeme.toString(), position);
 						}
 
 					} else {
@@ -417,7 +417,7 @@ public class Lexer {
 							source.advance();
 							continue;
 						} else {
-							return Token.makeNumToken(lexeme.toString(), position);
+							return Token.makeRealToken(lexeme.toString(), position);
 						}
 
 					}
@@ -441,26 +441,29 @@ public class Lexer {
 
 		}
 
+		ErrorItem error;
 		switch(state){
 			case BIN:
-				return Token.makeNumToken(lexeme.toString(), position);
+				return Token.makeBinToken(lexeme.toString(), position);
 			case REAL:
-				return Token.makeNumToken(lexeme.toString(), position);
+				return Token.makeRealToken(lexeme.toString(), position);
 			case DEC:
-				return Token.makeNumToken(lexeme.toString(), position);
+				return Token.makeDecToken(lexeme.toString(), position);
 			case OCT:
-				return Token.makeNumToken(lexeme.toString(), position);
+				return Token.makeOctToken(lexeme.toString(), position);
 			case HEX:
-				return Token.makeNumToken(lexeme.toString(), position);
+				return Token.makeHexToken(lexeme.toString(), position);
 			case MULTICOMMENT:
-				ErrorLog.addItem(new ErrorItem("Unmatched /* found.", null));
+				error = new ErrorItem("Unmatched /* found.");
+				ErrorLog.addItem(error);
 				return null;
 			case IDENT:
 				return Token.makeIdToken(lexeme.toString(), position);
 			case OP:
 				return Token.makeOpToken(lexeme.toString(), position);
 			case STRING:
-				ErrorLog.addItem(new ErrorItem("Unmatched \" found", null));
+				error = new ErrorItem("Unmatched \" found");
+				ErrorLog.addItem(error);
 				return null;
 			case MACRO:
 				return Token.makeMacroToken(lexeme.toString(), position);

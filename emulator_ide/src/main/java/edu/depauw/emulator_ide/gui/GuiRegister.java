@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -16,7 +17,7 @@ public class GuiRegister {
 
 	private static HashMap<Integer, GuiRegister> memFile = new HashMap<>();
 	private static int                           registerSize;
-	private static VBox                          parent;
+	private static VBox                         parent;
 
 	private HBox      container;
 	private TextField data;

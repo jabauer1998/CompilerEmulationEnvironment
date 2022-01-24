@@ -1,23 +1,23 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement;
 
 
+import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.general.case_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.general.list.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
 
-public class SeqBlockStatement extends Statement {
+public class SeqBlockStatement extends AstNode implements Statement {
 
-    private final StatementList statList;
+    private final List<Statement> statementList;
 
-    public SeqBlockStatement(StatementList statList) {
-        super(statList.getPosition());
-        this.statList = statList;
+    public SeqBlockStatement(Position start, List<Statement> statementList) {
+        super(start);
+        this.statementList = statementList;
     }
 
-    public int numStatements(){ return statList.getSize(); }
+    public int numStatements(){ return statementList.size(); }
 
-    public Statement getStatement(int index){ return statList.getStatement(index); }
+    public Statement getStatement(int index){ return statementList.get(index); }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

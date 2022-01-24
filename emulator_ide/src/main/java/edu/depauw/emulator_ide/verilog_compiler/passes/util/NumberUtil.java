@@ -9,8 +9,7 @@ package edu.depauw.emulator_ide.verilog_compiler.passes.util;
  */
 
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Range;
-import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pattern;
-
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.pattern.Pattern;
 import java.lang.String;
 import java.lang.Integer;
 import java.lang.Long;

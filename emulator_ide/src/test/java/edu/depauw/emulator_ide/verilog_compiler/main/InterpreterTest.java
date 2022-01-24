@@ -5,8 +5,6 @@ import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.verilog_compiler.main.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
@@ -14,10 +12,12 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
-import edu.depauw.emulator_ide.verilog_compiler.passes.Interpreter;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Interpreter;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.nodes.Register;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.web.Wire;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.web.Wire;
 import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils.*;
 
 import org.junit.Test;
@@ -37,8 +37,7 @@ public class InterpreterTest {
 		Expression exp = parse.parseExpression();
 		Interpreter interpret = new Interpreter(errorLog);
 
-		assertTrue("Error expected type long but got type " + exp.accept(interpret).getClass(),
-			exp.accept(interpret) instanceof Long);
+		assertTrue("Error expected type long but got type " + exp.accept(interpret).getClass(), exp.accept(interpret) instanceof Long);
 		assertTrue("Error expected value 17 but got " + (long)exp.accept(interpret), ((long)exp.accept(interpret)) == 17);
 	}
 

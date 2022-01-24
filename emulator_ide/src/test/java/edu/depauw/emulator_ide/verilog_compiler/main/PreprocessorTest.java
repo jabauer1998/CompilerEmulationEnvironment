@@ -6,7 +6,7 @@ import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Preprocessor;
+import edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor.Preprocessor;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -43,9 +43,9 @@ public class PreprocessorTest {
 
         //Create array list of types to check against
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM); // 5
-        tokTypes.add(Token.Type.NUM); // +
-        tokTypes.add(Token.Type.NUM); // 5
+        tokTypes.add(Token.Type.DEC); // 5
+        tokTypes.add(Token.Type.DEC); // +
+        tokTypes.add(Token.Type.DEC); // 5
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -76,13 +76,13 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM); //30
+        tokTypes.add(Token.Type.DEC); //30
         tokTypes.add(Token.Type.PLUS); //+
-        tokTypes.add(Token.Type.NUM); //30
+        tokTypes.add(Token.Type.DEC); //30
         tokTypes.add(Token.Type.MINUS); //-
-        tokTypes.add(Token.Type.NUM); //50
+        tokTypes.add(Token.Type.DEC); //50
         tokTypes.add(Token.Type.PLUS); //+
-        tokTypes.add(Token.Type.NUM); //50
+        tokTypes.add(Token.Type.DEC); //50
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -113,13 +113,13 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM); //30
+        tokTypes.add(Token.Type.DEC); //30
         tokTypes.add(Token.Type.PLUS); //-
-        tokTypes.add(Token.Type.NUM); //50
+        tokTypes.add(Token.Type.DEC); //50
         tokTypes.add(Token.Type.MINUS); //+
-        tokTypes.add(Token.Type.NUM); //30
+        tokTypes.add(Token.Type.DEC); //30
         tokTypes.add(Token.Type.PLUS); //-
-        tokTypes.add(Token.Type.NUM); //50
+        tokTypes.add(Token.Type.DEC); //50
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -150,7 +150,7 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM); //90
+        tokTypes.add(Token.Type.DEC); //90
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -211,11 +211,11 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
         tokTypes.add(Token.Type.PLUS);
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
         tokTypes.add(Token.Type.PLUS);
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -246,7 +246,7 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -276,9 +276,9 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
         tokTypes.add(Token.Type.PLUS);
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }
@@ -309,9 +309,9 @@ public class PreprocessorTest {
         //Create array list of types to check against
         //30 + 30 - 50 + 50
         ArrayList<Token.Type> tokTypes = new ArrayList<>();
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
         tokTypes.add(Token.Type.PLUS);
-        tokTypes.add(Token.Type.NUM);
+        tokTypes.add(Token.Type.DEC);
 
         testPreprocessor(tokTypes, preProcessorResultList);
     }

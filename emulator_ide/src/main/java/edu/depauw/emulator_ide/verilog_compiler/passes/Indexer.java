@@ -4,30 +4,47 @@ package edu.depauw.emulator_ide.verilog_compiler.passes;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.general.case_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.gate_declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.reg_value.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.SystemFunctionCall;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.Concatenation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.TernaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.UnaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.StringNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Identifier;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Slice;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstance;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstantiation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.AllwaysProcess;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.InitialProcess;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.Assignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.BlockingAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.NonBlockingAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForeverStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.RepeatStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.WhileStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.SystemTaskStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.TaskStatement;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.*;
-import edu.depauw.emulator_ide.verilog_compiler.symbol_table.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
 import edu.depauw.emulator_ide.common.io.*;
 import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
 
 public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void> {
 
-    private Environment<String, Position> modEnv;
-    private Environment<String, Position> funcEnv;
-    private Environment<String, Position> varEnv;
+    private SymbolTable<String, Position> modEnv;
+    private SymbolTable<String, Position> funcEnv;
+    private SymbolTable<String, Position> varEnv;
     private Destination                   dest;
     private ErrorLog                       errorLog;
 
     public Indexer(Destination dest, ErrorLog errorLog) {
-        this.modEnv = new Environment<>();
-        this.funcEnv = new Environment<>();
-        this.varEnv = new Environment<>();
+        this.modEnv = new SymbolTable<>();
+        this.funcEnv = new SymbolTable<>();
+        this.varEnv = new SymbolTable<>();
         this.dest = dest;
         this.errorLog = errorLog;
     }
@@ -73,7 +90,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param stat
      */
 
-    public Void visit(AllwaysStatement stat, Object... argv){
+    public Void visit(AllwaysProcess stat, Object... argv){
         stat.getStatement().accept(this);
         return null;
     }
@@ -98,7 +115,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(FunctionDeclaration function, Object... argv){
-        Declaration funcName = function.getFunctionName();
+        DeclarationNode funcName = function.getFunctionName();
         varEnv.addScope();
         funcName.accept(this);
 
@@ -115,7 +132,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param stat
      */
 
-    public Void visit(InitialStatement stat, Object... argv){
+    public Void visit(InitialProcess stat, Object... argv){
         varEnv.addScope();
         stat.getStatement().accept(this);
         varEnv.removeScope();
@@ -128,7 +145,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param mod
      */
 
-    public Void visit(ModInstantiation mod, Object... argv){
+    public Void visit(ModuleInstantiation mod, Object... argv){
 
         for (int i = 0; i < mod.numModInstances(); i++) { mod.getModInstance(i).accept(this); }
 
@@ -141,7 +158,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param mod
      */
 
-    public Void visit(ModInstance mod, Object... argv){
+    public Void visit(ModuleInstance mod, Object... argv){
         Identifier modName = mod.getIdentifier();
 
         if (modEnv.entryExists(modName.getLexeme())) {
@@ -245,7 +262,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(InputRegScalarDeclaration decl, Object... argv){
+    public Void visit(InputRegScalarDeclarationNode decl, Object... argv){
 
         for (int i = 0; i < decl.numIdentifiers(); i++) {
             Identifier current = decl.getIdentifier(i);
@@ -370,7 +387,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(InputRegVectorDeclaration decl, Object... argv){
+    public Void visit(InputRegVectorDeclarationNode decl, Object... argv){
 
         for (int i = 0; i < decl.numIdentifiers(); i++) {
             Identifier current = decl.getIdentifier(i);
@@ -448,7 +465,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(IntegerDeclaration decl, Object... argv){
+    public Void visit(Integer decl, Object... argv){
 
         for (int i = 0; i < decl.numRegValues(); i++) { decl.getRegValue(i).accept(this); }
 
@@ -478,7 +495,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(RealDeclaration decl, Object... argv){
+    public Void visit(Real decl, Object... argv){
 
         for (int i = 0; i < decl.numIdentifiers(); i++) {
             Identifier current = decl.getIdentifier(i);
@@ -609,7 +626,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param assign
      */
 
-    public Void visit(BlockAssign assign, Object... argv){
+    public Void visit(BlockingAssignment assign, Object... argv){
         assign.getLValue().accept(this);
         assign.getExpression().accept(this);
         return null;
@@ -746,7 +763,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param assign
      */
 
-    public Void visit(NonBlockAssign assign, Object... argv){
+    public Void visit(NonBlockingAssignment assign, Object... argv){
         assign.getLValue().accept(this);
         assign.getExpression().accept(this);
         return null;
@@ -914,7 +931,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param call
      */
 
-    public Void visit(FunctionCall call, Object... argv){
+    public Void visit(FunctionCallNode call, Object... argv){
         Identifier fname = call.getFunctionName();
 
         if (funcEnv.entryExists(fname.getLexeme())) {
@@ -966,7 +983,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param number
      */
 
-    public Void visit(NumValue number, Object... argv){
+    public Void visit(Number number, Object... argv){
         // do nothing
         return null;
     }
@@ -988,7 +1005,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param string
      */
 
-    public Void visit(StrValue string, Object... argv){
+    public Void visit(StringNode string, Object... argv){
         // do nothing
         return null;
     }
@@ -1032,7 +1049,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param string
      */
 
-    public Void visit(VectorSlice vector, Object... argv){
+    public Void visit(Slice vector, Object... argv){
         Identifier ident = vector.getIdentifier();
 
         if (varEnv.entryExists(ident.getLexeme())) {
@@ -1053,7 +1070,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
-    public Void visit(IntegerArray arr, Object... argv){
+    public Void visit(IntegerArrayElement arr, Object... argv){
         Identifier current = arr.getIdentifier();
 
         if (varEnv.entryExists(current.getLexeme())) {

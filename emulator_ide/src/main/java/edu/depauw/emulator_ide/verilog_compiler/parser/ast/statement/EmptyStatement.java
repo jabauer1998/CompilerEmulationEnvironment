@@ -5,7 +5,7 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
-public class EmptyStatement extends Statement {
+public class EmptyStatement extends AstNode implements Statement {
 
     public EmptyStatement(Position position) { super(position); }
 

@@ -1,17 +1,18 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement;
 
 
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
-public class WaitStatement extends Statement {
+public class WaitStatement extends AstNode implements Statement{
 
     private final Statement stat; // Statement
-    private Expression      exp;  // Expression
+    private final Expression      exp;  // Expression
 
-    public WaitStatement(Expression exp, Statement stat) {
-        super(exp.getPosition());
+    public WaitStatement(Position start, Expression exp, Statement stat) {
+        super(start);
         this.stat = stat;
         this.exp = exp;
     }
@@ -19,8 +20,6 @@ public class WaitStatement extends Statement {
     public Statement getStatement(){ return stat; }
 
     public Expression getExpression(){ return exp; }
-
-    public void setExpression(Expression exp){ this.exp = exp; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

@@ -1,27 +1,22 @@
 package edu.depauw.emulator_ide.verilog_compiler.passes.visitor;
 
-
-import edu.depauw.emulator_ide.common.Position;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.gate_declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
-
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseXStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseZStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.DefCaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.ExprCaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.BlockingAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.NonBlockingAssignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForeverStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.RepeatStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.WhileStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfElseStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.SystemTaskStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.TaskStatement;
 public interface StatementVisitor<StatVisitType> {
-
-    /*
-     * Below is the code for viewing statements in the verilog language
-     */
-
-    /**
-     * This is used to visit assignments in verilog
-     * 
-     * @param assign
-     */
-
-    public StatVisitType visit(Assignment assign, Object... argv);
 
     /**
      * This is used to visit blocking assignments in verilog
@@ -29,7 +24,7 @@ public interface StatementVisitor<StatVisitType> {
      * @param assign
      */
 
-    public StatVisitType visit(BlockAssign assign, Object... argv);
+    public StatVisitType visit(BlockingAssignment assign, Object... argv);
 
     /**
      * This is used to visit case statements in verilog
@@ -46,6 +41,22 @@ public interface StatementVisitor<StatVisitType> {
      */
 
     public StatVisitType visit(CaseXStatement stat, Object... argv);
+
+    /**
+     * This is used to visit casez statements in verilog
+     * 
+     * @param assign
+     */
+
+    public StatVisitType visit(DefCaseItem stat, Object... argv);
+
+    /**
+     * This is used to visit casez statements in verilog
+     * 
+     * @param assign
+     */
+
+    public StatVisitType visit(ExprCaseItem stat, Object... argv);
 
     /**
      * This is used to visit casez statements in verilog
@@ -93,7 +104,7 @@ public interface StatementVisitor<StatVisitType> {
      * @param assign
      */
 
-    public StatVisitType visit(NonBlockAssign assign, Object... argv);
+    public StatVisitType visit(NonBlockingAssignment assign, Object... argv);
 
     /**
      * This is used to visit a repeat statement in verilog

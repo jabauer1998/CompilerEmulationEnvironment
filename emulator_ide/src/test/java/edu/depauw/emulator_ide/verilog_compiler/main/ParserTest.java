@@ -8,10 +8,10 @@ import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Preprocessor;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor.Preprocessor;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

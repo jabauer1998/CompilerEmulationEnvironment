@@ -30,10 +30,10 @@ import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Preprocessor;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
-import edu.depauw.emulator_ide.verilog_compiler.passes.Interpreter;
-import edu.depauw.emulator_ide.verilog_compiler.passes.TypeChecker;
+import edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor.Preprocessor;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Interpreter;
+import edu.depauw.emulator_ide.verilog_compiler.passes.type_checker.TypeChecker;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
 public class Main extends Application {
@@ -95,14 +95,24 @@ public class Main extends Application {
 		registerFile.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
 		registerFile.setAlignment(Pos.CENTER);
 
-		middleLeftSide.getChildren().add(registerFile);
-
 		middleLeftSide.setMaxWidth(halves.getMaxWidth()/6);
 		middleLeftSide.setMaxHeight(halves.getMaxHeight());
 		middleLeftSide.setPrefWidth(halves.getMaxWidth()/6);
 		middleLeftSide.setPrefHeight(halves.getMaxHeight());
 
-		GuiRegister.setParent(middleLeftSide);
+		ScrollPane regFileScrollPane = new ScrollPane();
+		regFileScrollPane.setMaxWidth(middleLeftSide.getMaxWidth());
+		regFileScrollPane.setMaxHeight(middleLeftSide.getMaxHeight());
+		regFileScrollPane.setPrefWidth(middleLeftSide.getMaxWidth());
+		regFileScrollPane.setPrefHeight(middleLeftSide.getMaxHeight());
+
+		VBox insideScrollPane = new VBox();
+		insideScrollPane.setMaxWidth(regFileScrollPane.getMaxWidth());
+		insideScrollPane.setMaxHeight(regFileScrollPane.getMaxHeight());
+		insideScrollPane.setPrefWidth(regFileScrollPane.getMaxWidth());
+		insideScrollPane.setPrefHeight(regFileScrollPane.getMaxHeight());
+
+		GuiRegister.setParent(insideScrollPane);
 		GuiRegister.setRegisterSize(32);
 
 		GuiRegister CSPR = new GuiRegister("CPSR", 42);
@@ -123,6 +133,9 @@ public class Main extends Application {
 		GuiRegister R14 = new GuiRegister(14);
 		GuiRegister R15 = new GuiRegister(15);
 
+		regFileScrollPane.setContent(insideScrollPane);
+		middleLeftSide.getChildren().addAll(registerFile, regFileScrollPane);
+
 		VBox middleRightSide = new VBox();
 		middleRightSide.setMaxWidth(halves.getMaxWidth()/6);
 		middleRightSide.setMaxHeight(halves.getMaxHeight());
@@ -133,33 +146,34 @@ public class Main extends Application {
 		memDumpTitle.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
 		memDumpTitle.setAlignment(Pos.CENTER);
 
-		ScrollPane scrollPane = new ScrollPane();
-		scrollPane.setMaxWidth(middleRightSide.getMaxWidth());
-		scrollPane.setMaxHeight(middleRightSide.getMaxHeight());
-		scrollPane.setPrefWidth(middleRightSide.getMaxWidth());
-		scrollPane.setPrefHeight(middleRightSide.getMaxHeight());
+		ScrollPane memFileScrollPane = new ScrollPane();
+		memFileScrollPane.setMaxWidth(middleRightSide.getMaxWidth());
+		memFileScrollPane.setMaxHeight(middleRightSide.getMaxHeight());
+		memFileScrollPane.setPrefWidth(middleRightSide.getMaxWidth());
+		memFileScrollPane.setPrefHeight(middleRightSide.getMaxHeight());
 
 		VBox memoryDump = new VBox();
-		memoryDump.setMaxWidth(scrollPane.getMaxWidth());
-		memoryDump.setMaxHeight(scrollPane.getMaxHeight());
-		memoryDump.setPrefWidth(scrollPane.getMaxWidth());
-		memoryDump.setPrefHeight(scrollPane.getMaxHeight());
+		memoryDump.setMaxWidth(memFileScrollPane.getMaxWidth());
+		memoryDump.setMaxHeight(memFileScrollPane.getMaxHeight());
+		memoryDump.setPrefWidth(memFileScrollPane.getMaxWidth());
+		memoryDump.setPrefHeight(memFileScrollPane.getMaxHeight());
 
 		int MEMSIZE = 100;
+		int MEMLENGTH = 8;
 		GuiMemory.setParent(memoryDump);
 		GuiMemory.setMemSize(MEMSIZE);
-		GuiMemory.setMemLength(8);
+		GuiMemory.setMemLength(MEMLENGTH);
 
 		for (int i = 0; i < MEMSIZE; i++) {
 			new GuiMemory(i); // creates a byte of memory to display
 		}
 
-		scrollPane.setContent(memoryDump);
+		memFileScrollPane.setContent(memoryDump);
 
 		Button reset = new Button("Reset Memory");
 		reset.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
 		reset.setAlignment(Pos.CENTER);
-		middleRightSide.getChildren().addAll(memDumpTitle, scrollPane, reset);
+		middleRightSide.getChildren().addAll(memDumpTitle, memFileScrollPane, reset);
 
 		VBox rightSide = new VBox();
 		rightSide.setMaxWidth(halves.getMaxWidth()/3);

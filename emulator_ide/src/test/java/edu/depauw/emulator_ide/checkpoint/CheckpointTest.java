@@ -11,8 +11,7 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
 import edu.depauw.emulator_ide.verilog_compiler.passes.Indexer;
-import edu.depauw.emulator_ide.verilog_compiler.passes.TypeChecker;
-
+import edu.depauw.emulator_ide.verilog_compiler.passes.type_checker.TypeChecker;
 import org.junit.Test;
 import java.io.StringReader;
 import java.io.BufferedReader;

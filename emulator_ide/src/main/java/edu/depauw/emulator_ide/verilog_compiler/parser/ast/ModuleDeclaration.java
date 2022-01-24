@@ -1,53 +1,24 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast;
 
-
-import java.util.ArrayList;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Identifier;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.general.list.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.ModItem;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.declaration.Declaration;
+import java.util.Collections;
+import java.util.List;
+import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
 
 public class ModuleDeclaration extends AstNode {
 
-    private final Identifier      ident;
-    private final DeclarationList declList;
-    private final ModItemList     modItemList;
+    private final String      moduleName;
+    private final List<ModuleItem> moduleItemList;
 
-    public ModuleDeclaration(Identifier ident) {
-        super(ident.getPosition());
-        this.ident = ident;
-        this.declList = new DeclarationList(new ArrayList<>());
-        this.modItemList = new ModItemList(new ArrayList<>());
+    public ModuleDeclaration(Position start, String moduleName, List<ModuleItem> moduleItemList) {
+        super(start);
+        this.moduleName = moduleName;
+        this.moduleItemList = Collections.unmodifiableList(moduleItemList);
     }
 
-    public ModuleDeclaration(Identifier ident, DeclarationList declList) {
-        super(ident.getPosition());
-        this.ident = ident;
-        this.declList = declList;
-        this.modItemList = new ModItemList(new ArrayList<>());
-    }
+    public String getModuleName(){ return moduleName; }
 
-    public ModuleDeclaration(Identifier ident, ModItemList modItemList) {
-        super(ident.getPosition());
-        this.ident = ident;
-        this.declList = new DeclarationList(new ArrayList<>());
-        this.modItemList = modItemList;
-    }
+    public ModuleItem getModuleItemAt(int index){ return moduleItemList.get(index); }
 
-    public ModuleDeclaration(Identifier ident, DeclarationList declList, ModItemList modItemList) {
-        super(ident.getPosition());
-        this.ident = ident;
-        this.declList = declList;
-        this.modItemList = modItemList;
-    }
-
-    public Identifier getModuleName(){ return ident; }
-
-    public Declaration getParameter(int index){ return declList.getDeclaration(index); }
-
-    public int numParameters(){ return declList.getSize(); }
-
-    public ModItem getModItem(int index){ return modItemList.getModItem(index); }
-
-    public int numModItems(){ return modItemList.getSize(); }
+    public int numberOfModuleItems(){ return moduleItemList.size(); }
 }

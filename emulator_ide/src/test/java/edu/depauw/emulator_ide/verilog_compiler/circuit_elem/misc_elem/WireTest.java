@@ -1,12 +1,11 @@
 package edu.depauw.emulator_ide.verilog_compiler.circuit_elem.misc_elem;
 
 
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.CircuitElem;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.nodes.Register;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.web.Wire;
-
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.nodes.Register;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.web.Wire;
 import static edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.TestUtils.*;
 
 import org.junit.Test;

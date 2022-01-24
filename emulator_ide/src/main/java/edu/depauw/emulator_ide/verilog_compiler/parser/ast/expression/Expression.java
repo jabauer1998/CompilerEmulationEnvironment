@@ -1,9 +1,8 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression;
-
-
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
+import edu.depauw.emulator_ide.common.debug.ErrorLog;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.common.Position;
 
 /**
  * The.expression class is an extention of the AstNode class This class is used as a
@@ -11,16 +10,7 @@ import edu.depauw.emulator_ide.common.Position;
  * 
  * @author Jacob Bauer
  */
-public abstract class Expression extends AstNode {
-
-    /**
-     * The.expression constructor takes in a positionand pas Es it to the AstNode super
-     * consturctor
-     * 
-     * @param position the position obect to pass to the Astnode constuctor
-     */
-
-    protected Expression(Position position) { super(position); }
+public interface Expression {
 
     /**
      * The accept method will make it so the visitor interface will work
@@ -28,6 +18,8 @@ public abstract class Expression extends AstNode {
      * @param astNodeVisitor the visitor object we want to use to visit another member of a
      *                       class
      */
-    public abstract <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv);
+    public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv);
+
+    public Value interpret(Environment environment, ErrorLog errorLog);
 
 }

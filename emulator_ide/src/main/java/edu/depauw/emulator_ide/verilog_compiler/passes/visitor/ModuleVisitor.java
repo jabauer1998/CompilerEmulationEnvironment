@@ -1,13 +1,16 @@
 package edu.depauw.emulator_ide.verilog_compiler.passes.visitor;
 
 
-import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.mod_item.gate_declaration.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstance;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstantiation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.TaskDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.AllwaysProcess;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.InitialProcess;
 
 public interface ModuleVisitor<ModVisitType> {
 
@@ -31,7 +34,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param stat
      */
 
-    public ModVisitType visit(AllwaysStatement stat, Object... argv);
+    public ModVisitType visit(AllwaysProcess stat, Object... argv);
 
     /**
      * This is the code to visit a Continuous Assignment in Verilog.
@@ -55,7 +58,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param stat
      */
 
-    public ModVisitType visit(InitialStatement stat, Object... argv);
+    public ModVisitType visit(InitialProcess stat, Object... argv);
 
     /**
      * This is the code to visit a Module call or Instantiation in verilog
@@ -63,7 +66,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param mod
      */
 
-    public ModVisitType visit(ModInstantiation mod, Object... argv);
+    public ModVisitType visit(ModuleInstantiation mod, Object... argv);
 
     /**
      * This is the code to visit a Module instance in Verilog
@@ -71,7 +74,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param mod
      */
 
-    public ModVisitType visit(ModInstance mod, Object... argv);
+    public ModVisitType visit(ModuleInstance mod, Object... argv);
 
     /**
      * This is used to visit a task declaration in verilog
@@ -90,7 +93,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(InputWireScalarDeclaration decl, Object... argv);
+    public ModVisitType visit(Input.Wire.Scalar.Ident decl, Object... argv);
 
     /**
      * This is used to visit any input wire scalar declaration in verilog. Ex. input a, b, c
@@ -99,7 +102,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(InputRegScalarDeclaration decl, Object... argv);
+    public ModVisitType visit(Input.Reg.Scalar.Ident decl, Object... argv);
 
     /**
      * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
@@ -108,7 +111,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(InputWireVectorDeclaration decl, Object... argv);
+    public ModVisitType visit(Input.Wire.Vector.Ident decl, Object... argv);
 
     /**
      * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
@@ -117,7 +120,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(InputRegVectorDeclaration decl, Object... argv);
+    public ModVisitType visit(Input.Reg.Vector.Ident decl, Object... argv);
 
     /**
      * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
@@ -126,7 +129,35 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(WireScalarDeclaration decl, Object... argv);
+    public ModVisitType visit(Output.Reg.Scalar.Array decl, Object... argv);
+
+    /**
+     * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
+     * ... ;
+     * 
+     * @param decl
+     */
+
+    public ModVisitType visit(Reg.Scalar.Array decl, Object... argv);
+
+    /**
+     * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
+     * ... ;
+     * 
+     * @param decl
+     */
+
+    public ModVisitType visit(Reg.Vector.Array decl, Object... argv);
+
+
+    /**
+     * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
+     * ... ;
+     * 
+     * @param decl
+     */
+
+    public ModVisitType visit(Wire.Scalar.Ident decl, Object... argv);
 
     /**
      * This is used to visit any wire vector declaration in verilog. Ex. wire [31:0] a, b, c
@@ -135,7 +166,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(WireVectorDeclaration decl, Object... argv);
+    public ModVisitType visit(Wire.Vector.Ident decl, Object... argv);
 
     /**
      * This is used to visit any reg scalar declaration in verilog. Ex. reg a, b, c ... ;
@@ -143,7 +174,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(RegScalarDeclaration decl, Object... argv);
+    public ModVisitType visit(Reg.Scalar.Ident decl, Object... argv);
 
     /**
      * This is used to visit any reg scalar declaration in verilog. Ex. reg [2:0] a, b, c
@@ -152,7 +183,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(RegVectorDeclaration decl, Object... argv);
+    public ModVisitType visit(Reg.Vector.Ident decl, Object... argv);
 
     /**
      * This is used to visit any output wire scalar declaration in verilog. Ex. output a, b,
@@ -161,7 +192,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(OutputWireScalarDeclaration decl, Object... argv);
+    public ModVisitType visit(Output.Wire.Scalar.Ident decl, Object... argv);
 
     /**
      * This is used to visit any output reg scalar declaration in verilog. Ex. output a, b,
@@ -170,7 +201,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(OutputRegScalarDeclaration decl, Object... argv);
+    public ModVisitType visit(Output.Reg.Scalar.Ident decl, Object... argv);
 
     /**
      * This is used to visit any output wire vector declaration in verilog. Ex. output [2:0]
@@ -179,7 +210,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(OutputWireVectorDeclaration decl, Object... argv);
+    public ModVisitType visit(Output.Wire.Vector.Ident decl, Object... argv);
 
     /**
      * This is used to visit any output reg vector declaration in verilog. Ex. output [2:0]
@@ -188,7 +219,16 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(OutputRegVectorDeclaration decl, Object... argv);
+    public ModVisitType visit(Output.Reg.Vector.Ident decl, Object... argv);
+
+    /**
+     * This is used to visit any output reg vector declaration in verilog. Ex. output [2:0]
+     * a, b, c ... ;
+     * 
+     * @param decl
+     */
+
+    public ModVisitType visit(Output.Reg.Vector.Array decl, Object... argv);
 
     /**
      * This is used to visit any unidentified declaration in verilog. Ex. output [2:0] a, b,
@@ -197,7 +237,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(UnidentifiedDeclaration decl, Object... argv);
+    public ModVisitType visit(Unidentified.Declaration decl, Object... argv);
 
     /**
      * This is used to visit any integer declaration in verilog. Ex. integer a, b, c ... ;
@@ -205,7 +245,7 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(IntegerDeclaration decl, Object... argv);
+    public ModVisitType visit(Int.Ident decl, Object... argv);
 
     /**
      * This is used to visit any real declaration in verilog. Ex. real a, b, c ... ;
@@ -213,7 +253,23 @@ public interface ModuleVisitor<ModVisitType> {
      * @param decl
      */
 
-    public ModVisitType visit(RealDeclaration decl, Object... argv);
+    public ModVisitType visit(Int.Array decl, Object... argv);
+
+    /**
+     * This is used to visit any real declaration in verilog. Ex. real a, b, c ... ;
+     * 
+     * @param decl
+     */
+
+    public ModVisitType visit(Real.Ident decl, Object... argv);
+
+     /**
+     * This is used to visit any real declaration in verilog. Ex. real a, b, c ... ;
+     * 
+     * @param decl
+     */
+
+    public ModVisitType visit(RegValueList decls, Object... argv);
 
     /**
      * This is used to visit any andgate declaration in verilog. Ex. integer a, b, c ... ;

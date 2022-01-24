@@ -1,6 +1,10 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression;
 
 
+import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
 
 /**
@@ -10,33 +14,19 @@ import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor
  * 
  * @param Jacob Bauer
  */
-public class ConstantExpression extends Expression {
+public class ConstantExpression extends AstNode implements Expression {
 
-    private Expression expression; // expression determined to be const
+    public Expression expression; // expression determined to be const
 
     /**
      * The const expression constructor takes in a single expression and decorates the object to becoome a constant constructor.
      * 
      * @param Jacob Bauer
      */
-    public ConstantExpression(Expression expression) {
-        super(expression.getPosition());
+    public ConstantExpression(Position start, Expression expression) {
+        super(start);
         this.expression = expression;
     }
-
-    /**
-     * Retrieves the expression exprected to be constant    
-     * 
-     * @param none
-     */
-    public Expression getExpression(){ return expression; }
-
-    /**
-     * Sets Expression to a new Expression
-     * 
-     * @param none
-     */
-    public void setExpression(Expression Expression){ this.expression = expression; }
 
     /**
      * The accept method will make it so the visitor interface will work
@@ -46,5 +36,9 @@ public class ConstantExpression extends Expression {
      */
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
+    }
+
+    public Value interpret(Environment environment){
+        return expression.interpret(environment);
     }
 }

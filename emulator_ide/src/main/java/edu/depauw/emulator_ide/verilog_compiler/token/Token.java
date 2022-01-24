@@ -9,7 +9,11 @@ public class Token {
 
 	public enum Type{
 		IDENT, // identifiers
-		NUM, // Numbers
+		DEC, // Numbers
+		REALNUM,
+		OCT,
+		HEX,
+		BIN,
 		STRING, // String constants
 
 		//White Space characters
@@ -203,7 +207,15 @@ public class Token {
 
     public static Token makeEofToken(Position position) { return new Token("EOF", position, Type.EOF); }
 
-	public static Token makeNumToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.NUM); } 
+	public static Token makeBinToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.BIN); }
+	
+	public static Token makeHexToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.HEX); }
+
+	public static Token makeDecToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.DEC); }
+
+	public static Token makeRealToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.REALNUM); }
+
+	public static Token makeOctToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.OCT); }
 		
 	public static Token makeNewLineToken(String lexeme, Position position){
 		if(lexeme == "\\n"){
