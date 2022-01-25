@@ -42,6 +42,9 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionXnor;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionXor;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.UnaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.StringNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Element;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Slice;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.BoolVal;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.ByteVal;
@@ -50,6 +53,7 @@ import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.LongVal
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.RealVal;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.ShortVal;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.StrVal;
+import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Unsigned;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.UnsignedByteVal;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.UnsignedIntVal;
 import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.UnsignedLongVal;
@@ -105,326 +109,60 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	 * @param op
 	 */
 
+	private static Value getUnsignedNumValue(long input){
+		if(((byte)input) == input){
+			return new UnsignedByteVal((byte)input);
+		} else if(((short)input) == input){
+			return new UnsignedShortVal((short)input);
+		} else if(((int)input) == input){
+			return new UnsignedIntVal((int)input);
+		} else {
+			return new UnsignedLongVal(input);
+		}
+	}
+
+	private static Value getSignedNumValue(long input){
+		if(((byte)input) == input){
+			return new ByteVal((byte)input);
+		} else if(((short)input) == input){
+			return new ShortVal((short)input);
+		} else if(((int)input) == input){
+			return new IntVal((int)input);
+		} else {
+			return new LongVal(input);
+		}
+	}
+
 	public Value visit(Add node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if(left instanceof StrVal || right instanceof StrVal) {
+		if(left instanceof StrVal) {
 			return new StrVal(left.toString() + right.toString());
-		} else if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(rLeft.getValue() + rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new RealVal(rLeft.getValue() + lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new RealVal(rLeft.getValue() + iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new RealVal(rLeft.getValue() + sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new RealVal(rLeft.getValue() + bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new RealVal(rLeft.getValue() + ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() + sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() + bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() + (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(uiLeft.getValue() + rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() + iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() + sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() + bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() + (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() + sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() + bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() + (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() + sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() + (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() + rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() + lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() + iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() + sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() + sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() + bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() + bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() + (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) + (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) + bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) + bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) + bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) + bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) + bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) + bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) + bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) + bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		} else if(right instanceof StrVal){
+			errorAndExit("Error: Cant add types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			return new RealVal(left.realValue() + right.realValue());
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() + right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() + right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() + right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() + right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() + right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() + right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() + right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() + right.byteValue());
+			}
 		}
 	}
 
@@ -439,321 +177,31 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(Subtract node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(rLeft.getValue() - rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new RealVal(rLeft.getValue() - lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new RealVal(rLeft.getValue() - iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new RealVal(rLeft.getValue() - sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new RealVal(rLeft.getValue() - bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new RealVal(rLeft.getValue() - ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() - sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() - bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() - (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(uiLeft.getValue() - rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() - iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() - sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() - bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() - (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() - sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() - bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() - (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() - sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() - (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() - rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() - lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() - iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() - sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() - sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() - bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() - bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() - (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) - (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) - bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) - bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) - bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) - bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) - bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) - bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) - bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) - bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant add types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			return new RealVal(left.realValue() - right.realValue());
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() - right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() - right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() - right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() - right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() - right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() - right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() - right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() - right.byteValue());
+			}
 		}
 	}
 
@@ -769,321 +217,31 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(Multiply node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(rLeft.getValue() * rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new RealVal(rLeft.getValue() * lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new RealVal(rLeft.getValue() * iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new RealVal(rLeft.getValue() * sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new RealVal(rLeft.getValue() * bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new RealVal(rLeft.getValue() * ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() * sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() * bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() * (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(uiLeft.getValue() * rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() * iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() * sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() * bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() * (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() * sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() * bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() * (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() * sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() * (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() * rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() * lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() * iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() * sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() * sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() * bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() * bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() * (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) * (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) * bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) * bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) * bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) * bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) * bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) * bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) * bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) * bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant add types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			return new RealVal(left.realValue() * right.realValue());
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() * right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() * right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() * right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() * right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() * right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() * right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() * right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() * right.byteValue());
+			}
 		}
 	}
 
@@ -1094,910 +252,104 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	 * @param op
 	 */
 
+	private static Value getUnsignedRealValue(double input){
+		if(((long)input) != input){
+			return new RealVal(input);
+		} else {
+			return getUnsignedNumValue((long)input);
+		}
+	}
+
+	private static Value getSignedRealValue(double input){
+		if(((long)input) != input){
+			return new RealVal(input);
+		} else {
+			return getSignedNumValue((long)input);
+		}
+	}
+
 	public Value visit(Divide node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(rLeft.getValue() / rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new RealVal(rLeft.getValue() / lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new RealVal(rLeft.getValue() / iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new RealVal(rLeft.getValue() / sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new RealVal(rLeft.getValue() / bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new RealVal(rLeft.getValue() / ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() / sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() / bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() / (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(uiLeft.getValue() / rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() / iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() / sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() / bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() / (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() / sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() / bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() / (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() / sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() / (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() / rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() / lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() / iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() / sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() / sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() / bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() / bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() / (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) / (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) / bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) / bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) / bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) / bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) / bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) / bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) / bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) / bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant add types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new RealVal(left.realValue() / right.realValue());
+		} else if(left instanceof Unsigned || right instanceof Unsigned){
+			return getUnsignedRealValue(left.realValue() / right.realValue());
+		} else {
+			return getSignedRealValue(left.realValue() / right.realValue());
 		}
 	}
+
+	/*
+	 * Below is the code that is used for visiting expressions /** This is the code for
+	 * visiting binary operations
+	 * 
+	 * @param op
+	 */
 
 	public Value visit(Modulo node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(rLeft.getValue() % rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new RealVal(rLeft.getValue() % lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new RealVal(rLeft.getValue() % iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new RealVal(rLeft.getValue() % sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new RealVal(rLeft.getValue() % bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new RealVal(rLeft.getValue() % ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() % sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() % bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() % (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(uiLeft.getValue() % rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() % iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() % sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() % bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() % (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() % sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() % bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() % (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() % sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() % (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new RealVal(ulLeft.getValue() % rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() % lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() % iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() % sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() % sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() % bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() % bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() % (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) % (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) % bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) % bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) % bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) % bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) % bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) % bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) % bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) % bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			return new RealVal(left.realValue() % right.realValue());
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() % right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() % right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() % right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() % right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() % right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() % right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() % right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() % right.byteValue());
+			}
 		}
 	}
 
 	public Value visit(BitwiseAnd node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() & sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() & bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() & (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() & iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() & sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() & bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() & (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() & (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() & lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() & iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() & sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) & (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) & bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) & bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) & bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) & bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() & right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() & right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() & right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() & right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() & right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() & right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() & right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() & right.byteValue());
+			}
 		}
 	}
 
@@ -2012,530 +364,64 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(BitwiseNand node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & sRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(~(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(~(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(iLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & sRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(~(ulLeft.getValue() & sRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(~(ulLeft.getValue() & bRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & bRight.getValue())));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & bRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() & bRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() & (bRight.getValue() ? 1: 0))));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() & lRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() & iRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() & sRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() & bRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(~(ulLeft.getValue() & bRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(~(ulLeft.getValue() & (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)(~((bleft.getValue() ? 1 : 0) & (bright.getValue() ? 1 : 0))));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal(~((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal(~((bleft.getValue() ? 1 : 0) & bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~((bleft.getValue() ? 1 : 0) & bright.getValue())));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)(~((bleft.getValue() ? 1 : 0) & bright.getValue())));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(~((bleft.getValue() ? 1 : 0) & bright.getValue())));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)(~((bleft.getValue() ? 1 : 0) & bright.getValue())));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(~(left.longValue() & right.longValue()));
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(~(left.intValue() & right.intValue()));
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(~(left.shortValue() & right.shortValue()));
+			} else {
+				return getUnsignedNumValue(~(left.byteValue() & right.byteValue()));
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(~(left.longValue() & right.longValue()));
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(~(left.intValue() & right.intValue()));
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(~(left.shortValue() & right.shortValue()));
+			} else {
+				return getSignedNumValue(~(left.byteValue() & right.byteValue()));
+			}
 		}
 	}
 
 	public Value visit(BitwiseOr node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() | sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() | bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() | (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() | iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() | sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() | bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() | (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() | (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() | lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() | iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() | sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) | (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) | bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) | bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) | bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) | bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() | right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() | right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() | right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() | right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() | right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() | right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() | right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() | right.byteValue());
+			}
 		}
 	}
 
@@ -2550,530 +436,64 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(BitwiseNor node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | sRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(~(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(~(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(iLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | sRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(~(ulLeft.getValue() | sRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(~(ulLeft.getValue() | bRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | bRight.getValue())));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | bRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() | bRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() | (bRight.getValue() ? 1: 0))));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() | lRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() | iRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() | sRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() | bRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(~(ulLeft.getValue() | bRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(~(ulLeft.getValue() | (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)(~((bleft.getValue() ? 1 : 0) | (bright.getValue() ? 1 : 0))));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal(~((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal(~((bleft.getValue() ? 1 : 0) | bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~((bleft.getValue() ? 1 : 0) | bright.getValue())));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)(~((bleft.getValue() ? 1 : 0) | bright.getValue())));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(~((bleft.getValue() ? 1 : 0) | bright.getValue())));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)(~((bleft.getValue() ? 1 : 0) | bright.getValue())));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(~(left.longValue() | right.longValue()));
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(~(left.intValue() | right.intValue()));
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(~(left.shortValue() | right.shortValue()));
+			} else {
+				return getUnsignedNumValue(~(left.byteValue() | right.byteValue()));
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(~(left.longValue() | right.longValue()));
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(~(left.intValue() | right.intValue()));
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(~(left.shortValue() | right.shortValue()));
+			} else {
+				return getSignedNumValue(~(left.byteValue() | right.byteValue()));
+			}
 		}
 	}
 
 	public Value visit(BitwiseXor node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() ^ sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() ^ bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() ^ sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() ^ bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() ^ (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() ^ lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() ^ iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) ^ (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) ^ bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) ^ bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) ^ bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) ^ bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() ^ right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() ^ right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() ^ right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() ^ right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() ^ right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() ^ right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() ^ right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() ^ right.byteValue());
+			}
 		}
 	}
 
@@ -3088,593 +508,45 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(BitwiseXnor node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ sRight.getValue()));
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(iLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ sRight.getValue()));
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(~(ulLeft.getValue() ^ sRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(~(ulLeft.getValue() ^ bRight.getValue()));
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ bRight.getValue())));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ bRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() ^ bRight.getValue())));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() ^ (bRight.getValue() ? 1: 0))));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(~(ulLeft.getValue() ^ lRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(~(ulLeft.getValue() ^ iRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(~(ulLeft.getValue() ^ sRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(~(ulLeft.getValue() ^ bRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(~(ulLeft.getValue() ^ bRight.getValue())));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(~(ulLeft.getValue() ^ (bRight.getValue() ? 1 : 0))));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)(~((bleft.getValue() ? 1 : 0) ^ (bright.getValue() ? 1 : 0))));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal(~((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal(~((bleft.getValue() ? 1 : 0) ^ bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(~((bleft.getValue() ? 1 : 0) ^ bright.getValue())));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)(~((bleft.getValue() ? 1 : 0) ^ bright.getValue())));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(~((bleft.getValue() ? 1 : 0) ^ bright.getValue())));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)(~((bleft.getValue() ? 1 : 0) ^ bright.getValue())));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(~(left.longValue() ^ right.longValue()));
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(~(left.intValue() ^ right.intValue()));
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(~(left.shortValue() ^ right.shortValue()));
+			} else {
+				return getUnsignedNumValue(~(left.byteValue() ^ right.byteValue()));
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(~(left.longValue() ^ right.longValue()));
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(~(left.intValue() ^ right.intValue()));
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(~(left.shortValue() ^ right.shortValue()));
+			} else {
+				return getSignedNumValue(~(left.byteValue() ^ right.byteValue()));
+			}
 		}
 	}
-
-	/*
-	 * Below is the code that is used for visiting expressions /** This is the code for
-	 * visiting binary operations
-	 * 
-	 * @param op
-	 */
 
 	public Value visit(LessThan node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() < rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(rLeft.getValue() < lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(rLeft.getValue() < iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(rLeft.getValue() < sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(rLeft.getValue() < bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(rLeft.getValue() < ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() < sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() < (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() < sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() < sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() < bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() < bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() < (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(uiLeft.getValue() < rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() < sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() < bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() < (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(iLeft.getValue() < iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() < sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() < sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() < bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() < bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() < (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() < bRight.getValue());
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() < (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() < bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() < bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() < (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() < (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() < rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() < lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() < iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() < sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() < bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() < bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() < (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) < (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) < bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) < bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) < bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) < bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) < bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) < bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) < bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) < bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() < right.realValue());
+		} else {
+			return new BoolVal(left.longValue() < right.longValue());
 		}
 	}
 
@@ -3689,323 +561,22 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(LessThanOrEqualTo node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(rLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(rLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(rLeft.getValue() <= sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(rLeft.getValue() <= bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(rLeft.getValue() <= ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() <= sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() <= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() <= sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() <= sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() <= bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() <= bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() <= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(uiLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() <= sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() <= bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() <= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(iLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() <= sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() <= sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() <= bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() <= bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() <= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() <= bRight.getValue());
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() <= (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() <= bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() <= bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() <= (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() <= (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() <= rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() <= lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() <= iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() <= sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() <= bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() <= bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() <= (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) <= (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) <= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) <= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) <= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) <= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) <= bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) <= bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) <= bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) <= bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() <= right.realValue());
+		} else {
+			return new BoolVal(left.longValue() <= right.longValue());
 		}
 	}
+
+	/*
+	 * Below is the code that is used for visiting expressions /** This is the code for
+	 * visiting binary operations
+	 * 
+	 * @param op
+	 */
 
 	/*
 	 * Below is the code that is used for visiting expressions /** This is the code for
@@ -4017,321 +588,13 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(GreaterThan node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() > rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(rLeft.getValue() > lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(rLeft.getValue() > iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(rLeft.getValue() > sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(rLeft.getValue() > bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(rLeft.getValue() > ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() > sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() > (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() > sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() > sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() > bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() > bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() > (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(uiLeft.getValue() > rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() > sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() > bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() > (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(iLeft.getValue() > iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() > sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() > sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() > bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() > bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() > (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() > bRight.getValue());
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() > (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() > bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() > bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() > (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() > (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() > rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() > lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() > iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() > sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() > bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() > bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() > (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) > (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) > bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) > bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) > bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) > bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) > bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) > bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) > bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) > bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() > right.realValue());
+		} else {
+			return new BoolVal(left.longValue() > right.longValue());
 		}
 	}
 
@@ -4345,649 +608,28 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(GreaterThanOrEqualTo node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(rLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(rLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(rLeft.getValue() >= sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(rLeft.getValue() >= bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(rLeft.getValue() >= ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() >= sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() >= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() >= sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() >= sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() >= bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() >= bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() >= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(uiLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() >= sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() >= bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() >= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(iLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() >= sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() >= sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() >= bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() >= bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() >= (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() >= bRight.getValue());
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() >= (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() >= bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() >= bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() >= (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() >= (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() >= rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() >= lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() >= iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() >= sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() >= bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() >= bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() >= (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) >= (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) >= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) >= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) >= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) >= bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) >= bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) >= bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) >= bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) >= bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() >= right.realValue());
+		} else {
+			return new BoolVal(left.longValue() >= right.longValue());
 		}
 	}
-
-	/*
-	 * Below is the code that is used for visiting expressions /** This is the code for
-	 * visiting binary operations
-	 * 
-	 * @param op
-	 */
 
 	public Value visit(BasicEquality node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() == rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(rLeft.getValue() == lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(rLeft.getValue() == iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(rLeft.getValue() == sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(rLeft.getValue() == bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(rLeft.getValue() == ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() == sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() == (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() == sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() == sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() == bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() == bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() == (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(uiLeft.getValue() == rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() == sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() == bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() == (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(iLeft.getValue() == iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() == sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() == sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() == bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() == bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() == (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() == bRight.getValue());
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() == (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() == bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() == bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() == (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() == (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() == bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() == bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() == (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) == (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) == bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) == bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) == bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) == bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) == bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) == bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) == bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) == bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal && right instanceof StrVal){
+			return new BoolVal(left.toString().equals(right.toString()));
+		} else if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant equate types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() == right.realValue());
+		} else {
+			return new BoolVal(left.longValue() == right.longValue());
 		}
 	}
 
@@ -5001,361 +643,38 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(StrictEquality node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() == rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal rRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() == rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() == iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() == sRight.getValue()));
+		if(left instanceof StrVal && right instanceof StrVal){
+			return new BoolVal(left.toString().equals(right.toString()));
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() == right.realValue());
+		} else if(left instanceof LongVal && right instanceof LongVal){
+			return new BoolVal(left.longValue() == right.longValue());
+		} else if(left instanceof IntVal && right instanceof IntVal){
+			return new BoolVal(left.intValue() == right.intValue());
+		} else if(left instanceof ShortVal && right instanceof ShortVal){
+			return new BoolVal(left.shortValue() == right.shortValue());
 		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() == bRight.getValue()));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) == (bright.getValue() ? 1 : 0)));
+			return new BoolVal(left.byteValue() == right.byteValue());
+		} else if(left instanceof BoolVal && right instanceof BoolVal){
+			return new BoolVal(left.boolValue() == right.boolValue());
 		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+			errorAndExit("Error: In === type mismatch between " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
 		}
 	}
 
-	/*
-	 * Below is the code that is used for visiting expressions /** This is the code for
-	 * visiting binary operations
-	 * 
-	 * @param op
-	 */
-
 	public Value visit(BasicInequality node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() != rRight.getValue());
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(rLeft.getValue() != lRight.getValue());
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(rLeft.getValue() != iRight.getValue());
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(rLeft.getValue() != sRight.getValue());
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(rLeft.getValue() != bRight.getValue());
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(rLeft.getValue() != ((bRight.getValue()) ? 1 : 0));
-		} else if (left instanceof UnsignedLongVal && right instanceof RealVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() != sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() != bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof RealVal) {
-			UnsignedIntVal uiLeft = (UnsignedIntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(uiLeft.getValue() != rRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(iLeft.getValue() != iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal(ulLeft.getValue() != sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal(ulLeft.getValue() != bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof RealVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != bRight.getValue());
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() != bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof RealVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new BoolVal((ulLeft.getValue() != bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) != (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) != bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) != bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) != bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal((bleft.getValue() ? 1 : 0) != bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) != bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) != bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) != bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) != bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal && right instanceof StrVal){
+			return new BoolVal(left.toString().equals(right.toString()));
+		} else if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant equate types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() != right.realValue());
+		} else {
+			return new BoolVal(left.longValue() != right.longValue());
 		}
 	}
 
@@ -5369,32 +688,22 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(StrictInequality node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rLeft.getValue() != rRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal rRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != rRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != sRight.getValue()));
+		if(left instanceof StrVal && right instanceof StrVal){
+			return new BoolVal(left.toString().equals(right.toString()));
+		} else if(left instanceof RealVal || right instanceof RealVal){
+			return new BoolVal(left.realValue() != right.realValue());
+		} else if(left instanceof LongVal && right instanceof LongVal){
+			return new BoolVal(left.longValue() != right.longValue());
+		} else if(left instanceof IntVal && right instanceof IntVal){
+			return new BoolVal(left.intValue() != right.intValue());
+		} else if(left instanceof ShortVal && right instanceof ShortVal){
+			return new BoolVal(left.shortValue() != right.shortValue());
 		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != bRight.getValue()));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(((bleft.getValue() ? 1 : 0) != (bright.getValue() ? 1 : 0)));
+			return new BoolVal(left.byteValue() != right.byteValue());
+		} else if(left instanceof BoolVal && right instanceof BoolVal){
+			return new BoolVal(left.boolValue() != right.boolValue());
 		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+			errorAndExit("Error: In === type mismatch between " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
 		}
 	}
@@ -5409,149 +718,11 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(LogicalAnd node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal((rLeft.getValue() != 0) && (rRight.getValue() != 0));
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal((rLeft.getValue() != 0) && (lRight.getValue() != 0));
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal((rLeft.getValue() != 0) && (iRight.getValue() != 0));
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((rLeft.getValue()) != 0 && (sRight.getValue() != 0));
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((rLeft.getValue() != 0) && (bRight.getValue() != 0));
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((rLeft.getValue() != 0)  && bRight.getValue());
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal((ulLeft.getValue() != 0) &&  rRight.getValue() != 0);
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal((ulLeft.getValue() != 0) && (lRight.getValue() != 0));
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal((ulLeft.getValue() != 0) && (iRight.getValue() != 0));
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && sRight.getValue() != 0);
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && bRight.getValue() != 0);
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && bRight.getValue());
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && rRight.getValue() != 0);
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && lRight.getValue() != 0);
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && iRight.getValue() != 0);
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && sRight.getValue() != 0);
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && bRight.getValue() != 0);
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && bRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && rRight.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && lRight.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && iRight.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 && sRight.getValue() != 0));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 && bRight.getValue() != 0));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 && bRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && rRight.getValue() != 0);
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && lRight.getValue() != 0);
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 && iRight.getValue() != 0);
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 && sRight.getValue() != 0));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 && bRight.getValue() != 0));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 && bRight.getValue()));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(bleft.getValue() && bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal(bleft.getValue() && bright.getValue() != 0);
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal(bleft.getValue() && bright.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal((bleft.getValue() && bright.getValue() != 0));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal((bleft.getValue() && bright.getValue() != 0));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else {
+			return new BoolVal(left.boolValue() && right.boolValue());
 		}
 	}
 
@@ -5565,679 +736,75 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(LogicalOr node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof RealVal && right instanceof RealVal) {
-			RealVal rLeft = (RealVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal((rLeft.getValue() != 0) || (rRight.getValue() != 0));
-		} else if (left instanceof RealVal && right instanceof LongVal) {
-			RealVal rLeft = (RealVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal((rLeft.getValue() != 0) || (lRight.getValue() != 0));
-		} else if (left instanceof RealVal && right instanceof IntVal) {
-			RealVal rLeft = (RealVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal((rLeft.getValue() != 0) || (iRight.getValue() != 0));
-		} else if (left instanceof RealVal && right instanceof ShortVal){
-			RealVal rLeft = (RealVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((rLeft.getValue()) != 0 || (sRight.getValue() != 0));
-		} else if(left instanceof RealVal && right instanceof ByteVal){
-			RealVal rLeft = (RealVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((rLeft.getValue() != 0) || (bRight.getValue() != 0));
-		} else if(left instanceof RealVal && right instanceof BoolVal){
-			RealVal rLeft = (RealVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((rLeft.getValue() != 0)  || bRight.getValue());
-		} else if (left instanceof LongVal && right instanceof RealVal) {
-			LongVal ulLeft = (LongVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal((ulLeft.getValue() != 0) || rRight.getValue() != 0);
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal((ulLeft.getValue() != 0) || (lRight.getValue() != 0));
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal((ulLeft.getValue() != 0) || (iRight.getValue() != 0));
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || sRight.getValue() != 0);
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || bRight.getValue() != 0);
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || bRight.getValue());
-		} else if (left instanceof IntVal && right instanceof RealVal) {
-			IntVal ulLeft = (IntVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || rRight.getValue() != 0);
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || lRight.getValue() != 0);
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || iRight.getValue() != 0);
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || sRight.getValue() != 0);
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || bRight.getValue() != 0);
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || bRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof RealVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || rRight.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || lRight.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || iRight.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 || sRight.getValue() != 0));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 || bRight.getValue() != 0));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 || bRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof RealVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || rRight.getValue() != 0);
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || lRight.getValue() != 0);
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new BoolVal(ulLeft.getValue() != 0 || iRight.getValue() != 0);
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 || sRight.getValue() != 0));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 || bRight.getValue() != 0));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new BoolVal((ulLeft.getValue() != 0 || bRight.getValue()));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new BoolVal(bleft.getValue() || bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new BoolVal(bleft.getValue() || bright.getValue() != 0);
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new BoolVal(bleft.getValue() || bright.getValue() != 0);
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new BoolVal((bleft.getValue() || bright.getValue() != 0));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new BoolVal((bleft.getValue() || bright.getValue() != 0));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else {
+			return new BoolVal(left.boolValue() || right.boolValue());
 		}
 	}
 
 	public Value visit(BitshiftLeft node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() << sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() << bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() << (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() << iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() << sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() << bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() << (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() << sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() << bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() << (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() << sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() << (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() << lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() << iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() << sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() << sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() << bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() << bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() << (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) << (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) << bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) << bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) << bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) << bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) << bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) << bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) << bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) << bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() << right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() << right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() << right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() << right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() << right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() << right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() << right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() << right.byteValue());
+			}
 		}
 	}
 
 	public Value visit(BitshiftRight node, Object... argv){
 		Value left = node.left.accept(this);
 		Value right = node.right.accept(this);
-		if (left instanceof UnsignedLongVal && right instanceof LongVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof IntVal) {
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof UnsignedLongVal && right instanceof ShortVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> sRight.getValue());
-		} else if(left instanceof UnsignedLongVal && right instanceof BoolVal){
-			UnsignedLongVal ulLeft = (UnsignedLongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof LongVal && right instanceof UnsignedLongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof LongVal) {
-			LongVal ulLeft = (LongVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedIntVal) {
-			LongVal ulLeft = (LongVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof IntVal) {
-			LongVal ulLeft = (LongVal)left;
-			IntVal iRight = (IntVal)right;
-			return new LongVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof LongVal && right instanceof UnsignedShortVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> sRight.getValue());
-		} else if (left instanceof LongVal && right instanceof ShortVal){
-			LongVal ulLeft = (LongVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new LongVal(ulLeft.getValue() >> sRight.getValue());
-		} else if(left instanceof LongVal && right instanceof UnsignedByteVal){
-			LongVal ulLeft = (LongVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof ByteVal){
-			LongVal ulLeft = (LongVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new LongVal(ulLeft.getValue() >> bRight.getValue());
-		} else if(left instanceof LongVal && right instanceof BoolVal){
-			LongVal ulLeft = (LongVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new LongVal(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedIntVal && right instanceof LongVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof IntVal) {
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof UnsignedIntVal && right instanceof ShortVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> sRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof ByteVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> bRight.getValue());
-		} else if(left instanceof UnsignedIntVal && right instanceof BoolVal){
-			UnsignedIntVal ulLeft = (UnsignedIntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof IntVal && right instanceof UnsignedLongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof LongVal) {
-			IntVal ulLeft = (IntVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedIntVal) {
-			IntVal iLeft = (IntVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(iLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof IntVal) {
-			IntVal ulLeft = (IntVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof IntVal && right instanceof UnsignedShortVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> sRight.getValue());
-		} else if (left instanceof IntVal && right instanceof ShortVal){
-			IntVal ulLeft = (IntVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new IntVal(ulLeft.getValue() >> sRight.getValue());
-		} else if(left instanceof IntVal && right instanceof UnsignedByteVal){
-			IntVal ulLeft = (IntVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof ByteVal){
-			IntVal ulLeft = (IntVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new IntVal(ulLeft.getValue() >> bRight.getValue());
-		} else if(left instanceof IntVal && right instanceof BoolVal){
-			IntVal ulLeft = (IntVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new IntVal(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0));
-		} else if (left instanceof UnsignedShortVal && right instanceof LongVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof IntVal) {
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof UnsignedShortVal && right instanceof ShortVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> sRight.getValue()));
-		} else if(left instanceof UnsignedShortVal && right instanceof ByteVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> bRight.getValue()));
-		}  else if(left instanceof UnsignedShortVal && right instanceof BoolVal){
-			UnsignedShortVal ulLeft = (UnsignedShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof ShortVal && right instanceof UnsignedLongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof LongVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedIntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof IntVal) {
-			ShortVal ulLeft = (ShortVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof ShortVal && right instanceof UnsignedShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> sRight.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() >> sRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof UnsignedByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof ByteVal){
-			ShortVal ulLeft = (ShortVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ShortVal((short)(ulLeft.getValue() >> bRight.getValue()));
-		} else if(left instanceof ShortVal && right instanceof BoolVal){
-			ShortVal ulLeft = (ShortVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ShortVal((short)(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof UnsignedByteVal && right instanceof LongVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof IntVal) {
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof UnsignedByteVal && right instanceof ShortVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> sRight.getValue()));
-		} else if (left instanceof UnsignedByteVal && right instanceof ByteVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			ByteVal sRight = (ByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() >> sRight.getValue()));
-		} else if(left instanceof UnsignedByteVal && right instanceof BoolVal){
-			UnsignedByteVal ulLeft = (UnsignedByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() >> (bRight.getValue() ? 1: 0)));
-		} else if (left instanceof ByteVal && right instanceof UnsignedLongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof LongVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			LongVal lRight = (LongVal)right;
-			return new LongVal(ulLeft.getValue() >> lRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedIntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedIntVal iRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof IntVal) {
-			ByteVal ulLeft = (ByteVal)left;
-			IntVal iRight = (IntVal)right;
-			return new IntVal(ulLeft.getValue() >> iRight.getValue());
-		} else if (left instanceof ByteVal && right instanceof UnsignedShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedShortVal sRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(ulLeft.getValue() >> sRight.getValue()));
-		} else if (left instanceof ByteVal && right instanceof ShortVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ShortVal sRight = (ShortVal)right;
-			return new ShortVal((short)(ulLeft.getValue() >> sRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof UnsignedByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			UnsignedByteVal bRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(ulLeft.getValue() >> bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof ByteVal){
-			ByteVal ulLeft = (ByteVal)left;
-			ByteVal bRight = (ByteVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() >> bRight.getValue()));
-		} else if(left instanceof ByteVal && right instanceof BoolVal){
-			ByteVal ulLeft = (ByteVal)left;
-			BoolVal bRight = (BoolVal)right;
-			return new ByteVal((byte)(ulLeft.getValue() >> (bRight.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof BoolVal) {
-			BoolVal bleft = (BoolVal)left;
-			BoolVal bright = (BoolVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) >> (bright.getValue() ? 1 : 0)));
-		} else if (left instanceof BoolVal && right instanceof UnsignedLongVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedLongVal bright = (UnsignedLongVal)right;
-			return new UnsignedLongVal((bleft.getValue() ? 1 : 0) >> bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof LongVal) {
-			BoolVal bleft = (BoolVal)left;
-			LongVal bright = (LongVal)right;
-			return new LongVal((bleft.getValue() ? 1 : 0) >> bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedIntVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedIntVal bright = (UnsignedIntVal)right;
-			return new UnsignedIntVal((bleft.getValue() ? 1 : 0) >> bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof IntVal) {
-			BoolVal bleft = (BoolVal)left;
-			IntVal bright = (IntVal)right;
-			return new IntVal((bleft.getValue() ? 1 : 0) >> bright.getValue());
-		} else if (left instanceof BoolVal && right instanceof UnsignedShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedShortVal bright = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)((bleft.getValue() ? 1 : 0) >> bright.getValue()));
-		} else if (left instanceof ShortVal && right instanceof ShortVal) {
-			BoolVal bleft = (BoolVal)left;
-			ShortVal bright = (ShortVal)right;
-			return new ShortVal((short)((bleft.getValue() ? 1 : 0) >> bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof UnsignedByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			UnsignedByteVal bright = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)((bleft.getValue() ? 1 : 0) >> bright.getValue()));
-		} else if (left instanceof BoolVal && right instanceof ByteVal) {
-			BoolVal bleft = (BoolVal)left;
-			ByteVal bright = (ByteVal)right;
-			return new ByteVal((byte)((bleft.getValue() ? 1 : 0) >> bright.getValue()));
-		} else {
-			errorAndExit("Could not add types " + left.getClass() + " and " + right.getClass(), node.getPosition());
+		if(left instanceof StrVal || right instanceof StrVal) {
+			errorAndExit("Error: Cant mod types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else if (left instanceof RealVal || right instanceof RealVal) {
+			errorAndExit("Error: Cant and types together of " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName(), node.getPosition());
+			return null;
+		} else if (left instanceof Unsigned || right instanceof Unsigned) {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getUnsignedNumValue(left.longValue() >> right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getUnsignedNumValue(left.intValue() >> right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getUnsignedNumValue(left.shortValue() >> right.shortValue());
+			} else {
+				return getUnsignedNumValue(left.byteValue() >> right.byteValue());
+			}
+		} else {
+			if(left instanceof LongVal || right instanceof LongVal){
+				return getSignedNumValue(left.longValue() >> right.longValue());
+			} else if(left instanceof IntVal || right instanceof IntVal){
+				return getSignedNumValue(left.intValue() >> right.intValue());
+			} else if(left instanceof ShortVal || right instanceof ShortVal){
+				return getSignedNumValue(left.shortValue() >> right.shortValue());
+			} else {
+				return getSignedNumValue(left.byteValue() >> right.byteValue());
+			}
 		}
 	}
 
@@ -6245,23 +812,17 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 		Value right = node.accept(this);
 
 		if(right instanceof RealVal){
-			RealVal rRight = (RealVal)right;
-			return new RealVal(-rRight.getValue());
+			return new RealVal(-right.realValue());
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new LongVal(-rRight.getValue());
+			return new LongVal(-right.longValue());
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new IntVal(-rRight.getValue());
+			return new IntVal(-right.intValue());
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new ShortVal((short)-rRight.getValue());
+			return new ShortVal((short)-right.shortValue());
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new ByteVal((byte)-rRight.getValue());
+			return new ByteVal((byte)-right.byteValue());
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)-(rRight.getValue() ? 1 : 0));
+			return new ByteVal((byte)-(right.byteValue()));
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
@@ -6271,35 +832,18 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(BitwiseNegation node, Object... argv){
 		Value right = node.accept(this);
 
-		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(~rRight.getValue());
-		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new LongVal(~rRight.getValue());
-		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(~rRight.getValue());
+		if(right instanceof LongVal){
+			return new LongVal(~right.longValue());
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new IntVal(~rRight.getValue());
-		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)~rRight.getValue());
+			return new IntVal(~right.intValue());
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new ShortVal((short)~rRight.getValue());
-		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)~rRight.getValue());
+			return new ShortVal((short)~right.shortValue());
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new ByteVal((byte)~rRight.getValue());
+			return new ByteVal((byte)~right.byteValue());
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)~(rRight.getValue() ? 1 : 0));
+			return new ByteVal((byte)~right.byteValue());
 		} else {
-			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
+			errorAndExit("Could not negate type " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
 		}
 	}
@@ -6307,27 +851,11 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	public Value visit(LogicalNegation node, Object... argv){
 		Value right = node.accept(this);
 
-		if(right instanceof RealVal){
-			RealVal rRight = (RealVal)right;
-			return new BoolVal(rRight.getValue() == 0);
-		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new BoolVal(rRight.getValue() == 0);
-		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new BoolVal(rRight.getValue() == 0);
-		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new BoolVal(rRight.getValue() == 0);
-		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new BoolVal(rRight.getValue() == 0);
-		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new BoolVal(!rRight.getValue());
-		} else {
-			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
+		if(right instanceof StrVal){
+			errorAndExit("Could not negate type " + right.getClass().getSimpleName(), node.getPosition());
 			return null;
+		} else {
+			return new BoolVal(!right.boolValue());
 		}
 	}
 
@@ -6335,32 +863,23 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 		Value right = node.accept(this);
 
 		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(rRight.getValue() == -1 ? 1 : 0);
+			return new UnsignedLongVal(right.longValue() == -1 ? 1 : 0);
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new LongVal(rRight.getValue() == -1 ? 1 : 0);
+			return new LongVal(right.longValue() == -1 ? 1 : 0);
 		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(rRight.getValue() == -1 ? 1 : 0);
+			return new UnsignedIntVal(right.intValue() == -1 ? 1 : 0);
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new IntVal(rRight.getValue() == -1 ? 1 : 0);
+			return new IntVal(right.intValue() == -1 ? 1 : 0);
 		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(rRight.getValue() == -1 ? 1 : 0));
+			return new UnsignedShortVal((short)(right.shortValue() == -1 ? 1 : 0));
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new ShortVal((short)(rRight.getValue() == -1 ? 1 : 0));
+			return new ShortVal((short)(right.shortValue() == -1 ? 1 : 0));
 		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(rRight.getValue() == -1 ? 1 : 0));
+			return new UnsignedByteVal((byte)(right.byteValue() == -1 ? 1 : 0));
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new ByteVal((byte)(rRight.getValue() == -1 ? 1 : 0));
+			return new ByteVal((byte)(right.byteValue() == -1 ? 1 : 0));
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)(rRight.getValue() ? 1 : 0));
+			return new ByteVal(right.byteValue());
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
@@ -6371,68 +890,52 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 		Value right = node.accept(this);
 
 		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(rRight.getValue() == -1 ? 0 : 1);
+			return new UnsignedLongVal(right.longValue() == -1 ? 0 : 1);
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new LongVal(rRight.getValue() == -1 ? 0 : 1);
+			return new LongVal(right.longValue() == -1 ? 0 : 1);
 		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(rRight.getValue() == -1 ? 0 : 1);
+			return new UnsignedIntVal(right.intValue() == -1 ? 0 : 1);
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new IntVal(rRight.getValue() == -1 ? 0 : 1);
+			return new IntVal(right.intValue() == -1 ? 0 : 1);
 		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(rRight.getValue() == -1 ? 0 : 1));
+			return new UnsignedShortVal((short)(right.shortValue() == -1 ? 0 : 1));
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new ShortVal((short)(rRight.getValue() == -1 ? 0 : 1));
+			return new ShortVal((short)(right.shortValue() == -1 ? 0 : 1));
 		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(rRight.getValue() == -1 ? 0 : 1));
+			return new UnsignedByteVal((byte)(right.byteValue() == -1 ? 0 : 1));
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new ByteVal((byte)(rRight.getValue() == -1 ? 0 : 1));
+			return new ByteVal((byte)(right.byteValue() == -1 ? 0 : 1));
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)(rRight.getValue() ? 0 : 1));
+			return new ByteVal(right.byteValue());
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
 		}
 	}
 
+
+
 	public Value visit(ReductionOr node, Object... argv){
 		Value right = node.accept(this);
 
 		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(rRight.getValue() == 0 ? 0 : 1);
+			return new UnsignedLongVal((right.longValue() ^ -1) != -1 ? 1 : 0);
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new LongVal(rRight.getValue() == 0 ? 0 : 1);
+			return new LongVal((right.longValue() ^ -1) != -1 ? 1 : 0);
 		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(rRight.getValue() == 0 ? 0 : 1);
+			return new UnsignedIntVal((right.intValue() ^ -1) != -1 ? 1 : 0);
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new IntVal(rRight.getValue() == 0 ? 0 : 1);
+			return new IntVal((right.intValue() ^ -1) != -1 ? 1 : 0);
 		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(rRight.getValue() == 0 ? 0 : 1));
+			return new UnsignedShortVal((short)((right.shortValue() ^ -1) != -1 ? 1 : 0));
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new ShortVal((short)(rRight.getValue() == 0 ? 0 : 1));
+			return new ShortVal((short)((right.shortValue() ^ -1) != -1 ? 1 : 0));
 		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(rRight.getValue() == 0 ? 0 : 1));
+			return new UnsignedByteVal((byte)((right.byteValue() ^ -1) != -1 ? 1 : 0));
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new ByteVal((byte)(rRight.getValue() == 0 ? 0 : 1));
+			return new ByteVal((byte)((right.byteValue() ^ -1) != -1 ? 1 : 0));
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)(rRight.getValue() ? 0 : 1));
+			return new ByteVal(right.byteValue());
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
@@ -6443,100 +946,84 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 		Value right = node.accept(this);
 
 		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
-			return new UnsignedLongVal(rRight.getValue() == 0 ? 1 : 0);
+			return new UnsignedLongVal((right.longValue() ^ -1) != -1 ? 0 : 1);
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
-			return new LongVal(rRight.getValue() == 0 ? 1 : 0);
+			return new LongVal((right.longValue() ^ -1) != -1 ? 0 : 1);
 		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
-			return new UnsignedIntVal(rRight.getValue() == 0 ? 1 : 0);
+			return new UnsignedIntVal((right.intValue() ^ -1) != -1 ? 0 : 1);
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
-			return new IntVal(rRight.getValue() == 0 ? 1 : 0);
+			return new IntVal((right.intValue() ^ -1) != -1 ? 0 : 1);
 		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
-			return new UnsignedShortVal((short)(rRight.getValue() == 0 ? 1 : 0));
+			return new UnsignedShortVal((short)((right.shortValue() ^ -1) != -1 ? 0 : 1));
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
-			return new ShortVal((short)(rRight.getValue() == 0 ? 1 : 0));
+			return new ShortVal((short)((right.shortValue() ^ -1) != -1 ? 0 : 1));
 		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
-			return new UnsignedByteVal((byte)(rRight.getValue() == 0 ? 1 : 0));
+			return new UnsignedByteVal((byte)((right.byteValue() ^ -1) != -1 ? 0 : 1));
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
-			return new ByteVal((byte)(rRight.getValue() == 0 ? 1 : 0));
+			return new ByteVal((byte)((right.byteValue() ^ -1) != -1 ? 0 : 1));
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)(rRight.getValue() ? 1 : 0));
+			return new ByteVal(right.byteValue());
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
 		}
 	}
+	
 
 	public Value visit(ReductionXor node, Object... argv){
 		Value right = node.accept(this);
 
 		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 64; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedLongVal(num1s % 2);
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 64; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new LongVal(num1s % 2);
 		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 32; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.intValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedIntVal(num1s % 2);
 		} else if(right instanceof IntVal){
 			IntVal rRight = (IntVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 32; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.intValue() >> i == 1 ? 1 : 0);
 			}
 			return new IntVal(num1s % 2);
 		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 16; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.shortValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedShortVal((short)(num1s % 2));
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 16; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.shortValue() >> i == 1 ? 1 : 0);
 			}
 			return new ShortVal((short)(num1s % 2));
 		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 8; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.byteValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedByteVal((byte)(num1s % 2));
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 8; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.byteValue() >> i == 1 ? 1 : 0);
 			}
 			return new ByteVal((byte)(num1s % 2));
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)(rRight.getValue() ? 1 : 0));
+			return new ByteVal((byte)(right.boolValue() ? 1 : 0));
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
@@ -6547,64 +1034,55 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 		Value right = node.accept(this);
 
 		if(right instanceof UnsignedLongVal){
-			UnsignedLongVal rRight = (UnsignedLongVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 64; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedLongVal(num1s % 2 == 0 ? 1 : 0);
 		} else if(right instanceof LongVal){
-			LongVal rRight = (LongVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 64; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new LongVal(num1s % 2 == 0 ? 1 : 0);
 		} else if(right instanceof UnsignedIntVal){
-			UnsignedIntVal rRight = (UnsignedIntVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 32; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedIntVal(num1s % 2 == 0 ? 1 : 0);
 		} else if(right instanceof IntVal){
-			IntVal rRight = (IntVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 32; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new IntVal(num1s % 2 == 0 ? 1 : 0);
 		} else if(right instanceof UnsignedShortVal){
-			UnsignedShortVal rRight = (UnsignedShortVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 16; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.longValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedShortVal((short)(num1s % 2 == 0 ? 1 : 0));
 		} else if(right instanceof ShortVal){
-			ShortVal rRight = (ShortVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 16; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.shortValue() >> i == 1 ? 1 : 0);
 			}
 			return new ShortVal((short)(num1s % 2 == 0 ? 1 : 0));
 		} else if(right instanceof UnsignedByteVal){
-			UnsignedByteVal rRight = (UnsignedByteVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 8; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.byteValue() >> i == 1 ? 1 : 0);
 			}
 			return new UnsignedByteVal((byte)(num1s % 2 == 0 ? 1 : 0));
 		} else if(right instanceof ByteVal){
-			ByteVal rRight = (ByteVal)right;
 			int num1s = 0;
 			for(int i = 0; i < 8; i++){
-				num1s += (rRight.getValue() >> i == 1 ? 1 : 0);
+				num1s += (right.byteValue() >> i == 1 ? 1 : 0);
 			}
 			return new ByteVal((byte)((num1s % 2) == 0 ? 1 : 0));
 		} else if(right instanceof BoolVal){
-			BoolVal rRight = (BoolVal)right;
-			return new ByteVal((byte)(rRight.getValue() ? 0 : 1));
+			return new ByteVal((byte)(right.boolValue() ? 0 : 1));
 		} else {
 			errorAndExit("Could not negate type " + right.getClass(), node.getPosition());
 			return null;
@@ -6837,20 +1315,12 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	}
 
 	/**
-	 * This is the code for visiting a port connection in verilog
-	 * 
-	 * @param connection
-	 */
-
-	public Object visit(PortConnection connection, Object... argv){ return connection.getExpression().accept(this); }
-
-	/**
 	 * This is the code for visiting a string in verilog
 	 * 
 	 * @param string
 	 */
 
-	public Object visit(StrValue string, Object... argv){ return string.getLexeme(); }
+	public Value visit(StringNode string, Object... argv){ return new StrVal(string.getLexeme()); }
 
 	/**
 	 * This is the code for visiting a TernaryOperation in verilog
@@ -6858,12 +1328,12 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	 * @param expr
 	 */
 
-	public Object visit(TernaryOperation expr, Object... argv){
-
-		if (boolValue(expr.getCondition().accept(this))) {
-			return expr.getLeft().accept(this);
+	public Value visit(TernaryOperation expr, Object... argv){
+		Value cond = expr.getCondition().accept(this);
+		if (cond.boolValue()) {
+			return expr.getExecuteIfTrue().accept(this);
 		} else {
-			return expr.getRight().accept(this);
+			return expr.getExecuteIfFalse().accept(this);
 		}
 
 	}
@@ -6874,40 +1344,32 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 	 * @param string
 	 */
 
-	public Object visit(VectorElement vector, Object... argv){
-		Identifier ident = vector.getIdentifier();
-		Object expr = vector.getExpression().accept(this);
-		int index = (int)longValue(expr);
+	public Value visit(Element vector, Object... argv){
+		String ident = vector.getLabel();
+		
+		Value index = vector.getExpression().accept(this);
 
-		if (varEnv.entryExists(ident.getLexeme())) {
-			InterpreterVariableData data = varEnv.getEntry(ident.getLexeme());
-			Object dataObject = data.getObject();
+		if (environment.variableExists(ident)) {
+			Pointer<Value> data = environment.lookupVariable(ident);
 
-			if (dataObject instanceof Vector[]) {
-				Vector<CircuitElem>[] arr = (Vector<CircuitElem>[])data.getObject();
-				Vector<CircuitElem> vec = arr[index];
-				return vec;
-			} else if (dataObject instanceof Vector) {
-				return ((Vector<CircuitElem>)dataObject).getValue(index);
-			} else if (dataObject instanceof Long[]) {
-				return ((Long[])dataObject)[index];
+			if (data.deRefrence() instanceof Vector) {
+				Vector vecData = (Vector)data.deRefrence();
+				return vecData.getValue(index.intValue());
 			} else {
-				errorAndExit("Unkown array type for " + ident.getLexeme() + " [ Type -> " + dataObject.getClass() + " ]",
-					ident.getPosition());
+				errorAndExit("Unkown array type for " + ident + " [ Type -> " + data.deRefrence().getClass().getSimpleName() + " ]", vector.getPosition());
 				return null;
 			}
-
 		} else {
-			errorAndExit("Array or Vector " + ident.getLexeme() + " not found", ident.getPosition());
+			errorAndExit("Array or Vector " + ident + " not found", vector.getPosition());
 			return null;
 		}
 
 	}
 
-	public Object visit(VectorSlice vector, Object... argv){
-		Identifier ident = vector.getIdentifier();
-		int startIndex = (int)longValue(vector.getExpression1().accept(this));
-		int endIndex = (int)longValue(vector.getExpression2().accept(this));
+	public Value visit(Slice vector, Object... argv){
+		String ident = vector.getLabel();
+		Value startIndex = vector.getExpression1().accept(this);
+		Value endIndex = vector.getExpression2().accept(this);
 
 		if (varEnv.entryExists(ident.getLexeme())) {
 			InterpreterVariableData data = varEnv.getEntry(ident.getLexeme());
@@ -6927,345 +1389,5 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 			return null;
 		}
 
-	}
-
-	/*
-	 * Below are RegValue visitors. These are used in the declarations of Integers and
-	 * Registers
-	 */
-
-	public Void visit(RegVectorIdent regVector, Object... argv){
-		Identifier ident = regVector.getIdentifier();
-		int start = (int)argv[0];
-		int end = (int)argv[1];
-
-		if (inFunctionName) {
-			setcallStackName(ident.getLexeme());
-		} else {
-			Vector vec = new Vector(start, end);
-
-			if (start <= end) {
-
-				for (int i = start; i <= end; i++) { vec.setValue(i, new Register(false)); }
-
-			} else {
-
-				for (int i = end; i <= start; i++) { vec.setValue(i, new Register(false)); }
-
-			}
-
-			if (varEnv.inScope(ident.getLexeme())) {
-				InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-				if (got.getObject() == null) {
-					got.setObject(vec);
-				} else {
-					errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type "
-						+ got.getObject().getClass());
-				}
-
-			} else {
-				varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(vec, ident.getPosition()));
-			}
-
-		}
-
-		return null;
-	}
-
-	public Void visit(RegScalarIdent regScalar, Object... argv){
-		Identifier ident = regScalar.getIdentifier();
-
-		if (inFunctionName) {
-			setcallStackName(ident.getLexeme());
-		} else {
-			Register reg = new Register(false);
-
-			if (varEnv.inScope(ident.getLexeme())) {
-				InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-				if (got.getObject() == null) {
-					got.setObject(reg);
-				} else {
-					errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type "
-						+ got.getObject().getClass());
-				}
-
-			} else {
-				varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(reg, ident.getPosition()));
-			}
-
-		}
-
-		return null;
-	}
-
-	public Void visit(OutputRegVectorIdent regVector, Object... argv){
-		Identifier ident = regVector.getIdentifier();
-		int start = (int)argv[0];
-		int end = (int)argv[1];
-
-		if (inFunctionName) {
-			setcallStackName(ident.getLexeme());
-		} else {
-			Vector vec = new Vector(start, end);
-
-			if (start <= end) {
-
-				for (int i = start; i <= end; i++) { vec.setValue(i, new Register(false)); }
-
-			} else {
-
-				for (int i = end; i <= start; i++) { vec.setValue(i, new Register(false)); }
-
-			}
-
-			if (varEnv.inScope(ident.getLexeme())) {
-				InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-				if (got.getObject() == null) {
-					got.setObject(vec);
-				} else {
-					errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type "
-						+ got.getObject().getClass());
-				}
-
-			} else {
-				varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(vec, ident.getPosition()));
-			}
-
-		}
-
-		return null;
-	}
-
-	public Void visit(OutputRegScalarIdent regScalar, Object... argv){
-		Identifier ident = regScalar.getIdentifier();
-
-		if (inFunctionName) {
-			setcallStackName(ident.getLexeme());
-		} else {
-			Register reg = new Register(false);
-
-			if (varEnv.inScope(ident.getLexeme())) {
-				InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-				if (got.getObject() == null) {
-					got.setObject(reg);
-				} else {
-					errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type "
-						+ got.getObject().getClass());
-				}
-
-			} else {
-				varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(reg, ident.getPosition()));
-			}
-
-		}
-
-		return null;
-	}
-
-	public Void visit(IntegerIdent intIdent, Object... argv){
-		Identifier ident = intIdent.getIdentifier();
-
-		if (inFunctionName) {
-			setcallStackName(ident.getLexeme());
-		} else {
-
-			if (varEnv.inScope(ident.getLexeme())) {
-				InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-				if (got.getObject() == null) {
-					got.setObject((long)0);
-				} else {
-					errorAndExit("Redeclaration of variable " + ident.getLexeme() + " with undexpected type "
-						+ got.getObject().getClass());
-				}
-
-			} else {
-				varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData((long)0, ident.getPosition()));
-			}
-
-		}
-
-		return null;
-	}
-
-	public Void visit(RegVectorArray regVector, Object... argv){
-		Identifier ident = regVector.getIdentifier();
-
-		int index1 = (int)argv[0];
-		int index2 = (int)argv[1];
-
-		int aIndex1 = (int)(long)regVector.getExpression1().accept(this);
-		int aIndex2 = (int)(long)regVector.getExpression2().accept(this);
-
-		int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
-
-		Vector<CircuitElem>[] arr = new Vector[aSize];
-
-		for (int i = 0; i < aSize; i++) {
-			arr[i] = new Vector<CircuitElem>(index1, index2);
-
-			if (index1 <= index2) {
-
-				for (int x = index1; x <= index2; x++) { arr[i].setValue(x, new Register(false)); }
-
-			} else {
-
-				for (int x = index2; x <= index1; x++) { arr[i].setValue(x, new Register(false)); }
-
-			}
-
-		}
-
-		if (varEnv.inScope(ident.getLexeme())) {
-			InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-			if (got.getObject() == null) {
-				got.setObject(arr);
-			} else {
-				errorAndExit(
-					"Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
-			}
-
-		} else {
-			varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
-		}
-
-		return null;
-	}
-
-	public Void visit(RegScalarArray regScalar, Object... argv){
-		Identifier ident = regScalar.getIdentifier();
-
-		int aIndex1 = (int)(long)regScalar.getExpression1().accept(this);
-		int aIndex2 = (int)(long)regScalar.getExpression2().accept(this);
-
-		int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
-
-		CircuitElem[] arr = new CircuitElem[aSize];
-
-		for (int i = 0; i < aSize; i++) { arr[i] = new Register(false); }
-
-		if (varEnv.inScope(ident.getLexeme())) {
-			InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-			if (got.getObject() == null) {
-				got.setObject(arr);
-			} else {
-				errorAndExit(
-					"Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
-			}
-
-		} else {
-			varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
-		}
-
-		return null;
-	}
-
-	public Void visit(OutputRegVectorArray regVector, Object... argv){
-		Identifier ident = regVector.getIdentifier();
-
-		int index1 = (int)argv[0];
-		int index2 = (int)argv[1];
-
-		int aIndex1 = (int)(long)regVector.getExpression1().accept(this);
-		int aIndex2 = (int)(long)regVector.getExpression2().accept(this);
-
-		int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
-
-		Vector<CircuitElem>[] arr = new Vector[aSize];
-
-		for (int i = 0; i < aSize; i++) {
-			arr[i] = new Vector<CircuitElem>(index1, index2);
-
-			if (index1 <= index2) {
-
-				for (int x = index1; x <= index2; x++) { arr[i].setValue(x, new Register(false)); }
-
-			} else {
-
-				for (int x = index2; x <= index1; x++) { arr[i].setValue(x, new Register(false)); }
-
-			}
-
-		}
-
-		if (varEnv.inScope(ident.getLexeme())) {
-			InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-			if (got.getObject() == null) {
-				got.setObject(arr);
-			} else {
-				errorAndExit(
-					"Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
-			}
-
-		} else {
-			varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
-		}
-
-		return null;
-	}
-
-	public Void visit(OutputRegScalarArray regScalar, Object... argv){
-		Identifier ident = regScalar.getIdentifier();
-
-		int aIndex1 = (int)(long)regScalar.getExpression1().accept(this);
-		int aIndex2 = (int)(long)regScalar.getExpression2().accept(this);
-
-		int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
-
-		CircuitElem[] arr = new CircuitElem[aSize];
-
-		for (int i = 0; i < aSize; i++) { arr[i] = new Register(false); }
-
-		if (varEnv.inScope(ident.getLexeme())) {
-			InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-			if (got.getObject() == null) {
-				got.setObject(arr);
-			} else {
-				errorAndExit(
-					"Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
-			}
-
-		} else {
-			varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
-		}
-
-		return null;
-	}
-
-	public Void visit(IntegerArray intIdent, Object... argv){
-		Identifier ident = intIdent.getIdentifier();
-
-		int aIndex1 = (int)(long)intIdent.getExpression1().accept(this);
-		int aIndex2 = (int)(long)intIdent.getExpression2().accept(this);
-
-		int aSize = (aIndex2 > aIndex1) ? aIndex2 - aIndex1 + 1 : aIndex1 - aIndex2 + 1;
-
-		Long[] arr = new Long[aSize];
-
-		for (int i = 0; i < aSize; i++) { arr[i] = (long)0; }
-
-		if (varEnv.inScope(ident.getLexeme())) {
-			InterpreterVariableData got = (InterpreterVariableData)varEnv.getEntry(ident.getLexeme());
-
-			if (got.getObject() == null) {
-				got.setObject(arr);
-			} else {
-				errorAndExit(
-					"Redeclaration of variable " + ident.getLexeme() + " with undexpected type " + got.getObject().getClass());
-			}
-
-		} else {
-			varEnv.addEntry(ident.getLexeme(), new InterpreterVariableData(arr, ident.getPosition()));
-		}
-
-		return null;
 	}
 }
