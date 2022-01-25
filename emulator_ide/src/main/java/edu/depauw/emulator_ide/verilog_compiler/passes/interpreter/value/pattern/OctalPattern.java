@@ -22,7 +22,7 @@ public class OctalPattern extends Pattern{
     public boolean match(LongVal value){
 
         String pattern = super.getPattern();
-        long val = value.getValue();
+        long val = value.longValue();
 
         int patternLength = pattern.length();
 
@@ -52,12 +52,12 @@ public class OctalPattern extends Pattern{
     public boolean match(IntVal value){
 
         String pattern = super.getPattern();
-        int val = value.getValue();
+        int val = value.intValue();
 
         int patternLength = pattern.length();
 
         if(patternLength > 8){
-            int num = value.getValue();
+            int num = value.intValue();
             LongVal newVal = new LongVal((long)num);
             return match(newVal);
         }
@@ -88,12 +88,12 @@ public class OctalPattern extends Pattern{
     public boolean match(ShortVal value){
 
         String pattern = super.getPattern();
-        short val = value.getValue();
+        short val = value.shortValue();
 
         int patternLength = pattern.length();
 
         if(patternLength > 4){
-            short num = value.getValue();
+            short num = value.shortValue();
             IntVal newVal = new IntVal(num);
             return match(newVal);
         }
@@ -124,12 +124,12 @@ public class OctalPattern extends Pattern{
     public boolean match(ByteVal value){
 
         String pattern = super.getPattern();
-        byte val = value.getValue();
+        byte val = value.byteValue();
 
         int patternLength = pattern.length();
 
         if(patternLength > 2){
-            byte num = value.getValue();
+            byte num = value.byteValue();
             ShortVal newVal = new ShortVal(num);
             return match(newVal);
         }

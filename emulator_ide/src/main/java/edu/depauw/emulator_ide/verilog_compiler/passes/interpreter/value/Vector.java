@@ -107,4 +107,106 @@ public class Vector implements Value{
 
 		return sb.toString();
 	}
+
+	public double realValue(){
+		return (double)longValue();
+	}
+
+    public long longValue(){
+		if (index1 <= index2) {
+			long result = 0;
+			for (int i = index1; i <= index2 && (i - index1) < 64; i++) {
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			}
+			return result;
+		} else {
+			long result = 0;
+			for (int i = index1; i >= index2 && (index1 - i) < 64; i--) { 
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			 }
+			 return result;
+		}
+	}
+
+    public int intValue(){
+		if (index1 <= index2) {
+			int result = 0;
+			for (int i = index1; i <= index2 && (i - index1) < 32; i++) {
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			}
+			return result;
+		} else {
+			int result = 0;
+			for (int i = index1; i >= index2 && (index1 - i) < 32; i--) { 
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			 }
+			 return result;
+		}
+	}
+
+    public short shortValue(){
+		if (index1 <= index2) {
+			short result = 0;
+			for (int i = index1; i <= index2 && (i - index1) < 16; i++) {
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			}
+			return result;
+		} else {
+			short result = 0;
+			for (int i = index1; i >= index2 && (index1 - i) < 16; i--) { 
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			 }
+			 return result;
+		}
+	}
+
+    public byte byteValue(){
+		if (index1 <= index2) {
+			byte result = 0;
+			for (int i = index1; i <= index2 && (i - index1) < 8; i++) {
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			}
+			return result;
+		} else {
+			byte result = 0;
+			for (int i = index1; i >= index2 && (index1 - i) < 8; i--) { 
+				result <<= 1;
+				byte tf = getValue(i).byteValue();
+				result |= tf;
+			 }
+			 return result;
+		}
+	}
+
+    public boolean boolValue(){
+		if (index1 <= index2) {
+			for (int i = index1; i <= index2; i++) {
+				if(getValue(i).boolValue()){
+					return true;
+				}
+			}
+			return false;
+		} else {
+			for (int i = index1; i >= index2; i--) { 
+				if(getValue(i).boolValue()){
+					return true;
+				}
+			 }
+			 return false;
+		}
+	}
 }

@@ -29,4 +29,28 @@ public abstract class CircuitElem implements Value{
 
     public abstract String toString();
 
+    public double realValue(){
+        return getStateSignal() ? 1.0 : 0.0;
+    }
+
+    public long longValue(){
+        return getStateSignal() ? 1 : 0;
+    }
+
+    public int intValue(){
+        return getStateSignal() ? 1 : 0;
+    }
+
+    public short shortValue(){
+        return (short)(getStateSignal() ? 1 : 0);
+    }
+
+    public byte byteValue(){
+        return (byte)(getStateSignal() ? 1 : 0);
+    }
+
+    public boolean boolValue(){
+        return getStateSignal();
+    }
+
 }

@@ -8,9 +8,30 @@ public class BoolVal implements Value{
         this.value = value;
     }
 
-    public boolean getValue(){
+    public double realValue(){
+        return (double)(value ? 1 : 0);
+    }
+
+    public long longValue(){
+        return value ? 1 : 0;
+    }
+
+    public int intValue(){
+        return value ? 1 : 0;
+    }
+
+    public short shortValue(){
+        return (short)(value ? 1 : 0);
+    }
+
+    public byte byteValue(){
+        return (byte)(value ? 1 : 0);
+    }
+
+    public boolean boolValue(){
         return value;
     }
+
 
     public String toString(){
         return Boolean.toString(value);

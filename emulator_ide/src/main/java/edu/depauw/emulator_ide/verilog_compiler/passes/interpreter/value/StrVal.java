@@ -8,8 +8,28 @@ public class StrVal implements Value{
         this.value = value;
     }
 
-    public String getValue(){
-        return value;
+    public double realValue(){
+        return Double.parseDouble(value);
+    }
+
+    public long longValue(){
+        return Long.parseLong(value);
+    }
+
+    public int intValue(){
+        return Integer.parseInt(value);
+    }
+
+    public short shortValue(){
+        return Short.parseShort(value);
+    }
+
+    public byte byteValue(){
+        return Byte.parseByte(value);
+    }
+
+    public boolean boolValue(){
+        return Boolean.parseBoolean(value);
     }
 
     public String toString(){

@@ -42,4 +42,28 @@ public abstract class Pattern implements Value{
     public abstract boolean match(Vector value);
 
     public abstract boolean match(CircuitElem value);
+
+    public double realValue(){
+        return -1.0;
+    }
+
+    public long longValue(){
+        return -1;
+    }
+
+    public int intValue(){
+        return -1;
+    }
+
+    public short shortValue(){
+        return -1;
+    }
+
+    public byte byteValue(){
+        return -1;
+    }
+
+    public boolean boolValue(){
+        return false;
+    }
 }
