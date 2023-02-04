@@ -36,9 +36,15 @@ import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Interpreter;
 import edu.depauw.emulator_ide.verilog_compiler.passes.type_checker.TypeChecker;
 import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
+import edu.depauw.emulator_ide.gui.gui_job.GuiJob;
+import edu.depauw.emulator_ide.gui.gui_machine.GuiFlag;
+import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister;
+
 public class Main extends Application {
 
-	public static void main(String[] args){ launch(args); }
+	public static void main(String[] args){ 
+		launch(args); 
+	}
 
 	private static ByteArrayInputStream  byteStream;
 	private static ByteArrayOutputStream byteOutputStream;
@@ -62,235 +68,37 @@ public class Main extends Application {
 
 		stage.setTitle("Emulator Development Environment");
 
-		HBox halves = new HBox(); // Width
-		halves.setMaxWidth(stage.getWidth());
-		halves.setMaxHeight(stage.getHeight());
+		GuiEde EdeInstance = new GuiEde(1000, 1);
 
-		VBox leftSide = new VBox(); // left side of horizontal alignment
-		leftSide.setMaxWidth(halves.getMaxWidth()/3);
-		leftSide.setMaxHeight(halves.getMaxHeight());
-		leftSide.setPrefWidth(halves.getMaxWidth()/3);
-		leftSide.setPrefHeight(halves.getMaxHeight());
+		EdeInstance.AddJob(new GuiJob("Assemble"));
+		EdeInstance.AddJob(new GuiJob("Execute"));
 
-		Button assemble = new Button("Assemble");
-		assemble.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		TextArea assemblerInput = new TextArea();
-		assemblerInput.setMaxWidth(leftSide.getMaxWidth());
-		assemblerInput.setMaxHeight(leftSide.getMaxHeight());
-		assemblerInput.setPrefWidth(leftSide.getMaxWidth());
-		assemblerInput.setPrefHeight(leftSide.getMaxHeight());
+		int RegisterWidthInBytes = 4;
 
-		Button execute = new Button("Execute");
-		execute.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		TextArea binaryInput = new TextArea();
-		binaryInput.setMaxWidth(leftSide.getMaxWidth());
-		binaryInput.setMaxHeight(leftSide.getMaxHeight());
-		binaryInput.setPrefWidth(leftSide.getMaxWidth());
-		binaryInput.setPrefHeight(leftSide.getMaxHeight());
+		EdeInstance.AddRegister(new GuiRegister("CPSR", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R0", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R1", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R2", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R3", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R4", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R5", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R6", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R7", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R8", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R9", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R10", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R11", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R12", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R13", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R14", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+		EdeInstance.AddRegister(new GuiRegister("R15", RegisterWidthInBytes, GuiRegister.Format.BINARY));
 
-		leftSide.getChildren().addAll(assemble, assemblerInput, execute, binaryInput);
+		EdeInstance.AddFlag(new GuiFlag("Z"));
+		EdeInstance.AddFlag(new GuiFlag("C"));
+		EdeInstance.AddFlag(new GuiFlag("N"));
+		EdeInstance.AddFlag(new GuiFlag("V"));
 
-		VBox middleLeftSide = new VBox();
-		Label registerFile = new Label("Register File");
-		registerFile.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		registerFile.setAlignment(Pos.CENTER);
-
-		middleLeftSide.setMaxWidth(halves.getMaxWidth()/6);
-		middleLeftSide.setMaxHeight(halves.getMaxHeight());
-		middleLeftSide.setPrefWidth(halves.getMaxWidth()/6);
-		middleLeftSide.setPrefHeight(halves.getMaxHeight());
-
-		ScrollPane regFileScrollPane = new ScrollPane();
-		regFileScrollPane.setMaxWidth(middleLeftSide.getMaxWidth());
-		regFileScrollPane.setMaxHeight(middleLeftSide.getMaxHeight());
-		regFileScrollPane.setPrefWidth(middleLeftSide.getMaxWidth());
-		regFileScrollPane.setPrefHeight(middleLeftSide.getMaxHeight());
-
-		VBox insideScrollPane = new VBox();
-		insideScrollPane.setMaxWidth(regFileScrollPane.getMaxWidth());
-		insideScrollPane.setMaxHeight(regFileScrollPane.getMaxHeight());
-		insideScrollPane.setPrefWidth(regFileScrollPane.getMaxWidth());
-		insideScrollPane.setPrefHeight(regFileScrollPane.getMaxHeight());
-
-		GuiRegister.setParent(insideScrollPane);
-		GuiRegister.setRegisterSize(32);
-
-		GuiRegister CSPR = new GuiRegister("CPSR", 42);
-		GuiRegister R0 = new GuiRegister(0);
-		GuiRegister R1 = new GuiRegister(1);
-		GuiRegister R2 = new GuiRegister(2);
-		GuiRegister R3 = new GuiRegister(3);
-		GuiRegister R4 = new GuiRegister(4);
-		GuiRegister R5 = new GuiRegister(5);
-		GuiRegister R6 = new GuiRegister(6);
-		GuiRegister R7 = new GuiRegister(7);
-		GuiRegister R8 = new GuiRegister(8);
-		GuiRegister R9 = new GuiRegister(9);
-		GuiRegister R10 = new GuiRegister(10);
-		GuiRegister R11 = new GuiRegister(11);
-		GuiRegister R12 = new GuiRegister(12);
-		GuiRegister R13 = new GuiRegister(13);
-		GuiRegister R14 = new GuiRegister(14);
-		GuiRegister R15 = new GuiRegister(15);
-
-		regFileScrollPane.setContent(insideScrollPane);
-		middleLeftSide.getChildren().addAll(registerFile, regFileScrollPane);
-
-		VBox middleRightSide = new VBox();
-		middleRightSide.setMaxWidth(halves.getMaxWidth()/6);
-		middleRightSide.setMaxHeight(halves.getMaxHeight());
-		middleRightSide.setPrefWidth(halves.getMaxWidth()/6);
-		middleRightSide.setPrefHeight(halves.getMaxHeight());
-
-		Label memDumpTitle = new Label("Memory Dump");
-		memDumpTitle.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		memDumpTitle.setAlignment(Pos.CENTER);
-
-		ScrollPane memFileScrollPane = new ScrollPane();
-		memFileScrollPane.setMaxWidth(middleRightSide.getMaxWidth());
-		memFileScrollPane.setMaxHeight(middleRightSide.getMaxHeight());
-		memFileScrollPane.setPrefWidth(middleRightSide.getMaxWidth());
-		memFileScrollPane.setPrefHeight(middleRightSide.getMaxHeight());
-
-		VBox memoryDump = new VBox();
-		memoryDump.setMaxWidth(memFileScrollPane.getMaxWidth());
-		memoryDump.setMaxHeight(memFileScrollPane.getMaxHeight());
-		memoryDump.setPrefWidth(memFileScrollPane.getMaxWidth());
-		memoryDump.setPrefHeight(memFileScrollPane.getMaxHeight());
-
-		int MEMSIZE = 100;
-		int MEMLENGTH = 8;
-		GuiMemory.setParent(memoryDump);
-		GuiMemory.setMemSize(MEMSIZE);
-		GuiMemory.setMemLength(MEMLENGTH);
-
-		for (int i = 0; i < MEMSIZE; i++) {
-			new GuiMemory(i); // creates a byte of memory to display
-		}
-
-		memFileScrollPane.setContent(memoryDump);
-
-		Button reset = new Button("Reset Memory");
-		reset.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		reset.setAlignment(Pos.CENTER);
-		middleRightSide.getChildren().addAll(memDumpTitle, memFileScrollPane, reset);
-
-		VBox rightSide = new VBox();
-		rightSide.setMaxWidth(halves.getMaxWidth()/3);
-		rightSide.setMaxHeight(halves.getMaxHeight());
-		rightSide.setPrefWidth(halves.getMaxWidth()/3);
-		rightSide.setPrefHeight(halves.getMaxHeight());
-
-		Label status = new Label("Status Bits");
-		status.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		status.setAlignment(Pos.CENTER);
-
-		HBox parentStatus = new HBox();
-		parentStatus.setMaxWidth(rightSide.getMaxWidth());
-		parentStatus.setMaxHeight(rightSide.getMaxHeight()/2);
-		parentStatus.setPrefWidth(rightSide.getMaxWidth());
-		parentStatus.setPrefHeight(rightSide.getMaxHeight()/2);
-
-		GuiStatusBit.setParent(parentStatus);
-
-		GuiStatusBit Z = new GuiStatusBit("Z");
-		GuiStatusBit C = new GuiStatusBit("C");
-		GuiStatusBit N = new GuiStatusBit("N");
-		GuiStatusBit V = new GuiStatusBit("V");
-
-		Label stdout = new Label("Standard Output");
-		stdout.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		stdout.setAlignment(Pos.CENTER);
-
-		TextArea standardOutput = new TextArea();
-		standardOutput.setMaxWidth(rightSide.getMaxWidth());
-		standardOutput.setMaxHeight(rightSide.getMaxHeight());
-		standardOutput.setPrefWidth(rightSide.getMaxWidth());
-		standardOutput.setPrefHeight(rightSide.getMaxHeight());
-		standardOutput.setEditable(false);
-
-		Label stdin = new Label("Standard Input");
-		stdin.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-		stdin.setAlignment(Pos.CENTER);
-
-		TextArea standardInput = new TextArea();
-		standardInput.setMaxWidth(rightSide.getMaxWidth());
-		standardInput.setMaxHeight(rightSide.getMaxHeight());
-		standardInput.setPrefWidth(rightSide.getMaxWidth());
-		standardInput.setPrefHeight(rightSide.getMaxHeight());
-
-		rightSide.getChildren().addAll(status, parentStatus, stdout, standardOutput, stdin, standardInput);
-
-		halves.getChildren().addAll(leftSide, middleLeftSide, middleRightSide, rightSide);
-
-		execute.setOnAction(new EventHandler<ActionEvent>(){
-
-			@Override
-			public void handle(ActionEvent e){
-				// Initialize gui to zeros
-				GuiRegister.initialize();
-				GuiMemory.initialize();
-				GuiStatusBit.initialize();
-				// set up input for interpreter
-				byteStream = new ByteArrayInputStream(binaryInput.getText().getBytes());
-
-				if (binaryInput.getText().length() > 0) {
-					byteOutputStream = new ByteArrayOutputStream();
-					String path = "src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v";
-					// Tokenise the tokens
-					Destination errorOut = new Destination(System.err);
-
-					try {
-
-						Source source = new Source(new FileReader(path));
-						ErrorLog errorLog = new ErrorLog(errorOut);
-						Lexer lex = new Lexer(source, errorLog);
-						LinkedList<Token> tokens = lex.tokenize();
-						
-						//Preprocess the tokens
-						Preprocessor preProcessor = new Preprocessor(errorLog);
-						preProcessor.attachList(tokens);
-						preProcessor.executePass();
-						List <Token> toks = preProcessor.fetchResult();
-						// parse the tokens
-						Parser parse = new Parser(toks, errorLog);
-						ModuleDeclaration moddec = parse.parseAST();
-						// Type check the program
-						TypeChecker typeChecker = new TypeChecker(errorLog);
-						typeChecker.visit(moddec);
-
-						Interpreter interpreter = new Interpreter(errorLog); // interpret the program and run the binary
-						interpreter.visit(moddec);
-
-						standardOutput.setText(byteOutputStream.toString()); // set the output to the output on the stream
-					} catch (FileNotFoundException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-
-				}
-
-			}
-		});
-
-		assemble.setOnAction(new EventHandler<ActionEvent>(){
-
-			@Override
-			public void handle(ActionEvent e){ System.out.println("Assemble button does not work yet"); }
-		});
-
-		reset.setOnAction(new EventHandler<ActionEvent>(){
-
-			@Override
-			public void handle(ActionEvent e){
-				// Initialize gui to zeros
-				GuiRegister.initialize();
-				GuiMemory.initialize();
-				GuiStatusBit.initialize();
-			}
-		});
-
-		Scene scene = new Scene(halves);
+		Scene scene = new Scene(EdeInstance);
 		stage.setScene(scene);
 		stage.setMaximized(true);
 		stage.show();

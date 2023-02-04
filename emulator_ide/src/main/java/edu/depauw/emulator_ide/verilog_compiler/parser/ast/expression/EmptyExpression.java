@@ -32,6 +32,10 @@ public class EmptyExpression extends AstNode implements Expression {
         return exprVisitor.visit(this, argv);
     }
 
+    /**
+     * The Interpet Method is a Specialized Method that can be utilized for Interpretation
+     */
+
     public Value interpret(Environment environment){
         return null;
     }

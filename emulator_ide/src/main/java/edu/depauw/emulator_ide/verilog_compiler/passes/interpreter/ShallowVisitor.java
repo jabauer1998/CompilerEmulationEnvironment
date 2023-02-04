@@ -1250,7 +1250,7 @@ public class ShallowVisitor implements ExpressionVisitor<Value> {
 			return (long)0; // allways true just for consistency with verilog
 		} else if (functionName.getLexeme().equals("getMemory")) {
 			long arg1 = longValue(call.getExpression(0).accept(this));
-			return GuiMemory.getMemory(arg1);
+			return GuiRam.getMemory(arg1);
 		} else if (functionName.getLexeme().equals("getRegister")) {
 			long arg1 = longValue(call.getExpression(0).accept(this));
 			return GuiRegister.getRegister(arg1);

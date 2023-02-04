@@ -8,8 +8,9 @@ import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
 
 /**
- * The const.expression class is used to par.E constant expressions This class actually
- * just wraps an exprVisitoressoin and during the type checking phase we will determine
+ * The const.expression class is used to parse constant expressions.
+ * This class actually
+ * just wraps an expression and during the type checking phase we will determine
  * if it is const
  * 
  * @param Jacob Bauer
