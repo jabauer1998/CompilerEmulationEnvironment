@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.CircuitElem;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.circuit_elem.nodes.Register;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.CircuitElem;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.nodes.Register;
 import java.lang.StringBuilder;
 
 public class TestUtils {

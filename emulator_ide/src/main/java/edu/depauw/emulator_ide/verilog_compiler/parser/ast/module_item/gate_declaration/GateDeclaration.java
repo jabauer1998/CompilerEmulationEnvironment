@@ -3,15 +3,14 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_dec
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
-public abstract class GateDeclaration <InputType> extends AstNode implements ModuleItem {
+public abstract class GateDeclaration <OutputType> extends AstNode implements ModuleItem {
+    public final OutputType gateConnections;
 
-    protected final InputType gateInput;
-
-    protected GateDeclaration(Position start, InputType gateInput) {
+    protected GateDeclaration(Position start, OutputType gateConnections) {
         super(start);
-        this.gateInput = gateInput;
+        this.gateConnections = gateConnections;
     }
 
     public abstract <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv);

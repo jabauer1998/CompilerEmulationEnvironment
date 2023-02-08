@@ -1,9 +1,9 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression;
 
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 /**
@@ -30,13 +30,5 @@ public class EmptyExpression extends AstNode implements Expression {
      */
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
-    }
-
-    /**
-     * The Interpet Method is a Specialized Method that can be utilized for Interpretation
-     */
-
-    public Value interpret(Environment environment){
-        return null;
     }
 }

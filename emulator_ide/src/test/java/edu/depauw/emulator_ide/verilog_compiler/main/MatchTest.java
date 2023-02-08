@@ -1,10 +1,10 @@
 package edu.depauw.emulator_ide.verilog_compiler.main;
 
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.IntVal;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.LongVal;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.pattern.*;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.IntVal;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.LongVal;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.pattern.*;
 
 public class MatchTest {
 

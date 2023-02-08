@@ -2,11 +2,11 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.label;
 
 
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.SymbolTable;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pointer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The VectorElement class is used to par.E a call to an array cell
@@ -16,7 +16,7 @@ import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
 
 public abstract class Label extends AstNode implements Expression, LValue {
 
-    private final String     labelIdentifier;  // name of the array
+    public final String     labelIdentifier;  // name of the array
 
     /**
      * The VectorElement constructor takes an identifier with up to twoindex to s Ecify the sub
@@ -31,13 +31,6 @@ public abstract class Label extends AstNode implements Expression, LValue {
         super(start);
         this.labelIdentifier = labelIdentifier;
     }
-
-    /**
-     * The name of the array
-     * 
-     * @param none
-     */
-    public String getLabel(){ return labelIdentifier; }
 
     public <DataType> Pointer<DataType> getLValue(SymbolTable<Pointer<DataType>> table){
         return null;

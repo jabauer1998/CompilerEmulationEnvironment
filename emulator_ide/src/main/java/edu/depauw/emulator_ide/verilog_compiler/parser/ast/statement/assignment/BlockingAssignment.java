@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment
 
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.LValue;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 /**

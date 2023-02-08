@@ -5,20 +5,16 @@ import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 
 public class ExprCaseItem extends CaseItem {
 
-    private final List<Expression> expList;
+    public final List<Expression> expList;
 
     public ExprCaseItem(Position start, List<Expression> expList, Statement stat) {
         super(start, stat);
         this.expList = expList;
     }
-
-    public Expression getExpression(int index){ return expList.get(index); }
-
-    public int numExpressions(){ return expList.size(); }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

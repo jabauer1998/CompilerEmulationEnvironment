@@ -1,10 +1,9 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.label;
 
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.SymbolTable;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pointer;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
-
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 import java.lang.String;
 
 /**

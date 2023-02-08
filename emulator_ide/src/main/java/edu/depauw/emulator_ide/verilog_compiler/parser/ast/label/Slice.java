@@ -2,10 +2,10 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.label;
 
 
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.SymbolTable;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pointer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.ConstantExpression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The vectorslice class is used to par.E a call to an array cell
@@ -14,9 +14,8 @@ import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
  */
 
 public class Slice extends Label {
-
-    public ConstantExpression index1; // initial index to grap from the array
-    public ConstantExpression index2; // final index to grab from the array
+    public final ConstantExpression index1; // initial index to grap from the array
+    public final ConstantExpression index2; // final index to grab from the array
 
     /**
      * The VectorElement constructor takes an identifier with up to twoindex to s Ecify the sub

@@ -5,25 +5,18 @@ import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import java.util.List;
 
 public class TaskStatement extends AstNode implements Statement {
-
-    private final String     taskName;
-    private final List<Expression> argumentList;
+    public final String     taskName;
+    public final List<Expression> argumentList;
 
     public TaskStatement(Position start, String taskName, List<Expression> argumentList) {
         super(start);
         this.taskName = taskName;
         this.argumentList = argumentList;
     }
-
-    public String getTaskName(){ return this.taskName; }
-
-    public Expression getArgument(int index){ return this.argumentList.get(index); }
-
-    public int numExpressions(){ return argumentList.size(); }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

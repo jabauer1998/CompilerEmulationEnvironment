@@ -2,9 +2,12 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation
 
 
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.debug.ErrorLog;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The Ternary.expression class was designed to par.E Ternary expressions Ex: (i == x) ?
@@ -13,10 +16,9 @@ import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor
  * @author Jacob Bauer
  */
 public class TernaryOperation extends AstNode implements Expression {
-
-    private final Expression condition; // the condition phrase of the ternary Expression
-    private final Expression ifTrue;      // the Expression to the left of the colon
-    private final Expression ifFalse;     // the Expression to the right of the colon
+    public final Expression condition; // the condition phrase of the ternary Expression
+    public final Expression ifTrue;      // the Expression to the left of the colon
+    public final Expression ifFalse;     // the Expression to the right of the colon
 
     /**
      * Th ternary.expression takes in 3 expressions only one of which it returns. It can
@@ -32,24 +34,6 @@ public class TernaryOperation extends AstNode implements Expression {
         this.ifTrue = ifTrue;
         this.ifFalse = ifFalse;
     }
-
-    /**
-     * Returns the.expression that is tr.E
-     * 
-     * @param none
-     */
-    public Expression getExecuteIfTrue(){ return ifTrue; }
-
-
-    public Expression getExecuteIfFalse(){ return ifFalse; }
-
-    /**
-     * Returns the.expression that is checked at the beginning of the ternary operation
-     * 
-     * @param none
-     */
-    public Expression getCondition(){ return condition; }
-
     /**
      * The accept method will make it so the visitor interface will work
      * 

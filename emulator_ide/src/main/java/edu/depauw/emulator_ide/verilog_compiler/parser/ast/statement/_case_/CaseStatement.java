@@ -5,26 +5,19 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.*;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 
 public class CaseStatement extends AstNode implements Statement {
-
-    private final Expression         exp;
-    private final List<CaseItem> itemList;
+    public final Expression         exp;
+    public final List<CaseItem> itemList;
 
     public CaseStatement(Position start, Expression exp, List<CaseItem> itemList) {
         super(start);
         this.exp = exp;
         this.itemList = itemList;
     }
-
-    public CaseItem getCaseItem(int index){ return itemList.get(index); }
-
-    public int numCaseItems(){ return itemList.size(); }
-
-    public Expression getExpression(){ return exp; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

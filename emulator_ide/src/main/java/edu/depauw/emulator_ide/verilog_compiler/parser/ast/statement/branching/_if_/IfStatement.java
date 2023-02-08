@@ -4,23 +4,19 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 public class IfStatement extends AstNode implements Statement {
 
-    private final Expression    condition;  // expression
-    private final Statement trueStatement; // statement
+    public final Expression    condition;  // expression
+    public final Statement trueStatement; // statement
 
     public IfStatement(Position start, Expression condition, Statement trueStatement) {
         super(start);
         this.condition = condition;
         this.trueStatement = trueStatement;
     }
-
-    public Expression getExpression(){ return condition; }
-
-    public Statement getTrueStatement(){ return trueStatement; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

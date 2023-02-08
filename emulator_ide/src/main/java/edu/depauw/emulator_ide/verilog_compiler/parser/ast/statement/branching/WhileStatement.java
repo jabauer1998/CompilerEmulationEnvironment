@@ -4,23 +4,19 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 public class WhileStatement extends AstNode implements Statement {
 
-    private final Statement stat; // Statement
-    private Expression      exp;  // Expression
+    public final Statement stat; // Statement
+    public final Expression exp;  // Expression
 
     public WhileStatement(Position start, Expression exp, Statement stat) {
         super(start);
         this.stat = stat;
         this.exp = exp;
     }
-
-    public Statement getStatement(){ return stat; }
-
-    public Expression getExpression(){ return exp; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

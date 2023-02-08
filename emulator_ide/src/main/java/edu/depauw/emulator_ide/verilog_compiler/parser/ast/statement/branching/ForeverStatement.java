@@ -3,19 +3,17 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching;
 
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 public class ForeverStatement extends AstNode implements Statement {
 
-    private final Statement stat; // statement
+    public final Statement stat; // statement
 
     public ForeverStatement(Position start, Statement stat) {
         super(start);
         this.stat = stat;
     }
-
-    public Statement getStatement(){ return stat; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

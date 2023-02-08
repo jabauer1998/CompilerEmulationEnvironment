@@ -3,19 +3,16 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.
 
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 public class IfElseStatement extends IfStatement {
-
-    private final Statement falseStatement; // statement
+    public final Statement falseStatement; // statement
 
     public IfElseStatement(Position start, Expression condition, Statement ifTrue, Statement ifFalse) {
         super(start, condition, ifTrue);
         this.falseStatement = ifFalse;
     }
-
-    public Statement getElseStatement(){ return falseStatement; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

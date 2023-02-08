@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression;
 
 
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 /**
@@ -12,8 +12,8 @@ import edu.depauw.emulator_ide.common.Position;
  */
 public class PortConnection extends AstNode implements Expression {
 
-    private final String connectingTo;// name of the port connection
-    private final Expression connectingFrom;  // what the port connection connects to
+    public final String connectingTo;// name of the port connection
+    public final Expression connectingFrom;  // what the port connection connects to
 
     /**
      * The port connection constructor takes in an identifier
@@ -26,20 +26,6 @@ public class PortConnection extends AstNode implements Expression {
         this.connectingTo= connectingTo;
         this.connectingFrom = connectingFrom;
     }
-
-    /**
-     * Retr.Eves the.expression that represents what is being connected
-     * 
-     * @param none
-     */
-    public Expression getPortConnectingFrom(){ return connectingFrom; }
-
-    /**
-     * Returns the name of the identifier that we are connected to
-     * 
-     * @param none
-     */
-    public String getPortConnectingTo(){ return connectingTo; }
 
     /**
      * The accept method will make it so the visitor interface will work

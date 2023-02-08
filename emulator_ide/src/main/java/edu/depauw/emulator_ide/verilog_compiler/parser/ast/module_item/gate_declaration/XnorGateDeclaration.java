@@ -4,19 +4,10 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_dec
 import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class XnorGateDeclaration extends GateDeclaration< List<Expression> > {
-
     public XnorGateDeclaration(Position start, List<Expression> inputList) { super(start, inputList); }
-
-    public int getNumberOfInputs(){
-        return this.gateInput.size();
-    }
-
-    public Expression getGateInput(int index){
-        return this.gateInput.get(index);
-    }
 
     /**
      * The ast node visitor will allow the user to pass down data through the argument

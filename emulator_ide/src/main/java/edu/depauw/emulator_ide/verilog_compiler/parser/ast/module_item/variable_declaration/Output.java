@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable
 
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class Output {
     public class Wire{
@@ -17,14 +17,6 @@ public class Output {
         
                 public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){
                     return regValueVisitor.visit(this, argv);
-                }
-
-                public Expression getLeftIndex(){
-                    return getExpression1();
-                }
-
-                public Expression getRightIndex(){
-                    return getExpression2();
                 }
             }
         }
@@ -53,14 +45,6 @@ public class Output {
                 public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){
                     return regValueVisitor.visit(this, argv);
                 }
-
-                public Expression getLeftIndex(){
-                    return getExpression1();
-                }
-
-                public Expression getRightIndex(){
-                    return getExpression2();
-                }
             }
             public class Ident extends IdentDeclaration{
                 public Ident(Position start, String lexeme){
@@ -69,14 +53,6 @@ public class Output {
         
                 public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){
                     return regValueVisitor.visit(this, argv);
-                }
-
-                public Expression getLeftIndex(){
-                    return getExpression1();
-                }
-
-                public Expression getRightIndex(){
-                    return getExpression2();
                 }
             }
         }

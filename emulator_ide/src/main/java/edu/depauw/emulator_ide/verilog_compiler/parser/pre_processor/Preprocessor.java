@@ -1,39 +1,35 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor;
 
 import java.io.File;
+import java.io.FileReader;
 import java.util.List;
 import java.util.LinkedList;
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.SymbolTable;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
-import edu.depauw.emulator_ide.verilog_compiler.data_structure.Context;
+import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
-import edu.depauw.emulator_ide.verilog_compiler.token.Token;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
 
 public class Preprocessor {
     
     private ErrorLog errorLog;
     private List<Token> tokenList;
     private List<Token> resultList;
-    private Context context;
 
     private SymbolTable<List<Token>> macroDefinitions;
     private SymbolTable<MacroExpansionData> macroExpansions;
     
-    public Preprocessor(ErrorLog errorLog){
+    public Preprocessor(ErrorLog errorLog, List<Token> tokenList){
 
         this.errorLog = errorLog;
         this.tokenList = new LinkedList<>(); //input queue
         this.resultList = new LinkedList<>(); //result queue
-        this.context = Context.getContext();
 
         macroDefinitions = new SymbolTable<>();
-        macroExpansions = new SymbolTable<>();
 
         macroDefinitions.addScope();
-        macroExpansions.addScope();
-        
     }
 
     /**
@@ -82,10 +78,6 @@ public class Preprocessor {
         errorLog.addItem(item);
         errorLog.printLog();
         System.exit(1);
-    }
-
-    public void attachList(List<Token> tokenList){
-        this.tokenList = tokenList;
     }
 
     private void processDefine(){
@@ -139,7 +131,22 @@ public class Preprocessor {
         Token pathTok = match(Token.Type.STRING);
         String pathRaw = pathTok.toString();
         File fileData = new File(pathRaw);
-        context.programFiles.put(pathRaw, fileData); //add file to context
+        try{
+            Source fReader = new Source(new FileReader(fileData));
+            Lexer Lex = new Lexer(fReader, errorLog);
+            List<Token> Toks = Lex.tokenize();
+
+            //Remove the EOF Token if Lexed from an Include Stmt
+            //This will prevent having mutiple EOF tokens throughout the file
+            Toks.remove(Toks.size() - 1);
+            
+            //Append all the Tokens to the List so they can be processed by the 
+            //Preprocessor before moving on to later Tokens
+            Toks.addAll(tokenList);
+            this.tokenList = Toks;
+        } catch(Exception exp){
+            errorLog.addItem(new ErrorItem("Preprocessor could not include the file specified. Exception Occured " + exp));
+        }
     }
 
     private void processMacroIdentifier(){
@@ -300,14 +307,11 @@ public class Preprocessor {
         else skipAndAppend();
     }
 
-    public void executePass(){
+    public List<Token> executePass(){
         while(!willMatch(Token.Type.EOF)) processToken();
         skipAndAppend(); //append eof token
+        return resultList;
     }
 
-    public List<Token> fetchResult(){ //if not filtered filter out all new line and escaped line tokens
 
-        return Lexer.filterWhiteSpace(this.resultList);
-
-    }
 }

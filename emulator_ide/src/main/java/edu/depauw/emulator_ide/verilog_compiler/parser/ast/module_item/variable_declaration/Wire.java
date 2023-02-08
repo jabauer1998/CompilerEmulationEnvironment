@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable
 
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class Wire{
     public class Vector extends VectorDeclaration{
@@ -16,14 +16,6 @@ public class Wire{
 
             public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
                 return modVisitor.visit(this, argv);
-            }
-
-            public Expression getLeftIndex(){
-                return getExpression1();
-            }
-
-            public Expression getRightIndex(){
-                return getExpression2();
             }
         }
     }

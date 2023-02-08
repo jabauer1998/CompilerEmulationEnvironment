@@ -1,8 +1,8 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The.expression class is an extention of the AstNode class This class is used as a
@@ -19,7 +19,5 @@ public interface Expression {
      *                       class
      */
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv);
-
-    public Value interpret(Environment environment, ErrorLog errorLog);
 
 }

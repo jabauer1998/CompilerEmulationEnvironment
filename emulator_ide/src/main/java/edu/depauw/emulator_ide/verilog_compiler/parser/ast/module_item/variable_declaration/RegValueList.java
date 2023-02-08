@@ -4,7 +4,7 @@ import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class RegValueList extends AstNode implements ModuleItem {
 

@@ -5,11 +5,10 @@ import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
-import edu.depauw.emulator_ide.verilog_compiler.token.Token;
-
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Primitive;
 import edu.depauw.emulator_ide.verilog_compiler.circuit_elem.test_utils.Tuple;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
 import static edu.depauw.emulator_ide.verilog_compiler.main.test_utils.TestUtils.*;
 
 import org.junit.Test;

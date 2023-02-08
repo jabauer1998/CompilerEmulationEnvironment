@@ -4,20 +4,15 @@ import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.BlockingAssignment;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class ContinuousAssignment extends AstNode implements ModuleItem {
-
-    private final List<BlockingAssignment> assignmentList;
+    public final List<BlockingAssignment> assignmentList;
 
     public ContinuousAssignment(Position start, List<BlockingAssignment> assignmentList) {
         super(start);
         this.assignmentList = assignmentList;
     }
-
-    public BlockingAssignment getAssignment(int index){ return assignmentList.get(index); }
-
-    public int numAssignments(){ return assignmentList.size(); }
 
     /**
      * The ast node visitor will allow the user to pass down data through the argument

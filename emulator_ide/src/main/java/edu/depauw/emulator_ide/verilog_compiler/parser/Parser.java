@@ -7,46 +7,16 @@ import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.VerilogFile;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.ConstantExpression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.EmptyExpression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.PortConnection;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.FunctionCall;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.SystemFunctionCall;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.BinaryOperation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.Concatenation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.TernaryOperation;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Add;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BasicEquality;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BasicInequality;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitshiftLeft;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitshiftRight;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseAnd;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseNand;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseNor;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseOr;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseXnor;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.BitwiseXor;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Divide;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.GreaterThan;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.GreaterThanOrEqualTo;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LessThan;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LessThanOrEqualTo;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LogicalAnd;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.LogicalOr;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Modulo;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Multiply;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.StrictEquality;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.StrictInequality;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.binary.Subtract;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.BitwiseNegation;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.LogicalNegation;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.Negation;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionAnd;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionNand;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionNor;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionOr;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionXnor;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.unary.ReductionXor;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.BinaryNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.DecimalNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.HexadecimalNode;
@@ -99,7 +69,6 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.SystemTaskStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.TaskStatement;
-import edu.depauw.emulator_ide.verilog_compiler.token.Token;
 
 public class Parser {
 
@@ -205,20 +174,15 @@ public class Parser {
 
 	}
 
-	//
-	public List<ModuleDeclaration> parseAST(){
-		List<ModuleDeclaration> verilogFileContents = parseVerilogFile();
-		return verilogFileContents;
-	}
-
-	public List<ModuleDeclaration> parseVerilogFile(){
+	public VerilogFile parseVerilogFile(){
+		Position start = getStart();
 		List<ModuleDeclaration> moduleList = new ArrayList<>();
 		do{
 			ModuleDeclaration moduleDeclaration = parseModuleDeclaration();
 			moduleList.add(moduleDeclaration);
 		} while(willMatch(Token.Type.MODULE));
 
-		return moduleList;
+		return new VerilogFile(start, moduleList);
 	}
 
 	/**
@@ -228,7 +192,7 @@ public class Parser {
 	 */
 
 	// ModuleDeclaration -> MODULE IDENT ( ModuleDeclarationList ) ; ModItemList ENDMODULE
-	private ModuleDeclaration parseModuleDeclaration(){
+	public ModuleDeclaration parseModuleDeclaration(){
 		Position start = getStart();
 		match(Token.Type.MODULE);
 		
@@ -1669,7 +1633,7 @@ public class Parser {
 			Position start = getStart();
 			skip();
 			Expression right = parseLAND_Expression();
-			left = new LogicalOr(start, left, right);
+			left = new BinaryOperation(start, left, BOR, right);
 		}
 
 		return left;

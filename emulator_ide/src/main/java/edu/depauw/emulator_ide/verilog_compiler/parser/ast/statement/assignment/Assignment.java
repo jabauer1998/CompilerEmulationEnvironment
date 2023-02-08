@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment
 
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import edu.depauw.emulator_ide.common.Position;
 
 /**
@@ -14,8 +14,8 @@ import edu.depauw.emulator_ide.common.Position;
  */
 public abstract class Assignment<ToType, FromType> extends AstNode implements Statement {
 
-    private ToType leftHandSide; // the value on the left hand side of the expression
-    private FromType rightHandSide;    // the expresson on the right hand side of the equals
+    public ToType leftHandSide; // the value on the left hand side of the expression
+    public FromType rightHandSide;    // the expresson on the right hand side of the equals
 
     /**
      * The Assignment constructor takes an lvalue expression and an expression to form an
@@ -29,20 +29,6 @@ public abstract class Assignment<ToType, FromType> extends AstNode implements St
         this.leftHandSide = leftHandSide;
         this.rightHandSide = rightHandSide;
     }
-
-    /**
-     * The get Lvalue function returns the value of the thing being assigned to
-     * 
-     * @param none
-     */
-    public ToType getLeftHandSide(){ return leftHandSide; }
-
-    /**
-     * This returns the expression on the right hand side of the equals
-     * 
-     * @param none
-     */
-    public FromType getRightHandSide(){ return rightHandSide; }
 
     /**
      * The accept method makes it possible so that nodes know which visitor object to call

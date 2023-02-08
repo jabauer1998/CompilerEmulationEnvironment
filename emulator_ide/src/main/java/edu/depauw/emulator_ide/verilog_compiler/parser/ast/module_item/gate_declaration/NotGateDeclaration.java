@@ -1,16 +1,12 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration;
 
+import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
-public class NotGateDeclaration extends GateDeclaration<Expression> {
-
-    public NotGateDeclaration(Position start, Expression gateInput) { super(start, gateInput); }
-
-    public Expression getGateInput(){
-        return gateInput;
-    }
+public class NotGateDeclaration extends GateDeclaration<List<Expression>> {
+    public NotGateDeclaration(Position start, List<Expression> gateInput) { super(start, gateInput); }
 
     /**
      * The ast node visitor will allow the user to pass down data through the argument

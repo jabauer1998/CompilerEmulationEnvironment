@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor;
 
 import java.util.LinkedList;
 import java.util.List;
-import edu.depauw.emulator_ide.verilog_compiler.token.Token;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
 
 /**
  * This entry class is designed to hold MacroExpansions

@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.ite
 
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 
 public class DefCaseItem extends CaseItem {
 

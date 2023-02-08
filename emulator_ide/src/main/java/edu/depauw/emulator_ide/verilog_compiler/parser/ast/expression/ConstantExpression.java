@@ -2,10 +2,10 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression;
 
 
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The const.expression class is used to parse constant expressions.
@@ -16,7 +16,6 @@ import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor
  * @param Jacob Bauer
  */
 public class ConstantExpression extends AstNode implements Expression {
-
     public Expression expression; // expression determined to be const
 
     /**
@@ -37,9 +36,5 @@ public class ConstantExpression extends AstNode implements Expression {
      */
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
-    }
-
-    public Value interpret(Environment environment){
-        return expression.interpret(environment);
     }
 }

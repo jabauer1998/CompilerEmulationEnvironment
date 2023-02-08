@@ -1,6 +1,6 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement;
 
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 
 /**
  * The Statement abstract class is used to represent Statement abstract syntax tree

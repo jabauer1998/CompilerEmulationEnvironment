@@ -4,19 +4,15 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.ite
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 
 public abstract class CaseItem extends AstNode implements Statement {
 
-    private final Statement statement;
+    public final Statement statement;
 
     protected CaseItem(Position position, Statement statement) { 
         super(position);
         this.statement = statement; 
-    }
-
-    public Statement getStatement(){
-        return statement;
     }
 
     

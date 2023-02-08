@@ -1,7 +1,7 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item;
 
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.Environment;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public interface ModuleItem {
     /**
@@ -11,7 +11,4 @@ public interface ModuleItem {
      * @author Jacob Bauer
      */
     public abstract <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv);
-
-		public abstract void interpret(Environment env);
-
 }

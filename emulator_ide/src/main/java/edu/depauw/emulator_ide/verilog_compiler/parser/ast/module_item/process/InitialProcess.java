@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process;
 
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class InitialProcess extends Process {
 
@@ -11,8 +11,7 @@ public class InitialProcess extends Process {
     }
 
     public void executeProcess(){
-        statement.accept(executionEngine);
-        exitTicket.release();
+        
     }
 
     /**

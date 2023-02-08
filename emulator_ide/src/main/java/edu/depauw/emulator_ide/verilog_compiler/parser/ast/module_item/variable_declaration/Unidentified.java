@@ -2,7 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class Unidentified {
     public class Declaration extends AstNode implements ModuleItem{
@@ -12,10 +12,6 @@ public class Unidentified {
         public Declaration (Position start, String name){
             super(start);
             this.declaration = name;
-        }
-
-        public String getDeclaration(){
-            return declaration;
         }
 
         /**

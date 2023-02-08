@@ -2,12 +2,12 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation
 
 import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.SymbolTable;
 import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pointer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.LValue;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
-import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The Concatenation class is used to par.E concatenation.expressions
@@ -17,7 +17,7 @@ import edu.depauw.emulator_ide.verilog_compiler.symbol_table.SymbolTable;
  */
 public class Concatenation extends AstNode implements Expression, LValue {
 
-    private final List<Expression> circuitElementExpressionList; // list of Expressions to concatenate
+    public final List<Expression> circuitElementExpressionList; // list of Expressions to concatenate
 
     /**
      * The concatenation.expression is used to Concatenate multiple instances
@@ -27,24 +27,6 @@ public class Concatenation extends AstNode implements Expression, LValue {
     public Concatenation(Position start, List<Expression>  circuitElementExpressionList) {
         super(start);
         this.circuitElementExpressionList =  circuitElementExpressionList;
-    }
-
-    /**
-     * To get an.expression from a s Ecific index
-     * 
-     * @param index index in exprVisitoresson list to fetch from
-     */
-    public Expression getCircuitElementExpression(int index){ return circuitElementExpressionList.get(index); }
-
-    /**
-     * Get the size of the.expression list for which to concatenate
-     * 
-     * @param none
-     */
-    public int getNumCircuitElementExpressions(){ return circuitElementExpressionList.size(); }
-
-    public <DataType> Pointer<DataType> getLValue(SymbolTable<Pointer<DataType>> table){
-        return null;
     }
 
     /**

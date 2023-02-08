@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_;
 
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.*;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.StatementVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.StatementVisitor;
 import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 

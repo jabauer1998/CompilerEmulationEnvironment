@@ -28,14 +28,13 @@ import java.util.List;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.Interpreter;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
+import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
 import edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor.Preprocessor;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Interpreter;
-import edu.depauw.emulator_ide.verilog_compiler.passes.type_checker.TypeChecker;
-import edu.depauw.emulator_ide.verilog_compiler.token.Token;
-
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.type_checker.TypeChecker;
 import edu.depauw.emulator_ide.gui.gui_job.GuiJob;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiFlag;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister;

@@ -2,21 +2,15 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process;
 
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class AllwaysProcess extends Process {
-
 	public AllwaysProcess(Position start, Statement statement) {
 		super(start, statement);
 	}
 
 	public void executeProcess(){
-
-		boolean tf = true;
-
-		while(tf) { statement.accept(executionEngine); }
-
-		exitTicket.release();
+		
 	}
 
 	/**

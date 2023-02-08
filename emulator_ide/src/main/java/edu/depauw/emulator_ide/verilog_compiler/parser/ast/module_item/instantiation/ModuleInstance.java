@@ -6,24 +6,18 @@ import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ModuleVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
 public class ModuleInstance extends AstNode implements ModuleItem {
 
-    private final String     instanceName;
-    private final List<Expression> expList;
+    public final String     instanceName;
+    public final List<Expression> expList;
 
     public ModuleInstance(Position start, String instanceName, List<Expression> expList) {
         super(start);
         this.instanceName = instanceName;
         this.expList = expList;
     }
-
-    public String getInstanceName(){ return instanceName; }
-
-    public Expression getExpression(int index){ return expList.get(index); }
-
-    public int numExpressions(){ return expList.size(); }
 
     /**
      * The ast node visitor will allow the user to pass down data through the argument
