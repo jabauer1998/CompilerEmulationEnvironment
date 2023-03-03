@@ -20,12 +20,22 @@ import javafx.stage.Stage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
+import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.Interpreter;
@@ -38,11 +48,48 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.type_checker.Type
 import edu.depauw.emulator_ide.gui.gui_job.GuiJob;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiFlag;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister;
+import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister.Format;
 
 public class Main extends Application {
+	private static String ConfigPath = null;
+	private static String ProcessorPath = null;
+	public static void main(String[] args){
+		Destination errorOut = new Destination(System.err);
 
-	public static void main(String[] args){ 
-		launch(args); 
+		HashMap<String, String> config = parseArgs(args);
+
+		ErrorLog Log = new ErrorLog(errorOut);
+
+		if(!config.containsKey("config")){
+			Log.addItem(new ErrorItem("Error Config Argument was not found!!"));
+		} else {
+			ConfigPath = config.get("config");
+		}
+
+		if(!config.containsKey("processor")){
+			Log.addItem(new ErrorItem("Error Processor Argument was not found!!"));
+		} else {
+			ProcessorPath = config.get("processor");
+		}
+
+		if(config.containsKey("config") && config.containsKey("processor")){
+			launch();
+		}
+	}
+
+	private static HashMap<String, String> parseArgs(String[] args){
+		HashMap<String, String> config = new HashMap<>();
+		for(int i = 0; i < args.length; i++){
+			if(args[i].equals("--cfg") || args[i].equals("--config") || args[i].equals("-c")){
+				i++;
+				config.put("config", args[i]);
+			} else if(args[i].equals("--processor") || args[i].equals("-p") || args[i].equals("--proc")){
+				i++;
+				config.put("processor", args[i]);
+			}
+		}
+
+		return config;
 	}
 
 	private static ByteArrayInputStream  byteStream;
@@ -65,41 +112,89 @@ public class Main extends Application {
 		stage.setWidth(bounds.getWidth());
 		stage.setHeight(bounds.getHeight());
 
-		stage.setTitle("Emulator Development Environment");
+		DocumentBuilderFactory dBuilderFactory = DocumentBuilderFactory.newInstance();
 
-		GuiEde EdeInstance = new GuiEde(1000, 1);
+		try{
+			dBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			DocumentBuilder Builder = dBuilderFactory.newDocumentBuilder();
 
-		EdeInstance.AddJob(new GuiJob("Assemble"));
-		EdeInstance.AddJob(new GuiJob("Execute"));
+			FileReader Reader = new FileReader(ConfigPath);
+			File ConfigFile = new File(ConfigPath);
 
-		int RegisterWidthInBytes = 4;
+			if(!ConfigFile.exists()){
+				System.err.println("Config File was not found with path -");
+				System.err.println(ConfigPath);
+				return;
+			}
 
-		EdeInstance.AddRegister(new GuiRegister("CPSR", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R0", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R1", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R2", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R3", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R4", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R5", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R6", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R7", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R8", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R9", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R10", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R11", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R12", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R13", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R14", RegisterWidthInBytes, GuiRegister.Format.BINARY));
-		EdeInstance.AddRegister(new GuiRegister("R15", RegisterWidthInBytes, GuiRegister.Format.BINARY));
+			//Collect the Title Information from the File that is pointed to
+			Document Doc = Builder.parse(ConfigFile);
+			NodeList TitleElem = Doc.getElementsByTagName("Title");
 
-		EdeInstance.AddFlag(new GuiFlag("Z"));
-		EdeInstance.AddFlag(new GuiFlag("C"));
-		EdeInstance.AddFlag(new GuiFlag("N"));
-		EdeInstance.AddFlag(new GuiFlag("V"));
+			if(TitleElem == null || TitleElem.getLength() == 0){
+				stage.setTitle("Emulator Development Environment");
+			} else {
+				stage.setTitle(TitleElem.item(0).getTextContent());
+			}
 
-		Scene scene = new Scene(EdeInstance);
-		stage.setScene(scene);
-		stage.setMaximized(true);
-		stage.show();
+			//Collect the information utilized for Memory Initialization
+			//These are located under the Machine/Config tag
+
+			int NumberOfBytes = 1000;
+			int NumberOfBytesInRow = 4;
+
+			NodeList MachineElem = Doc.getElementsByTagName("Machine");
+			if(MachineElem != null && MachineElem.getLength() != 0){
+				Element Node = (Element)MachineElem.item(0);
+				NodeList ConfigNodes = Node.getElementsByTagName("Config");
+				if(ConfigNodes != null && ConfigNodes.getLength() != 0){
+					Element ConfigNode = (Element)ConfigNodes.item(0);
+					NodeList NumberOfBytesList = ConfigNode.getElementsByTagName("NumBytes");
+					NodeList BytesInRowList = ConfigNode.getElementsByTagName("BytesInRow");
+					NumberOfBytes = Integer.parseInt(NumberOfBytesList.item(0).getTextContent());
+					NumberOfBytesInRow = Integer.parseInt(BytesInRowList.item(0).getTextContent());
+				}
+			}
+
+			GuiEde EdeInstance = new GuiEde(NumberOfBytes, NumberOfBytesInRow, stage.getMaxWidth(), stage.getMaxHeight());
+			EdeInstance.setMaxWidth(stage.getMaxWidth());
+			EdeInstance.setMaxHeight(stage.getMaxHeight());
+			EdeInstance.setPrefWidth(stage.getMaxWidth());
+			EdeInstance.setPrefHeight(stage.getMaxHeight());
+
+			//Now we need to Build the Jobs Portion of the Ede
+			//We will go into each of the Jobs and generate the Jobs
+			NodeList JobNodes = Doc.getElementsByTagName("Job");
+			for(int i = 0; i < JobNodes.getLength(); i++){
+				Element JobElem = (Element)JobNodes.item(i);
+				String JobName = JobElem.getAttribute("Name");
+				EdeInstance.AddJob(new GuiJob(JobName));
+			}
+
+			//After Jobs we will need to setup the Register File
+			Element MachineElement = (Element)MachineElem.item(0);
+			NodeList Registers = MachineElement.getElementsByTagName("Reg");
+			for(int i = 0; i < Registers.getLength(); i++){
+				Element RegisterElement = (Element)Registers.item(i);
+				String Name = RegisterElement.getAttribute("Name");
+				int Width = Integer.parseInt(RegisterElement.getAttribute("Width"));
+				EdeInstance.AddRegister(new GuiRegister(Name, Width, GuiRegister.Format.BINARY));
+			}
+
+			//Finally we need to Add the Status Bits
+			NodeList Flags = MachineElement.getElementsByTagName("Flag");
+			for(int i = 0; i < Flags.getLength(); i++){
+				Element FlagElement = (Element)Registers.item(i);
+				String Name = FlagElement.getAttribute("Name");
+				EdeInstance.AddFlag(new GuiFlag(Name));
+			}
+
+			Scene scene = new Scene(EdeInstance);
+			stage.setScene(scene);
+			stage.setMaximized(true);
+			stage.show();
+		} catch(Exception exp){
+			System.err.println("Error: Cannot Set Security Feature for the Parser");
+		}
 	}
 }

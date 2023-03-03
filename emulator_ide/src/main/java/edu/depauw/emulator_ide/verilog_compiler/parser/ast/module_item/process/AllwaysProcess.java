@@ -4,7 +4,7 @@ import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
-public class AllwaysProcess extends Process {
+public class AllwaysProcess extends ProcessBase {
 	public AllwaysProcess(Position start, Statement statement) {
 		super(start, statement);
 	}

@@ -6,8 +6,7 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVis
 
 public class Unidentified {
     public class Declaration extends AstNode implements ModuleItem{
-
-        private final String declaration;
+        public final String declaration;
         
         public Declaration (Position start, String name){
             super(start);

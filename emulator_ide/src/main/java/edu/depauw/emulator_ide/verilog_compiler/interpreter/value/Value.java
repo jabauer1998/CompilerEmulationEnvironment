@@ -29,7 +29,7 @@ public interface Value {
 
     public boolean isUnsignedIntValue();
 
-    public boolean islongValue();
+    public boolean isLongValue();
 
     public boolean isUnsignedLongValue();
 

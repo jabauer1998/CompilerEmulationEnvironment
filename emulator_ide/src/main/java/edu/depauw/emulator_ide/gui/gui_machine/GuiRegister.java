@@ -1,5 +1,6 @@
 package edu.depauw.emulator_ide.gui.gui_machine;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
@@ -23,6 +24,7 @@ public class GuiRegister extends HBox{
         this.Format = Format;
         RegisterValue = new Label(GenZeros());
         this.getChildren().addAll(TitleReg, RegisterValue);
+        this.setAlignment(Pos.CENTER_LEFT);
     }
 
     private String GenZeros(){  

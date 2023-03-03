@@ -3,9 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_
 
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.Environment;
-import edu.depauw.emulator_ide.verilog_compiler.passes.interpreter.value.Value;
-import edu.depauw.emulator_ide.verilog_compiler.passes.visitor.ExpressionVisitor;
+import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 import java.util.List;
 
 /**

@@ -1,11 +1,13 @@
 package edu.depauw.emulator_ide.verilog_compiler.interpreter.value.pattern;
 
+import edu.depauw.emulator_ide.verilog_compiler.OpUtil;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.BoolVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.ByteVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.IntVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.LongVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.ShortVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
-import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Vector;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.VectorVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.CircuitElem;
 
 /**
@@ -31,6 +33,20 @@ public abstract class Pattern implements Value{
         return pattern;
     }
 
+    public boolean match(Value value){
+        if(value.isBoolValue()) return match((BoolVal)value);
+        else if(value.isByteValue()) return match((ByteVal)value);
+        else if(value.isIntValue()) return match((IntVal)value);
+        else if(value.isLongValue()) return match((LongVal)value);
+        else if(value.isShortValue()) return match((ShortVal)value);
+        else if(value.isVector()) return match((VectorVal)value);
+        else if(value instanceof CircuitElem) return match((CircuitElem)value);
+        else {
+            OpUtil.errorAndExit("Error invalid Type for pattern match " + value.getClass().getName());
+            return false;
+        }
+    }
+
     public abstract boolean match(LongVal value);
 
     public abstract boolean match(IntVal value);
@@ -39,7 +55,7 @@ public abstract class Pattern implements Value{
 
     public abstract boolean match(ByteVal value);
 
-    public abstract boolean match(Vector value);
+    public abstract boolean match(VectorVal value);
 
     public abstract boolean match(CircuitElem value);
 

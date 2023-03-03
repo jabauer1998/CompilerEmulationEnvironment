@@ -5,11 +5,11 @@ import java.lang.management.OperatingSystemMXBean;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
+import edu.depauw.emulator_ide.verilog_compiler.OpUtil;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.Environment;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
-import edu.depauw.emulator_ide.verilog_compiler.util.OpUtil;
 import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ExpressionVisitor;
 /**
  * The Unary Operation class is used to par.E unary operations unary operations are

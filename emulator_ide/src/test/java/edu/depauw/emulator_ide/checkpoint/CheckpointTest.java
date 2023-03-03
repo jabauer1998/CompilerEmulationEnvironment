@@ -47,7 +47,7 @@ public class CheckpointTest {
 
 		System.out.print("\n\n-----------Checkpoint 1 Indexer Test Results---------------\n\n");
 		Parser parse = new Parser(tokens, errorLog);
-		ModuleDeclaration moddec = parse.parseAST();
+		ModuleDeclaration moddec = parse.parseModuleDeclaration();
 		Indexer idVisitor = new Indexer(display, errorLog);
 		idVisitor.visit(moddec);
 	}
@@ -115,7 +115,7 @@ public class CheckpointTest {
 
 		// parse the tokens
 		Parser parse = new Parser(tokens, errorLog);
-		ModuleDeclaration moddec = parse.parseAST();
+		ModuleDeclaration moddec = parse.parseModuleDeclaration();
 
 		TypeChecker typeChecker = new TypeChecker(errorLog);
 		typeChecker.visit(moddec);

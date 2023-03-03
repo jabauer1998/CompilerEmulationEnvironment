@@ -3,7 +3,7 @@ package edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.
 
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.CircuitElem;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.web.Web;
-import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.web.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.web.WireVal;
 
 public abstract class Node extends CircuitElem {
 
@@ -13,8 +13,8 @@ public abstract class Node extends CircuitElem {
 
     protected Node(Web output) {
         
-        if(output instanceof Wire){
-            ((Wire)output).assignInput(this);
+        if(output instanceof WireVal){
+            ((WireVal)output).assignInput(this);
         } else if (output != null){
             System.out.println("Unknown Web type " + output);
         }

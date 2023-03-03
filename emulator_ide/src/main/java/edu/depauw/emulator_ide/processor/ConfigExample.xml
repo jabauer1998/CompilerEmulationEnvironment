@@ -1,0 +1,17 @@
+<Cfg>
+    <Title>{Title Of Ede Environment Is Here}</Title>
+    <Jobs>
+        <Job Name="{Name of Job}"/>
+        <Job Name="Execute"/>
+    </Jobs>
+    <Machine>
+        <Config>
+            <BytesPerRow>{Number of Bytes Located in Eech Row of Memory Here}</BytesPerRow>
+            <NumBytes>{Total Number of Bytes Here}</NumBytes>
+        </Config>
+        <RegisterFile>
+            <Reg Name="{Register Name Here}" Width="{Register Width Here}" Format="Binary"/>
+            <Reg Name="{Register Name Here}" Width="40" Format="Hexadecimal"/>
+        </RegisterFile>
+    </Machine>
+</Cfg>

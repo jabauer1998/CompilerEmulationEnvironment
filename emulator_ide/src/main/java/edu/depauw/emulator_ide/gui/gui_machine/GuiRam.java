@@ -3,8 +3,11 @@ package edu.depauw.emulator_ide.gui.gui_machine;
 import java.util.LinkedList;
 import java.util.List;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 public class GuiRam extends VBox {
     private Label[] Bytes;
@@ -14,6 +17,8 @@ public class GuiRam extends VBox {
     private int NumberRowsRounded;
     private int BytesPerRow;
 
+    private ScrollPane Pane;
+
     enum AddressFormat{
         BINARY,
         HEXIDECIMAL,
@@ -21,10 +26,17 @@ public class GuiRam extends VBox {
         DECIMAL
     }
 
-    public GuiRam(int NumberOfBytes, int BytesPerRow){
+    public GuiRam(int NumberOfBytes, int BytesPerRow, double Width, double Height){
         this.BytesPerRow = BytesPerRow;
         this.NumberOfBytes = NumberOfBytes;
         this.NumberRowsRounded = (int)Math.ceil((NumberOfBytes / BytesPerRow));
+        this.Pane = new ScrollPane();
+        this.Pane.setPrefHeight(Height);
+        this.Pane.setPrefWidth(Width);
+        this.Pane.setContent(this);
+        this.Pane.setHbarPolicy(ScrollBarPolicy.NEVER);
+        this.setPrefWidth(Width);
+        this.setPrefHeight(Height);
         Bytes = new Label[this.NumberOfBytes];
         Addresses = new Label[NumberRowsRounded];
         int Byte = 0;
@@ -37,8 +49,10 @@ public class GuiRam extends VBox {
             Addresses[Row] = new Label(Integer.toString(Byte));
             for(int i = 0; i < this.BytesPerRow; i++, Byte++){
                 Bytes[Byte] = new Label("00");
+                Bytes[Byte].setTextAlignment(TextAlignment.RIGHT);
                 RowOfMemory.getChildren().add(Bytes[Byte]);
             }
+            Addresses[Row].setTextAlignment(TextAlignment.LEFT);
             AddressToMemory.getChildren().addAll(Addresses[Row], RowOfMemory);
             this.getChildren().add(AddressToMemory);
         }
@@ -60,5 +74,9 @@ public class GuiRam extends VBox {
             String First = Results.remove(0);
             Bytes[i].setText(First);
         }
+    }
+
+    public ScrollPane getScrollPane(){
+        return Pane;
     }
 }

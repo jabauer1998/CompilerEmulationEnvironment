@@ -12,7 +12,7 @@ public class UnsignedLongVal extends LongVal implements Unsigned{
     }
 
     @Override
-    public boolean islongValue(){
+    public boolean isLongValue(){
         return false;
     }
 

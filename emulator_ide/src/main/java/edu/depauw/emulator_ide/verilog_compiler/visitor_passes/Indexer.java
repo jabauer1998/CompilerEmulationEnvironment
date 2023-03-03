@@ -5,28 +5,51 @@ import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.common.SymbolTable;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.*;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.FunctionCall;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_call.SystemFunctionCall;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.BinaryOperation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.Concatenation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.TernaryOperation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.UnaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.BinaryNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.DecimalNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.HexadecimalNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.OctalNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.StringNode;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Element;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Identifier;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.Slice;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.gate_declaration.*;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstance;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.instantiation.ModuleInstantiation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.TaskDeclaration;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.AllwaysProcess;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.process.InitialProcess;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Input;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Int;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Output;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Real;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Reg;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.RegValueList;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Wire;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.variable_declaration.Unidentified;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.*;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.Assignment;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseXStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.CaseZStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.CaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.DefCaseItem;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement._case_.item.ExprCaseItem;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.BlockingAssignment;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.assignment.NonBlockingAssignment;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.ForeverStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.RepeatStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching.WhileStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfElseStatement;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.branching._if_.IfStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.SystemTaskStatement;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.statement.task.TaskStatement;
 import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.*;
@@ -34,11 +57,10 @@ import edu.depauw.emulator_ide.common.io.*;
 import edu.depauw.emulator_ide.common.debug.*;
 import edu.depauw.emulator_ide.common.debug.item.*;
 
-public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>, ModuleVisitor<Void>, RegValueVisitor<Void> {
-
-    private SymbolTable<String, Position> modEnv;
-    private SymbolTable<String, Position> funcEnv;
-    private SymbolTable<String, Position> varEnv;
+public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>, ModuleVisitor<Void> {
+    private SymbolTable<Position> modEnv;
+    private SymbolTable<Position> funcEnv;
+    private SymbolTable<Position> varEnv;
     private Destination                   dest;
     private ErrorLog                       errorLog;
 
@@ -62,18 +84,18 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
         modEnv.addScope();
         funcEnv.addScope();
         varEnv.addScope();
-        Identifier modName = mod.getModuleName();
+        String modName = mod.moduleName;
 
-        if (modEnv.entryExists(modName.getLexeme())) {
-            errorLog.addItem(new ErrorItem("Module Entry " + modName.getLexeme() + " Allready Exists", modName.getPosition()));
+        if (modEnv.entryExists(modName)) {
+            errorLog.addItem(new ErrorItem("Module Entry " + modName + " Allready Exists", mod.position));
         } else {
-            dest.println("DECL MODULE " + modName.getLexeme() + " AT [" + modName.getPosition() + ']');
-            modEnv.addEntry(modName.getLexeme(), modName.getPosition());
+            dest.println("DECL MODULE " + modName + " AT [" + mod.position + ']');
+            modEnv.addEntry(modName, mod.position);
         }
 
-        for (int i = 0; i < mod.numParameters(); i++) { mod.getParameter(i).accept(this); }
-
-        for (int i = 0; i < mod.numModItems(); i++) { mod.getModItem(i).accept(this); }
+        for(ModuleItem Decl : mod.moduleItemList){
+            Decl.accept(this);
+        }
 
         varEnv.removeScope();
         funcEnv.removeScope();
@@ -92,7 +114,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(AllwaysProcess stat, Object... argv){
-        stat.getStatement().accept(this);
+        stat.statement.accept(this);
         return null;
     }
 
@@ -104,7 +126,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 
     public Void visit(ContinuousAssignment assign, Object... argv){
 
-        for (int i = 0; i < assign.numAssignments(); i++) { assign.getAssignment(i).accept(this); }
+        for(BlockingAssignment Assignment : assign.assignmentList){
+            Assignment.accept(this);
+        }
 
         return null;
     }
@@ -116,13 +140,16 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(FunctionDeclaration function, Object... argv){
-        DeclarationNode funcName = function.getFunctionName();
+        ModuleItem funcName = function.functionName;
+        
         varEnv.addScope();
         funcName.accept(this);
 
-        for (int i = 0; i < function.numDeclarations(); i++) { function.getDeclaration(i).accept(this); }
+        for (ModuleItem Param : function.paramaters) {
+            Param.accept(this);
+        }
 
-        function.getStatement().accept(this);
+        function.stat.accept(this);
         varEnv.removeScope();
         return null;
     }
@@ -135,7 +162,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 
     public Void visit(InitialProcess stat, Object... argv){
         varEnv.addScope();
-        stat.getStatement().accept(this);
+        stat.statement.accept(this);
         varEnv.removeScope();
         return null;
     }
@@ -147,8 +174,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(ModuleInstantiation mod, Object... argv){
-
-        for (int i = 0; i < mod.numModInstances(); i++) { mod.getModInstance(i).accept(this); }
+        for(ModuleInstance instance : mod.modList){
+            instance.accept(this);
+        }
 
         return null;
     }
@@ -160,15 +188,17 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(ModuleInstance mod, Object... argv){
-        Identifier modName = mod.getIdentifier();
+        String modName = mod.instanceName;
 
-        if (modEnv.entryExists(modName.getLexeme())) {
-            dest.println("USE MODULE " + modName.getLexeme() + " DECLARED AT [" + modEnv.getEntry(modName.getLexeme()) + ']');
+        if (modEnv.entryExists(modName)) {
+            dest.println("USE MODULE " + modName + " DECLARED AT [" + modEnv.getEntry(modName) + ']');
         } else {
-            errorLog.addItem(new ErrorItem("Identifier " + modName.getLexeme() + " not found", modName.getPosition()));
+            errorLog.addItem(new ErrorItem("Identifier " + modName + " not found", mod.position));
         }
 
-        for (int i = 0; i < mod.numExpressions(); i++) { mod.getExpression(i).accept(this); }
+        for(Expression expr : mod.expList){
+            expr.accept(this);
+        }
 
         return null;
     }
@@ -179,7 +209,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param mod
      */
 
-    public Void visit(EmptyModItem mod, Object... argv){ return null; }
+    public Void visit(EmptyModItem mod, Object... argv){ 
+        return null;
+    }
 
     /**
      * This is used to visit a task declaration in verilog
@@ -188,21 +220,23 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(TaskDeclaration task, Object... argv){
-        Identifier taskName = task.getTaskName();
+        String taskName = task.taskName;
 
-        if (funcEnv.entryExists(taskName.getLexeme())) {
-            errorLog.addItem(new ErrorItem("Task Entry " + taskName.getLexeme() + " Allready Exists", taskName.getPosition()));
+        if (funcEnv.entryExists(taskName)) {
+            errorLog.addItem(new ErrorItem("Task Entry " + taskName + " Allready Exists", task.position));
         } else {
-            dest.println("DECL TASK " + taskName.getLexeme() + " AT [" + taskName.getPosition() + ']');
-            funcEnv.addEntry(taskName.getLexeme(), taskName.getPosition());
+            dest.println("DECL TASK " + taskName + " AT [" + task.position + ']');
+            funcEnv.addEntry(taskName, task.position);
         }
 
         varEnv.addScope();
+        for (ModuleItem Task : task.paramaters) {
+            Task.accept(this);
+        }
 
-        for (int i = 0; i < task.numDeclarations(); i++) { task.getDeclaration(i).accept(this); }
-
-        task.getStatement().accept(this);
+        task.stat.accept(this);
         varEnv.removeScope();
+
         return null;
     }
 
@@ -213,19 +247,13 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(WireScalarDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL WIRE " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+    public Void visit(Wire.Scalar.Ident decl, Object... argv){
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE WIRE " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL WIRE " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -238,19 +266,13 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(InputWireScalarDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL WIRE " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+    public Void visit(Input.Wire.Scalar.Ident decl, Object... argv){
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE WIRE " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL WIRE " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -263,19 +285,13 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(InputRegScalarDeclarationNode decl, Object... argv){
-
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE REG " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL REG " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+    public Void visit(Input.Reg.Scalar.Ident decl, Object... argv){
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REG " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REG " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -288,19 +304,13 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(OutputWireScalarDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL WIRE " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+    public Void visit(Output.Wire.Scalar.Ident decl, Object... argv){
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE WIRE " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL WIRE " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -313,19 +323,14 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(WireVectorDeclaration decl, Object... argv){
+    public Void visit(Wire.Vector.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE WIRE " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL WIRE " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -338,20 +343,16 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(OutputWireVectorDeclaration decl, Object... argv){
+    public Void visit(Output.Wire.Vector.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE WIRE " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL WIRE " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
+
 
         return null;
     }
@@ -363,20 +364,15 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(InputWireVectorDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE WIRE " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL WIRE " + current.getLexeme() + " AT " + current.getPosition());
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+    public Void visit(Input.Wire.Vector.Ident decl, Object... argv){
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE WIRE " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL WIRE " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
+
 
         return null;
     }
@@ -388,19 +384,13 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(InputRegVectorDeclarationNode decl, Object... argv){
-
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE REG " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL REG " + current.getLexeme() + " AT " + current.getPosition());
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+    public Void visit(Input.Reg.Vector.Ident decl, Object... argv){
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REG " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REG " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -412,9 +402,15 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(RegScalarDeclaration decl, Object... argv){
+    public Void visit(Reg.Scalar.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numRegValues(); i++) { decl.getRegValue(i).accept(this); }
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REG " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REG " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
+        }
 
         return null;
     }
@@ -425,23 +421,15 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(OutputRegScalarDeclaration decl, Object... argv){
+    public Void visit(Output.Reg.Scalar.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numRegValues(); i++) { decl.getRegValue(i).accept(this); }
-
-        return null;
-    }
-
-    /**
-     * This is used to visit any reg scalar declaration in verilog. Ex. reg [2:0] a, b, c
-     * ... ;
-     * 
-     * @param decl
-     */
-
-    public Void visit(RegVectorDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numRegValues(); i++) { decl.getRegValue(i).accept(this); }
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REG " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REG " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
+        }
 
         return null;
     }
@@ -453,9 +441,35 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(OutputRegVectorDeclaration decl, Object... argv){
+    public Void visit(Reg.Vector.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numRegValues(); i++) { decl.getRegValue(i).accept(this); }
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REG " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REG " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
+        }
+
+        return null;
+    }
+
+    /**
+     * This is used to visit any reg scalar declaration in verilog. Ex. reg [2:0] a, b, c
+     * ... ;
+     * 
+     * @param decl
+     */
+
+    public Void visit(Output.Reg.Vector.Ident decl, Object... argv){
+
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REG " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REG " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
+        }
 
         return null;
     }
@@ -466,9 +480,15 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(Integer decl, Object... argv){
+    public Void visit(Int.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numRegValues(); i++) { decl.getRegValue(i).accept(this); }
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE INTEGER " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL INTEGER " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
+        }
 
         return null;
     }
@@ -479,12 +499,12 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(UnidentifiedDeclaration decl, Object... argv){
-        Identifier cur = decl.getIdentifier();
+    public Void visit(Unidentified.Declaration decl, Object... argv){
+        String cur = decl.declaration;
 
-        if (!varEnv.entryExists(cur.getLexeme())) {
-            dest.println("DECL " + cur.getLexeme() + " AT [" + cur.getPosition() + ']');
-            varEnv.addEntry(cur.getLexeme(), cur.getPosition());
+        if (!varEnv.entryExists(cur)) {
+            dest.println("DECL " + cur + " AT [" + decl.position + ']');
+            varEnv.addEntry(cur, decl.position);
         }
 
         return null;
@@ -496,19 +516,14 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param decl
      */
 
-    public Void visit(Real decl, Object... argv){
+    public Void visit(Real.Ident decl, Object... argv){
 
-        for (int i = 0; i < decl.numIdentifiers(); i++) {
-            Identifier current = decl.getIdentifier(i);
-
-            if (varEnv.entryExists(current.getLexeme())) {
-                dest.println("USE REAL " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                    + varEnv.getEntry(current.getLexeme()) + ']');
-            } else {
-                dest.println("DECL REAL " + current.getLexeme() + " AT [" + current.getPosition() + ']');
-                varEnv.addEntry(current.getLexeme(), current.getPosition());
-            }
-
+        if (varEnv.entryExists(decl.declarationIdentifier)) {
+            dest.println("USE REAL " + decl.declarationIdentifier + " AT [" + decl.position + "] DECLARED AT ["
+                + varEnv.getEntry(decl.declarationIdentifier) + ']');
+        } else {
+            dest.println("DECL REAL " + decl.declarationIdentifier + " AT [" + decl.position + ']');
+            varEnv.addEntry(decl.declarationIdentifier, decl.position);
         }
 
         return null;
@@ -522,7 +537,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 
     public Void visit(AndGateDeclaration decl, Object... argv){
 
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -534,8 +551,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(OrGateDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -547,8 +565,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(NandGateDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -560,8 +579,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(NorGateDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -573,8 +593,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(XorGateDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -586,8 +607,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(XnorGateDeclaration decl, Object... argv){
-
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -599,25 +621,10 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(NotGateDeclaration decl, Object... argv){
+        for(Expression exp : decl.gateConnections){
+            exp.accept(this);
+        }
 
-        for (int i = 0; i < decl.numExpressions(); i++) { decl.getExpression(i).accept(this); }
-
-        return null;
-    }
-
-    /*
-     * Below is the code for viewing statements in the verilog language
-     */
-
-    /**
-     * This is used to visit assignments in verilog
-     * 
-     * @param assign
-     */
-
-    public Void visit(Assignment assign, Object... argv){
-        assign.getLValue().accept(this);
-        assign.getExpression().accept(this);
         return null;
     }
 
@@ -628,8 +635,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(BlockingAssignment assign, Object... argv){
-        assign.getLValue().accept(this);
-        assign.getExpression().accept(this);
+        assign.rightHandSide.accept(this);
         return null;
     }
 
@@ -640,19 +646,21 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(CaseStatement stat, Object... argv){
-        stat.getExpression().accept(this);
+        stat.exp.accept(this);
 
-        for (int i = 0; i < stat.numCaseItems(); i++) {
-            CaseItem item = stat.getCaseItem(i);
+
+        for (CaseItem item : stat.itemList){
 
             if (item instanceof ExprCaseItem) {
                 ExprCaseItem exprItem = (ExprCaseItem)item;
 
-                for (int x = 0; x < exprItem.numExpressions(); x++) { exprItem.getExpression(x).accept(this); }
+                for (Expression exp : exprItem.expList) { 
+                   exp.accept(this);
+                }
 
             }
 
-            item.getStatement().accept(this);
+            item.statement.accept(this);
         }
 
         return null;
@@ -665,19 +673,20 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(CaseXStatement stat, Object... argv){
-        stat.getExpression().accept(this);
+        stat.exp.accept(this);
 
-        for (int i = 0; i < stat.numCaseItems(); i++) {
-            CaseItem item = stat.getCaseItem(i);
+        for (CaseItem item : stat.itemList){
 
             if (item instanceof ExprCaseItem) {
                 ExprCaseItem exprItem = (ExprCaseItem)item;
 
-                for (int x = 0; x < exprItem.numExpressions(); x++) { exprItem.getExpression(x).accept(this); }
+                for (Expression exp : exprItem.expList) { 
+                   exp.accept(this);
+                }
 
             }
 
-            item.getStatement().accept(this);
+            item.statement.accept(this);
         }
 
         return null;
@@ -690,19 +699,20 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(CaseZStatement stat, Object... argv){
-        stat.getExpression().accept(this);
+        stat.exp.accept(this);
 
-        for (int i = 0; i < stat.numCaseItems(); i++) {
-            CaseItem item = stat.getCaseItem(i);
+        for (CaseItem item : stat.itemList){
 
             if (item instanceof ExprCaseItem) {
                 ExprCaseItem exprItem = (ExprCaseItem)item;
 
-                for (int x = 0; x < exprItem.numExpressions(); x++) { exprItem.getExpression(x).accept(this); }
+                for (Expression exp : exprItem.expList) { 
+                   exp.accept(this);
+                }
 
             }
 
-            item.getStatement().accept(this);
+            item.statement.accept(this);
         }
 
         return null;
@@ -715,10 +725,10 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(ForStatement forLoop, Object... argv){
-        forLoop.getInit().accept(this);
-        forLoop.getExpression().accept(this);
-        forLoop.getChange().accept(this);
-        forLoop.getStatement().accept(this);
+        forLoop.init.accept(this);
+        forLoop.exp.accept(this);
+        forLoop.change.accept(this);
+        forLoop.stat.accept(this);
         return null;
     }
 
@@ -729,7 +739,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(ForeverStatement foreverLoop, Object... argv){
-        foreverLoop.getStatement().accept(this);
+        foreverLoop.stat.accept(this);
         return null;
     }
 
@@ -740,9 +750,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(IfElseStatement ifElseStatement, Object... argv){
-        ifElseStatement.getExpression().accept(this);
-        ifElseStatement.getIfStatement().accept(this);
-        ifElseStatement.getElseStatement().accept(this);
+        ifElseStatement.condition.accept(this);
+        ifElseStatement.trueStatement.accept(this);
+        ifElseStatement.falseStatement.accept(this);
         return null;
     }
 
@@ -753,8 +763,8 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(IfStatement ifStatement, Object... argv){
-        ifStatement.getExpression().accept(this);
-        ifStatement.getStatement().accept(this);
+        ifStatement.condition.accept(this);
+        ifStatement.trueStatement.accept(this);
         return null;
     }
 
@@ -765,8 +775,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(NonBlockingAssignment assign, Object... argv){
-        assign.getLValue().accept(this);
-        assign.getExpression().accept(this);
+        for(Expression rightHand : assign.rightHandSide){
+            rightHand.accept(this);
+        }
         return null;
     }
 
@@ -777,8 +788,8 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(RepeatStatement stat, Object... argv){
-        stat.getExpression().accept(this);
-        stat.getStatement().accept(this);
+        stat.exp.accept(this);
+        stat.stat.accept(this);
         return null;
     }
 
@@ -789,8 +800,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(SeqBlockStatement stat, Object... argv){
-
-        for (int i = 0; i < stat.numStatements(); i++) { stat.getStatement(i).accept(this); }
+        for (Statement Stat : stat.statementList) {
+            Stat.accept(this);
+        }
 
         return null;
     }
@@ -802,16 +814,18 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(TaskStatement task, Object... argv){
-        Identifier tname = task.getTaskName();
+        String tname = task.taskName;
 
-        if (funcEnv.entryExists(tname.getLexeme())) {
-            dest.println("USE FUNCTION " + tname.getLexeme() + " AT [" + tname.getPosition() + "] DEFINED AT ["
-                + funcEnv.getEntry(tname.getLexeme()) + ']');
+        if (funcEnv.entryExists(tname)) {
+            dest.println("USE FUNCTION " + tname + " AT [" + task.position + "] DEFINED AT ["
+                + funcEnv.getEntry(tname) + ']');
         } else {
-            errorLog.addItem(new ErrorItem("Function Entry " + tname.getLexeme() + " Doesnt Exist", tname.getPosition()));
+            errorLog.addItem(new ErrorItem("Function Entry " + tname + " Doesnt Exist", task.position));
         }
 
-        for (int i = 0; i < task.numExpressions(); i++) { task.getExpression(i).accept(this); }
+        for (Expression exp : task.argumentList){ 
+            exp.accept(this); 
+        }
 
         return null;
     }
@@ -823,8 +837,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(SystemTaskStatement task, Object... argv){
-
-        for (int i = 0; i < task.numExpressions(); i++) { task.getExpression(i).accept(this); }
+        for (Expression exp : task.argumentList){ 
+            exp.accept(this); 
+        }
 
         return null;
     }
@@ -836,8 +851,8 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(WaitStatement wait, Object... argv){
-        wait.getExpression().accept(this);
-        wait.getStatement().accept(this);
+        wait.exp.accept(this);
+        wait.stat.accept(this);
         return null;
     }
 
@@ -848,8 +863,8 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(WhileStatement whileLoop, Object... argv){
-        whileLoop.getExpression().accept(this);
-        whileLoop.getStatement().accept(this);
+        whileLoop.exp.accept(this);
+        whileLoop.stat.accept(this);
         return null;
     }
 
@@ -875,8 +890,8 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(BinaryOperation op, Object... argv){
-        op.getLeft().accept(this);
-        op.getRight().accept(this);
+        op.left.accept(this);
+        op.right.accept(this);
         return null;
     }
 
@@ -887,7 +902,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(UnaryOperation op, Object... argv){
-        op.getRight().accept(this);
+        op.rightHandSideExpression.accept(this);
         return null;
     }
 
@@ -899,7 +914,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 
     public Void visit(Concatenation concat, Object... argv){
 
-        for (int i = 0; i < concat.numExpressions(); i++) { concat.getExpression(i).accept(this); }
+        for (Expression exp : concat.circuitElementExpressionList){ 
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -911,7 +928,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(ConstantExpression expr, Object... argv){
-        expr.getExpression().accept(this);
+        expr.expression.accept(this);
         return null;
     }
 
@@ -932,17 +949,19 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param call
      */
 
-    public Void visit(FunctionCallNode call, Object... argv){
-        Identifier fname = call.getFunctionName();
+    public Void visit(FunctionCall call, Object... argv){
+        String fname = call.functionName;
 
-        if (funcEnv.entryExists(fname.getLexeme())) {
-            dest.println("USE FUNCTION " + fname.getLexeme() + " AT [" + fname.getPosition() + "] DECLARED AT ["
-                + funcEnv.getEntry(fname.getLexeme()) + ']');
+        if (funcEnv.entryExists(fname)) {
+            dest.println("USE FUNCTION " + fname + " AT [" + call.position + "] DECLARED AT ["
+                + funcEnv.getEntry(fname) + ']');
         } else {
-            errorLog.addItem(new ErrorItem("Function Entry " + fname.getLexeme() + " Doesnt Exist", fname.getPosition()));
+            errorLog.addItem(new ErrorItem("Function Entry " + fname + " Doesnt Exist", call.position));
         }
 
-        for (int i = 0; i < call.numExpressions(); i++) { call.getExpression(i).accept(this); }
+        for (Expression arg : call.argumentList){ 
+            arg.accept(this); 
+        }
 
         return null;
     }
@@ -955,7 +974,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 
     public Void visit(SystemFunctionCall call, Object... argv){
 
-        for (int i = 0; i < call.numExpressions(); i++) { call.getExpression(i).accept(this); }
+        for(Expression exp : call.argumentList){
+            exp.accept(this);
+        }
 
         return null;
     }
@@ -968,11 +989,11 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
 
     public Void visit(Identifier ident, Object... argv){
 
-        if (varEnv.entryExists(ident.getLexeme())) {
-            dest.println("USE VARIABLE " + ident.getLexeme() + " AT [" + ident.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(ident.getLexeme()) + ']');
+        if (varEnv.entryExists(ident.labelIdentifier)) {
+            dest.println("USE VARIABLE " + ident.labelIdentifier + " AT [" + ident.position + "] DECLARED AT ["
+                + varEnv.getEntry(ident.labelIdentifier) + ']');
         } else {
-            errorLog.addItem(new ErrorItem("Variable Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition()));
+            errorLog.addItem(new ErrorItem("Variable Entry " + ident.labelIdentifier + " Doesnt Exist", ident.position));
         }
 
         return null;
@@ -996,7 +1017,7 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(PortConnection connection, Object... argv){
-        connection.getExpression().accept(this);
+        connection.connectingFrom.accept(this);
         return null;
     }
 
@@ -1018,9 +1039,9 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(TernaryOperation expr, Object... argv){
-        expr.getCondition().accept(this);
-        expr.getLeft().accept(this);
-        expr.getRight().accept(this);
+        expr.condition.accept(this);
+        expr.ifTrue.accept(this);
+        expr.ifFalse.accept(this);
         return null;
     }
 
@@ -1030,17 +1051,16 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param string
      */
 
-    public Void visit(VectorElement vector, Object... argv){
-        Identifier ident = vector.getIdentifier();
+    public Void visit(Element vector, Object... argv){
+        String ident = vector.labelIdentifier;
 
-        if (varEnv.entryExists(ident.getLexeme())) {
-            dest.println("USE VECTOR " + ident.getLexeme() + " AT [" + ident.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(ident.getLexeme()) + ']');
+        if (varEnv.entryExists(ident)) {
+            dest.println("USE VECTOR " + ident + " AT [" + vector.position + "] DECLARED AT [" + varEnv.getEntry(ident) + ']');
         } else {
-            errorLog.addItem(new ErrorItem("Vector Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition()));
+            errorLog.addItem(new ErrorItem("Vector Entry " + ident + " Doesnt Exist", vector.position));
         }
 
-        vector.getExpression().accept(this);
+        vector.index1.accept(this);
         return null;
     }
 
@@ -1051,17 +1071,17 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      */
 
     public Void visit(Slice vector, Object... argv){
-        Identifier ident = vector.getIdentifier();
+        String ident = vector.labelIdentifier;
 
-        if (varEnv.entryExists(ident.getLexeme())) {
-            dest.println("USE VECTOR " + ident.getLexeme() + " AT [" + ident.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(ident.getLexeme()) + ']');
+        if (varEnv.entryExists(ident)) {
+            dest.println("USE VECTOR " + ident + " AT [" + vector.position + "] DECLARED AT ["
+                + varEnv.getEntry(ident) + ']');
         } else {
-            errorLog.addItem(new ErrorItem("Vector Entry " + ident.getLexeme() + " Doesnt Exist", ident.getPosition()));
+            errorLog.addItem(new ErrorItem("Vector Entry " + ident + " Doesnt Exist", vector.position));
         }
 
-        vector.getExpression1().accept(this);
-        vector.getExpression2().accept(this);
+        vector.index1.accept(this);
+        vector.index2.accept(this);
         return null;
     }
 
@@ -1071,19 +1091,19 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
-    public Void visit(IntegerArrayElement arr, Object... argv){
-        Identifier current = arr.getIdentifier();
+    public Void visit(Int.Array arr, Object... argv){
+        String current = arr.declarationIdentifier;
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
+        if (varEnv.entryExists(current)) {
+            dest.println("USE INTEGER " + current + " AT [" + arr.position + "] DECLARED AT ["
+                + varEnv.getEntry(current)+ ']');
         } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
+            dest.println("DECL INTEGER " + current + " AT " + arr.position);
+            varEnv.addEntry(current, arr.position);
         }
 
-        arr.getExpression1().accept(this);
-        arr.getExpression2().accept(this);
+        arr.arrayIndex1.accept(this);
+        arr.arrayIndex2.accept(this);
         return null;
     }
 
@@ -1093,19 +1113,19 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
-    public Void visit(RegScalarArray arr, Object... argv){
-        Identifier current = arr.getIdentifier();
+    public Void visit(Reg.Scalar.Array arr, Object... argv){
+        String current = arr.declarationIdentifier;
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
+        if (varEnv.entryExists(current)) {
+            dest.println("USE INTEGER " + current + " AT [" + arr.position + "] DECLARED AT ["
+                + varEnv.getEntry(current) + ']');
         } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
+            dest.println("DECL INTEGER " + current + " AT " + arr.position);
+            varEnv.addEntry(current, arr.position);
         }
 
-        arr.getExpression1().accept(this);
-        arr.getExpression2().accept(this);
+        arr.arrayIndex1.accept(this);
+        arr.arrayIndex2.accept(this);
         return null;
     }
 
@@ -1115,19 +1135,19 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
-    public Void visit(RegVectorArray arr, Object... argv){
-        Identifier current = arr.getIdentifier();
+    public Void visit(Reg.Vector.Array arr, Object... argv){
+        String current = arr.declarationIdentifier;
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
+        if (varEnv.entryExists(current)) {
+            dest.println("USE INTEGER " + current + " AT [" + arr.position + "] DECLARED AT ["
+                + varEnv.getEntry(current) + ']');
         } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
+            dest.println("DECL INTEGER " + current + " AT " + arr.position);
+            varEnv.addEntry(current, arr.position);
         }
 
-        arr.getExpression1().accept(this);
-        arr.getExpression2().accept(this);
+        arr.arrayIndex1.accept(this);
+        arr.arrayIndex2.accept(this);
         return null;
     }
 
@@ -1137,19 +1157,19 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
-    public Void visit(OutputRegScalarArray arr, Object... argv){
-        Identifier current = arr.getIdentifier();
+    public Void visit(Output.Reg.Scalar.Array arr, Object... argv){
+        String current = arr.declarationIdentifier;
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
+        if (varEnv.entryExists(current)) {
+            dest.println("USE INTEGER " + current + " AT [" + arr.position + "] DECLARED AT ["
+                + varEnv.getEntry(current) + ']');
         } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
+            dest.println("DECL INTEGER " + current + " AT " + arr.position);
+            varEnv.addEntry(current, arr.position);
         }
 
-        arr.getExpression1().accept(this);
-        arr.getExpression2().accept(this);
+        arr.arrayIndex1.accept(this);
+        arr.arrayIndex2.accept(this);
         return null;
     }
 
@@ -1159,120 +1179,47 @@ public class Indexer implements ExpressionVisitor<Void>, StatementVisitor<Void>,
      * @param Jacob Bauer
      */
 
-    public Void visit(OutputRegVectorArray arr, Object... argv){
-        Identifier current = arr.getIdentifier();
+    public Void visit(Output.Reg.Vector.Array arr, Object... argv){
+        String current = arr.declarationIdentifier;
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
+        if (varEnv.entryExists(current)) {
+            dest.println("USE INTEGER " + current + " AT [" + arr.position + "] DECLARED AT ["
+                + varEnv.getEntry(current) + ']');
         } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
+            dest.println("DECL INTEGER " + current + " AT " + arr.position);
+            varEnv.addEntry(current, arr.position);
         }
 
-        arr.getExpression1().accept(this);
-        arr.getExpression2().accept(this);
+        arr.arrayIndex1.accept(this);
+        arr.arrayIndex2.accept(this);
         return null;
     }
 
-    /**
-     * This is the code for visiting and integer array using Java
-     * 
-     * @param Jacob Bauer
-     */
+    @Override
+    public Void visit(RegValueList decls, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 
-    public Void visit(IntegerIdent ident, Object... argv){
-        Identifier current = ident.getIdentifier();
+    @Override
+    public Void visit(DefCaseItem stat, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
-        } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
-        }
+    @Override
+    public Void visit(ExprCaseItem stat, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 
-        return null;
-    }
+    @Override
+    public Void visit(BinaryNode number, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 
-    /**
-     * This is the code for visiting and integer array using Java
-     * 
-     * @param Jacob Bauer
-     */
+    @Override
+    public Void visit(DecimalNode number, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 
-    public Void visit(RegScalarIdent ident, Object... argv){
-        Identifier current = ident.getIdentifier();
+    @Override
+    public Void visit(HexadecimalNode number, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
-        } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
-        }
-
-        return null;
-    }
-
-    /**
-     * This is the code for visiting and integer array using Java
-     * 
-     * @param Jacob Bauer
-     */
-
-    public Void visit(RegVectorIdent ident, Object... argv){
-        Identifier current = ident.getIdentifier();
-
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
-        } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
-        }
-
-        return null;
-    }
-
-    /**
-     * This is the code for visiting and integer array using Java
-     * 
-     * @param Jacob Bauer
-     */
-
-    public Void visit(OutputRegScalarIdent ident, Object... argv){
-        Identifier current = ident.getIdentifier();
-
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
-        } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
-        }
-
-        return null;
-    }
-
-    /**
-     * This is the code for visiting and integer array using Java
-     * 
-     * @param Jacob Bauer
-     */
-
-    public Void visit(OutputRegVectorIdent ident, Object... argv){
-        Identifier current = ident.getIdentifier();
-
-        if (varEnv.entryExists(current.getLexeme())) {
-            dest.println("USE INTEGER " + current.getLexeme() + " AT [" + current.getPosition() + "] DECLARED AT ["
-                + varEnv.getEntry(current.getLexeme()) + ']');
-        } else {
-            dest.println("DECL INTEGER " + current.getLexeme() + " AT " + current.getPosition());
-            varEnv.addEntry(current.getLexeme(), current.getPosition());
-        }
-
-        return null;
-    }
-
+    @Override
+    public Void visit(OctalNode number, Object... argv){ // TODO Auto-generated method stub
+    return null; }
 }

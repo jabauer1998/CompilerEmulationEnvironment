@@ -1,8 +1,12 @@
 package edu.depauw.emulator_ide.verilog_compiler.interpreter;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.Stack;
+import edu.depauw.emulator_ide.common.Pointer;
 import edu.depauw.emulator_ide.common.SymbolTable;
-import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pointer;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
@@ -22,6 +26,9 @@ public class Environment {
     private Stack<String> callStack;
 	private Stack<Boolean> exitStack;
 
+    private ArrayList<FileReader> readOnlyFileDescriptorArray;
+    private ArrayList<FileWriter> writableFileDescriptorArray;
+
     private boolean InParamaterSequence;
     private boolean InFunctionBody;
 
@@ -32,6 +39,8 @@ public class Environment {
         variableTable = new SymbolTable<>();
         callStack = new Stack<String>();
         exitStack =new Stack<Boolean>();
+        readOnlyFileDescriptorArray = new ArrayList<FileReader>();
+        writableFileDescriptorArray = new ArrayList<FileWriter>();
     }
 
     /**
@@ -174,5 +183,55 @@ public class Environment {
 
     public boolean InFunctionBody(){
         return InFunctionBody;
+    }
+
+    public int createReadOnlyFileDescriptor(String fileName){
+        try{
+            FileReader scanner = new FileReader(fileName);
+            for(int i = 0; i < readOnlyFileDescriptorArray.size(); i++){
+                if(readOnlyFileDescriptorArray.get(i) == null){
+                    readOnlyFileDescriptorArray.set(i, scanner);
+                    return i;
+                }
+            }
+
+            readOnlyFileDescriptorArray.add(scanner);
+            return readOnlyFileDescriptorArray.size() - 1;
+        } catch(Exception exp) {
+            return -1;
+        }
+    }
+
+    public int createWritableFileDescriptor(String fileName){
+        try{
+            FileWriter writer = new FileWriter(fileName);
+            for(int i = 0; i < writableFileDescriptorArray.size(); i++){
+                if(writableFileDescriptorArray.get(i) == null){
+                    writableFileDescriptorArray.set(i, writer);
+                    return i;
+                }
+            }
+
+            writableFileDescriptorArray.add(writer);
+            return writableFileDescriptorArray.size() - 1;
+        } catch(Exception exp) {
+            return -1;
+        }
+    }
+
+    public FileReader getFileReader(int fileDescriptor){
+        return readOnlyFileDescriptorArray.get(fileDescriptor);
+    }
+
+    public void clearFileReader(int fileDescriptor){
+        readOnlyFileDescriptorArray.set(fileDescriptor, null);
+    }
+
+    public FileWriter getFileWriter(int fileDescriptor){
+        return writableFileDescriptorArray.get(fileDescriptor);
+    }
+
+    public void clearFileWriter(int fileDescriptor){
+        writableFileDescriptorArray.set(fileDescriptor, null);
     }
 }

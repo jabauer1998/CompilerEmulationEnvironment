@@ -2,6 +2,7 @@ package edu.depauw.emulator_ide.verilog_compiler.parser;
 
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
@@ -17,6 +18,8 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.function_c
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.BinaryOperation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.Concatenation;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.TernaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.UnaryOperation;
+import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation.BinaryOperation.Operator;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.BinaryNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.DecimalNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.value_node.HexadecimalNode;
@@ -204,6 +207,8 @@ public class Parser {
 		if(skipIfYummy(Token.Type.LPAR) && !willMatch(Token.Type.RPAR)){
 			moduleItemList = parseModuleParDeclarationList();
 			match(Token.Type.RPAR);
+		} else if(willMatch(Token.Type.RPAR)){
+			skip();
 		}
 
 		match(Token.Type.SEMI, STRATEGY.REPAIR);
@@ -1075,9 +1080,11 @@ public class Parser {
 			match(Token.Type.NOTGATE);
 			match(Token.Type.LPAR);
 			Expression exp = parseExpression();
+			List<Expression> expressions = new LinkedList<Expression>();
+			expressions.add(exp);
 			match(Token.Type.RPAR);
 			match(Token.Type.SEMI);
-			return new NotGateDeclaration(start, exp);
+			return new NotGateDeclaration(start, expressions);
 		} else {
 			Token matched = peek();
 			errorLog.addItem(new ErrorItem("Unexpected GateDeclaration token of type " + matched.getTokenType() + " and lexeme "
@@ -1633,7 +1640,7 @@ public class Parser {
 			Position start = getStart();
 			skip();
 			Expression right = parseLAND_Expression();
-			left = new BinaryOperation(start, left, BOR, right);
+			left = new BinaryOperation(start, left, Operator.LOR, right);
 		}
 
 		return left;
@@ -1649,7 +1656,7 @@ public class Parser {
 			start = getStart();
 			skip();
 			Expression right = parseBOR_Expression();
-			left = new LogicalAnd(start, left, right);
+			left = new BinaryOperation(start, left, Operator.LAND, right);
 		}
 
 		return left;
@@ -1665,9 +1672,9 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseBXOR_Expression();
 			if(opType == Token.Type.BOR){
-				left = new BitwiseOr(start, left, right);
+				left = new BinaryOperation(start, left, Operator.BOR, right);
 			} else {
-				left = new BitwiseNor(start, left, right);
+				left = new UnaryOperation(start, UnaryOperation.Operator.BNEG, new BinaryOperation(start, left, Operator.BOR, right));
 			}
 		}
 
@@ -1684,9 +1691,9 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseBAND_Expression();
 			if(opType == Token.Type.BXOR){
-				left = new BitwiseXor(start, left, right);
+				left = new BinaryOperation(start, left, Operator.BXOR, right);
 			} else {
-				left = new BitwiseXnor(start, left, right);
+				left = new BinaryOperation(start, left, Operator.BXNOR, right);
 			}
 		}
 
@@ -1703,9 +1710,9 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseNE_Expression();
 			if(opType == Token.Type.BAND){
-				left = new BitwiseAnd(start, left, right);
+				left = new BinaryOperation(start, left, Operator.BAND, right);
 			} else {
-				left = new BitwiseNand(start, left, right);
+				left =  new UnaryOperation(start, UnaryOperation.Operator.BNEG, new BinaryOperation(start, left, Operator.BAND, right));
 			}
 		}
 
@@ -1722,13 +1729,13 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseREL_Expression();
 			if(opType == Token.Type.NE1){
-				left = new BasicInequality(start, left, right);
+				left = new BinaryOperation(start, left, Operator.NE1, right);
 			} else if(opType == Token.Type.NE2){
-				left = new StrictInequality(start, left, right);
+				left = new BinaryOperation(start, left, Operator.NE2, right);
 			} else if(opType == Token.Type.EQ2){
-				left = new BasicEquality(start, left, right);
+				left = new BinaryOperation(start, left, Operator.EQ2, right);
 			} else {
-				left = new StrictEquality(start, left, right);
+				left = new BinaryOperation(start, left, Operator.EQ3, right);
 			}
 		}
 
@@ -1745,13 +1752,13 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseSHIFT_Expression();
 			if(opType == Token.Type.GT){
-				left = new GreaterThan(start, left, right);
+				left = new BinaryOperation(start, left, Operator.GT, right);
 			} else if(opType == Token.Type.GE){
-				left = new GreaterThanOrEqualTo(start, left, right);
+				left = new BinaryOperation(start, left, Operator.GE, right);
 			} else if(opType == Token.Type.LT){
-				left = new LessThan(start, left, right);
+				left = new BinaryOperation(start, left, Operator.LT, right);
 			} else {
-				left = new LessThanOrEqualTo(start, left, right);
+				left = new BinaryOperation(start, left, Operator.LE, right);
 			}
 		}
 
@@ -1767,9 +1774,9 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseBIN_Expression();
 			if(opType == Token.Type.LSHIFT){
-				left = new BitshiftLeft(start, left, right);
+				left = new BinaryOperation(start, left, Operator.LSHIFT, right);
 			} else {
-				left = new BitshiftRight(start, left, right);
+				left = new BinaryOperation(start, left, Operator.RSHIFT, right);
 			}
 		}
 
@@ -1786,9 +1793,9 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseMULT_Expression();
 			if(opType == Token.Type.PLUS){
-				left = new Add(start, left, right);
+				left = new BinaryOperation(start, left, Operator.PLUS, right);
 			} else {
-				left = new Subtract(start, left, right);
+				left = new BinaryOperation(start, left, Operator.MINUS, right);
 			}
 		}
 
@@ -1805,11 +1812,11 @@ public class Parser {
 			Token.Type opType = opToken.getTokenType();
 			Expression right = parseUNARY_Expression();
 			if(opType == Token.Type.TIMES){
-				left = new Multiply(start, left, right);
+				left = new BinaryOperation(start, left, Operator.TIMES, right);
 			}else if(opType == Token.Type.DIV){
-				left = new Divide(start, left, right);
+				left = new BinaryOperation(start, left, Operator.DIV, right);
 			} else {
-				left = new Modulo(start, left, right);
+				left = new BinaryOperation(start, left, Operator.MOD, right);
 			}
 		}
 
@@ -1827,23 +1834,11 @@ public class Parser {
 			if(opType == Token.Type.PLUS){
 				return rightHandSideExpression;
 			} else if(opType == Token.Type.MINUS) {
-				return new Negation(start, rightHandSideExpression);
+				return new UnaryOperation(start, UnaryOperation.Operator.MINUS, rightHandSideExpression);
 			} else if(opType == Token.Type.BNEG){
-				return new BitwiseNegation(start, rightHandSideExpression);
-			} else if(opType == Token.Type.LNEG){
-				return new LogicalNegation(start, rightHandSideExpression);
-			} else if(opType == Token.Type.BAND){
-				return new ReductionAnd(start, rightHandSideExpression);
-			} else if(opType == Token.Type.BNAND){
-				return new ReductionNand(start, rightHandSideExpression);
-			} else if(opType == Token.Type.BOR){
-				return new ReductionOr(start, rightHandSideExpression);
-			} else if(opType == Token.Type.BNOR){
-				return new ReductionNor(start, rightHandSideExpression);
-			} else if(opType == Token.Type.BXOR){
-				return new ReductionXor(start, rightHandSideExpression);
+				return new UnaryOperation(start, UnaryOperation.Operator.BNEG, rightHandSideExpression);
 			} else {
-				return new ReductionXnor(start, rightHandSideExpression);
+				return new UnaryOperation(start, UnaryOperation.Operator.LNEG, rightHandSideExpression);
 			}
 		} else {
 			return parsePrimary();
@@ -1960,7 +1955,7 @@ public class Parser {
 	//HexadecimalNode -> HEX
 	private HexadecimalNode parseHexaDecimalNode(){
 		Position start = getStart();
-		Token numToken = match(Token.Type.DEC);
+		Token numToken = match(Token.Type.HEX);
 		String numLexeme = numToken.getLexeme();
 		return new HexadecimalNode(start, numLexeme);
 	}
@@ -1968,15 +1963,15 @@ public class Parser {
 	//OctalNode -> OCT
 	private OctalNode parseOctalNode(){
 		Position start = getStart();
-		Token numToken = match(Token.Type.DEC);
+		Token numToken = match(Token.Type.OCT);
 		String numLexeme = numToken.getLexeme();
 		return new OctalNode(start, numLexeme);
 	}
 
-	//OctalNode -> OCT
+	//BinaryNode -> BIN
 	private BinaryNode parseBinaryNode(){
 		Position start = getStart();
-		Token numToken = match(Token.Type.DEC);
+		Token numToken = match(Token.Type.BIN);
 		String numLexeme = numToken.getLexeme();
 		return new BinaryNode(start, numLexeme);
 	}

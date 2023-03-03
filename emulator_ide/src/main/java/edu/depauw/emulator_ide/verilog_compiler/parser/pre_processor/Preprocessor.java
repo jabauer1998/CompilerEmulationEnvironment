@@ -24,12 +24,14 @@ public class Preprocessor {
     public Preprocessor(ErrorLog errorLog, List<Token> tokenList){
 
         this.errorLog = errorLog;
-        this.tokenList = new LinkedList<>(); //input queue
+        this.tokenList = tokenList; //input queue
         this.resultList = new LinkedList<>(); //result queue
 
         macroDefinitions = new SymbolTable<>();
+        macroExpansions = new SymbolTable<>();
 
         macroDefinitions.addScope();
+        macroExpansions.addScope();
     }
 
     /**
@@ -100,9 +102,11 @@ public class Preprocessor {
             List<Token> definition = new LinkedList<>();
             
             while(!willMatch(Token.Type.NEWLINE)){
-                Token tok = skip();
-                if(tok.getTokenType() != Token.Type.ESCAPEDLINE){
+                if(!willMatch(Token.Type.ESCAPEDLINE)){
+                    Token tok = skip();
                     definition.add(tok);
+                } else {
+                    skip();
                 }
             }
 
@@ -310,7 +314,15 @@ public class Preprocessor {
     public List<Token> executePass(){
         while(!willMatch(Token.Type.EOF)) processToken();
         skipAndAppend(); //append eof token
-        return resultList;
+
+        List<Token> filteredList = new LinkedList<Token>();
+        for(Token Tok : resultList){
+            if(Tok.getTokenType() != Token.Type.NEWLINE && Tok.getTokenType() != Token.Type.ESCAPEDLINE){
+                filteredList.add(Tok);
+            }
+        }
+
+        return filteredList;
     }
 
 

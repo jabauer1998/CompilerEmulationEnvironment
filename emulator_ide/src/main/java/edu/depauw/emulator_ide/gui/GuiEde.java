@@ -11,10 +11,14 @@ public class GuiEde extends HBox{
     private GuiJobs Jobs;
     private GuiMachine Machine;
 
-    public GuiEde(int NumberOfBytes, int NumberOfBytesInRow){
-        this.Jobs = new GuiJobs();
-        this.Machine = new GuiMachine(NumberOfBytes, NumberOfBytesInRow);
-        this.getChildren().addAll(Jobs, Machine);
+    public GuiEde(int NumberOfBytes, int NumberOfBytesInRow, double Width, double Height){
+        this.setPrefHeight(Height);
+        this.setPrefWidth(Width);
+        this.Jobs = new GuiJobs(Width / 3, Height);
+
+        this.Machine = new GuiMachine(NumberOfBytes, NumberOfBytesInRow, Width, Height);
+
+        this.getChildren().addAll(this.Jobs.getJobsPane(), this.Machine);
     }
 
     public void AddJob(GuiJob Job){

@@ -109,7 +109,7 @@ public class NandGate extends Gate {
 	return false; }
 
 	@Override
-	public boolean islongValue(){ // TODO Auto-generated method stub
+	public boolean isLongValue(){ // TODO Auto-generated method stub
 	return false; }
 
 	@Override
@@ -122,5 +122,17 @@ public class NandGate extends Gate {
 
 	@Override
 	public boolean isStringValue(){ // TODO Auto-generated method stub
+	return false; }
+
+	@Override
+	public boolean isVector(){ // TODO Auto-generated method stub
+	return false; }
+
+	@Override
+	public boolean isRegister(){ // TODO Auto-generated method stub
+	return false; }
+
+	@Override
+	public boolean isWire(){ // TODO Auto-generated method stub
 	return false; }
 }

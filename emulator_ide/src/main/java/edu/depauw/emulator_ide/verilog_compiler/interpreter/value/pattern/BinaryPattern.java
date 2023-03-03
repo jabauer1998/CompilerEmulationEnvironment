@@ -6,7 +6,7 @@ import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.ByteVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.IntVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.LongVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.ShortVal;
-import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.Vector;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.VectorVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.CircuitElem;
 
 /**
@@ -163,7 +163,7 @@ public class BinaryPattern extends Pattern{
         return match(retByte);
     }
 
-    public boolean match(Vector value){
+    public boolean match(VectorVal value){
 
         String pattern = super.getPattern();
         int patternLength = pattern.length();
@@ -228,7 +228,7 @@ public class BinaryPattern extends Pattern{
     return false; }
 
     @Override
-    public boolean islongValue(){ // TODO Auto-generated method stub
+    public boolean isLongValue(){ // TODO Auto-generated method stub
     return false; }
 
     @Override
@@ -241,5 +241,17 @@ public class BinaryPattern extends Pattern{
 
     @Override
     public boolean isStringValue(){ // TODO Auto-generated method stub
+    return false; }
+
+    @Override
+    public boolean isVector(){ // TODO Auto-generated method stub
+    return false; }
+
+    @Override
+    public boolean isRegister(){ // TODO Auto-generated method stub
+    return false; }
+
+    @Override
+    public boolean isWire(){ // TODO Auto-generated method stub
     return false; }
 }

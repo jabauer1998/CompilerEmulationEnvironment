@@ -73,7 +73,7 @@ public class LongVal implements Value{
     }
 
     @Override
-    public boolean islongValue(){ // TODO Auto-generated method stub
+    public boolean isLongValue(){ // TODO Auto-generated method stub
         return true; 
     }
 

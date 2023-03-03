@@ -1,9 +1,9 @@
 package edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.operation;
 
 import java.util.List;
+import edu.depauw.emulator_ide.common.Pointer;
 import edu.depauw.emulator_ide.common.Position;
 import edu.depauw.emulator_ide.common.SymbolTable;
-import edu.depauw.emulator_ide.verilog_compiler.data_structure.Pointer;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.expression.Expression;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.label.LValue;
@@ -15,7 +15,7 @@ import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.Expressio
  * 
  * @author Jacob Bauer
  */
-public class Concatenation extends AstNode implements Expression, LValue {
+public class Concatenation extends AstNode implements Expression, LValue{
 
     public final List<Expression> circuitElementExpressionList; // list of Expressions to concatenate
 
@@ -38,4 +38,8 @@ public class Concatenation extends AstNode implements Expression, LValue {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public <DataType> Pointer<DataType> getLValue(SymbolTable<Pointer<DataType>> environment){ // TODO Auto-generated method stub
+    return null; }
 }
