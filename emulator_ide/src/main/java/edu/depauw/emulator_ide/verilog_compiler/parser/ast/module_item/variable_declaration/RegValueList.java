@@ -6,16 +6,16 @@ import edu.depauw.emulator_ide.verilog_compiler.parser.ast.AstNode;
 import edu.depauw.emulator_ide.verilog_compiler.parser.ast.module_item.ModuleItem;
 import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.visitor.ModuleVisitor;
 
-public class RegValueList extends AstNode implements ModuleItem {
+public class RegValueList<RegValueType> extends AstNode implements ModuleItem {
 
-    private List<ModuleItem> regValueList;
+    private List<RegValueType> regValueList;
     
-    public RegValueList(Position start, List<ModuleItem> regValueList){
+    public RegValueList(Position start, List<RegValueType> regValueList){
         super(start);
         this.regValueList = regValueList;
     }
 
-    public ModuleItem getRegValue(int index){
+    public RegValueType getRegValue(int index){
         return regValueList.get(index);
     }
 

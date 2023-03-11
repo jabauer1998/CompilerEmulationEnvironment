@@ -10,12 +10,16 @@ public class GuiMachine extends HBox{
     public GuiMachine(int NumberOfBytesInMemory, int NumberOfBytesInRow, double Width, double Height){
         this.setPrefWidth(Width);
         this.setPrefHeight(Height);
+        this.setMaxWidth(Width * 3 / 2);
+        this.setMaxHeight(Height);
+        this.setMinWidth(Width / 2);
+        this.setMinHeight(Height);
 
         this.RegFile = new GuiRegisterFile(Width / 4, Height);
         this.Mem = new GuiRam(NumberOfBytesInMemory, NumberOfBytesInRow, Width / 4, Height);
         this.Flags = new GuiFlags(Width / 2, Height / 8);
 
-        this.getChildren().addAll(this.RegFile, this.Mem.getScrollPane(), this.Flags.getScrollPane());
+        this.getChildren().addAll(this.RegFile.getScrollPane(), this.Mem.getScrollPane(), this.Flags.getScrollPane());
     }
 
     public void AddGuiRegister(GuiRegister Register){

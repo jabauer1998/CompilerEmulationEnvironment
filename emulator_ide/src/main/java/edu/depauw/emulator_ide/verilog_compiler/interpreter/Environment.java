@@ -38,9 +38,14 @@ public class Environment {
         functionTable = new SymbolTable<>();
         variableTable = new SymbolTable<>();
         callStack = new Stack<String>();
-        exitStack =new Stack<Boolean>();
+        exitStack = new Stack<Boolean>();
         readOnlyFileDescriptorArray = new ArrayList<FileReader>();
         writableFileDescriptorArray = new ArrayList<FileWriter>();
+
+        moduleTable.addScope();
+        taskTable.addScope();
+        functionTable.addScope();
+        variableTable.addScope();
     }
 
     /**
@@ -95,23 +100,6 @@ public class Environment {
         return variableTable.entryExists(symbol);
     }
 
-
-    /**
-     * Ads a Scope to the Variable Table
-     * Functions can only be declared inside one scope so it doesnt matter where they are declared
-     */
-
-    public void addScope(){
-        variableTable.addScope();
-    }
-
-    /**
-     * Remove Scope Removes a Scope from the Variable Table
-     */
-    public void removeScope(){
-        variableTable.removeScope();
-    }
-
     /**
      * 
      */
@@ -150,15 +138,41 @@ public class Environment {
     }
 
     public void addStackFrame(String ScopeName){
+        exitStack.push(false);
         callStack.push(ScopeName);
+        variableTable.addScope();
     }
 
     public String removeStackFrame(){
-        return callStack.pop();
+        if(!exitStack.isEmpty())
+            exitStack.pop();
+
+        variableTable.removeScope();
+        
+        if(!callStack.isEmpty())
+            return callStack.pop();
+
+        return null;
     }
 
-    public String currentStackFrame(){
+    public String stackFrameTitle(){
+        if(callStack.isEmpty()) 
+            return null;
         return callStack.peek();
+    }
+
+    public boolean stackFrameInExit(){
+        if(exitStack.isEmpty())
+            return false;
+
+        return exitStack.peek();
+    }
+
+    public void setFunctionExit(){
+        if(!exitStack.isEmpty()) 
+            exitStack.pop();
+        
+        exitStack.push(true);
     }
 
     public void BeginParamaterDeclarations(){

@@ -322,18 +322,50 @@ public class Parser {
 	// ModItem -> Function | Task | IntegerDeclaration | RealDeclaration | OutputDeclaration
 	// | InitialDeclaration | AllwaysDeclaration | RegDeclaration | ContinuousAssignment |
 	// ModuleInstantiation | GateDeclaration
-	private ModuleItem parseModuleItem(){
+	public List<ModuleItem> parseModuleItem(){
 
-		if (willMatch(Token.Type.FUNCTION)) return parseFunctionDeclaration();
-		else if (willMatch(Token.Type.TASK)) return parseTaskDeclaration();
-		else if (willMatch(Token.Type.INTEGER)) return parseIntegerDeclaration();
-		else if (willMatch(Token.Type.REAL)) return parseRealDeclaration();
-		else if (willMatch(Token.Type.INITIAL)) return parseInitialStatement();
-		else if (willMatch(Token.Type.ALLWAYS)) return parseAllwaysStatement();
-		else if (willMatch(Token.Type.REG)) return parseRegDeclaration();
-		else if (willMatch(Token.Type.WIRE)) return parseWireDeclaration();
-		else if (willMatch(Token.Type.ASSIGN)) return parseContinuousAssignment();
-		else if (willMatch(Token.Type.IDENT)) return parseModInstantiation();
+		LinkedList<ModuleItem> itemsToRet = new LinkedList<ModuleItem>();
+
+		if (willMatch(Token.Type.FUNCTION)) {
+			FunctionDeclaration Decl = parseFunctionDeclaration();
+			itemsToRet.add(Decl);
+		}
+		else if (willMatch(Token.Type.TASK)){
+			TaskDeclaration  Decl = parseTaskDeclaration();
+			itemsToRet.add(Decl);
+		}
+		else if (willMatch(Token.Type.INTEGER)) {
+			List<ModuleItem> Decls =  parseIntegerDeclaration();
+			itemsToRet.addAll(Decls);
+		}
+		else if (willMatch(Token.Type.REAL)) {
+			List<ModuleItem> Decls =  parseRealDeclaration();
+			itemsToRet.addAll(Decls);
+		}
+		else if (willMatch(Token.Type.INITIAL)){
+			ModuleItem stat = parseInitialStatement();
+			itemsToRet.add(stat);
+		}
+		else if (willMatch(Token.Type.ALLWAYS)) {
+			ModuleItem stat = parseAllwaysStatement();
+			itemsToRet.add(stat);
+		}
+		else if (willMatch(Token.Type.REG)) {
+			List<ModuleItem> Decls = parseRegDeclaration();
+			itemsToRet.addAll(Decls);
+		}
+		else if (willMatch(Token.Type.WIRE)) {
+			List<ModuleItem> Decls = parseWireDeclaration();
+			itemsToRet.addAll(Decls);
+		}
+		else if (willMatch(Token.Type.ASSIGN)){
+			ModuleItem assign = parseContinuousAssignment();
+			itemsToRet.add(assign);
+		}
+		else if (willMatch(Token.Type.IDENT)){
+			ModuleItem stat =  parseModInstantiation();
+			itemsToRet.add(stat);
+		}
 		else if (skipIfYummy(Token.Type.OUTPUT)) {
 
 			if (willMatch(Token.Type.WIRE)) {
@@ -355,12 +387,15 @@ public class Parser {
 			}
 
 		} else if (willMatch(Token.Type.ANDGATE, Token.Type.ORGATE, Token.Type.NANDGATE, Token.Type.NORGATE, Token.Type.NOTGATE, Token.Type.XNORGATE, Token.Type.XORGATE)){
-			return parseGateDeclaration();
+			ModuleItem geteDecl = parseGateDeclaration();
+			itemsToRet.add(geteDecl);
 	    } else {
 			Token matched = peek();
 			errorAndExit("Unexpected ModItem token of type " + matched.getTokenType() + " and lexeme " + matched.getLexeme() + " found", matched.getPosition());
 			return null;
 		}
+
+		return itemsToRet;
 
 	}
 
@@ -370,15 +405,15 @@ public class Parser {
 		List<ModuleItem> modList = new ArrayList<>();
 
 		while(!willMatch(Token.Type.ENDMODULE)) {
-			ModuleItem modItem = parseModuleItem();
-			modList.add(modItem);
+			List<ModuleItem> modItem = parseModuleItem();
+			modList.addAll(modItem);
 		}
 
 		return modList;
 	}
 
 	// Function -> Function FunctionName DeclarationList Statement ENDFUNCTION
-	private ModuleItem parseFunctionDeclaration(){
+	public FunctionDeclaration parseFunctionDeclaration(){
 		Position start = getStart();
 		match(Token.Type.FUNCTION);
 		ModuleItem decl = parseFunctionName();
@@ -446,7 +481,7 @@ public class Parser {
 	}
 
 	// Task -> TASK IDENT ; DeclarationList StatementOrNull ENDTASK
-	private ModuleItem parseTaskDeclaration(){
+	public TaskDeclaration parseTaskDeclaration(){
 		Position start = getStart();
 		match(Token.Type.TASK);
 		String ident = parseRawIdentifier();
@@ -459,7 +494,7 @@ public class Parser {
 
 	// Declaration -> IntegerDeclaration | WireDeclaration | RealDeclaration |
 	// RegDeclaration | OutputDeclaration | InputDeclaration
-	private ModuleItem parseDeclaration(){
+	private List<ModuleItem> parseDeclaration(){
 
 		if (willMatch(Token.Type.INTEGER)) {
 			return parseIntegerDeclaration();
@@ -506,13 +541,13 @@ public class Parser {
 		List<ModuleItem> declList = new ArrayList<>();
 
 		if (atLeastOne) {
-			ModuleItem decl = parseDeclaration();
-			declList.add(decl);
+			List<ModuleItem> decl = parseDeclaration();
+			declList.addAll(decl);
 		}
 
 		while(willMatch(Token.Type.INTEGER, Token.Type.REAL, Token.Type.WIRE, Token.Type.REG, Token.Type.INPUT, Token.Type.OUTPUT)) {
-			ModuleItem decl = parseDeclaration();
-			declList.add(decl);
+			List<ModuleItem> decl = parseDeclaration();
+			declList.addAll(decl);
 		}
 
 		return declList;
@@ -543,9 +578,8 @@ public class Parser {
 		return new ContinuousAssignment(start, assignList);
 	}
 
-	// RegDeclaration -> REG RegValueList ; | REG [ ConstExpression : ConstExpression ]
-	// RegValueList ;
-	private RegValueList parseRegDeclaration(){
+	// RegDeclaration -> REG RegValueList ; | REG [ ConstExpression : ConstExpression ] RegValueList ;
+	private List<ModuleItem> parseRegDeclaration(){
 		match(Token.Type.REG);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -554,18 +588,18 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseRegVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> identList = parseRegVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return identList;
 		} else {
-			RegValueList identList = parseRegScalarDeclarationList();
+			List<ModuleItem> identList = parseRegScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return identList;
 		}
 
 	}
 
-	private RegValueList parseRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+	private List<ModuleItem> parseRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -592,10 +626,10 @@ public class Parser {
 			}
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start,result);
+		return result;
 	}
 
-	private RegValueList parseRegScalarDeclarationList(){
+	private List<ModuleItem> parseRegScalarDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -621,12 +655,12 @@ public class Parser {
 			}
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// OutputRegDeclaration -> OUTPUT REG RegValueList ; | OUTPUT REG [ ConstExpression :
 	// ConstExpression ] RegValueList ;
-	private ModuleItem parseOutputRegDeclaration(){
+	private List<ModuleItem> parseOutputRegDeclaration(){
 		match(Token.Type.REG);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -635,18 +669,18 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseOutputRegVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> identList = parseOutputRegVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return identList;
 		} else {
-			RegValueList identList = parseOutputRegScalarDeclarationList();
+			List<ModuleItem> identList = parseOutputRegScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return identList;
 		}
 
 	}
 
-	private RegValueList parseOutputRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+	private List<ModuleItem> parseOutputRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -673,10 +707,10 @@ public class Parser {
 			}
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start,result);
+		return result;
 	}
 
-	private RegValueList parseOutputRegScalarDeclarationList(){
+	private List<ModuleItem> parseOutputRegScalarDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -702,12 +736,12 @@ public class Parser {
 			}
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// WireDeclaration -> WIRE IdentifierList ; | WIRE [ ConstExpression : ConstExpression ]
 	// IdentifierList ;
-	private ModuleItem parseWireDeclaration(){
+	private List<ModuleItem> parseWireDeclaration(){
 		match(Token.Type.WIRE);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -716,18 +750,17 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList regValList = parseWireVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> regValList = parseWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return regValList;
 		} else {
-			RegValueList regValList = parseWireScalarDeclarationList();
+			List<ModuleItem> regValList = parseWireScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return regValList;
 		}
-
 	}
 
-	private RegValueList parseWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+	private List<ModuleItem> parseWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -741,10 +774,10 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start,result);
+		return result;
 	}
 
-	private RegValueList parseWireScalarDeclarationList(){
+	private List<ModuleItem> parseWireScalarDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -758,12 +791,12 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// OutputWireDeclaration -> INPUT WIRE IdentifierList ; | INPUT WIRE [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private ModuleItem parseOutputWireDeclaration(){
+	private List<ModuleItem> parseOutputWireDeclaration(){
 		match(Token.Type.WIRE);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -773,19 +806,19 @@ public class Parser {
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
 
-			RegValueList declList = parseOutputWireVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> declList = parseOutputWireVectorDeclarationList(exp1, exp2);
 			
 			match(Token.Type.SEMI);
 			return declList;
 		} else {
-			RegValueList declList = parseOutputWireScalarDeclarationList();
+			List<ModuleItem> declList = parseOutputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return declList;
 		}
 
 	}
 
-	private RegValueList parseOutputWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+	private List<ModuleItem> parseOutputWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -799,10 +832,10 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start,result);
+		return result;
 	}
 
-	private RegValueList parseOutputWireScalarDeclarationList(){
+	private List<ModuleItem> parseOutputWireScalarDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -816,12 +849,12 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// InputWireDeclaration -> INPUT WIRE IdentifierList ; | INPUT WIRE [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private ModuleItem parseInputWireDeclaration(){
+	private List<ModuleItem> parseInputWireDeclaration(){
 		match(Token.Type.WIRE);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -830,18 +863,18 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseInputWireVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> identList = parseInputWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return identList;
 		} else {
-			RegValueList identList = parseInputWireScalarDeclarationList();
+			List<ModuleItem> identList = parseInputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return identList;
 		}
 
 	}
 
-	private RegValueList parseInputWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+	private List<ModuleItem> parseInputWireVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -855,10 +888,10 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start,result);
+		return result;
 	}
 
-	private RegValueList parseInputWireScalarDeclarationList(){
+	private List<ModuleItem> parseInputWireScalarDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -872,13 +905,13 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 
 	// InputRegDeclaration -> INPUT REG IdentifierList ; | INPUT REG [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private ModuleItem parseInputRegDeclaration(){
+	private List<ModuleItem> parseInputRegDeclaration(){
 		match(Token.Type.REG);
 
 		if (willMatch(Token.Type.LBRACK)) {
@@ -887,18 +920,18 @@ public class Parser {
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseInputRegVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> identList = parseInputRegVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return identList;
 		} else {
-			RegValueList identList = parseInputRegScalarDeclarationList();
+			List<ModuleItem> identList = parseInputRegScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return identList;
 		}
 
 	}
 
-	private RegValueList parseInputRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
+	private List<ModuleItem> parseInputRegVectorDeclarationList(Expression vectorIndex1, Expression vectorIndex2){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -912,10 +945,10 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start,result);
+		return result;
 	}
 
-	private RegValueList parseInputRegScalarDeclarationList(){
+	private List<ModuleItem> parseInputRegScalarDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -929,23 +962,23 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// OutputRegDeclaration -> INPUT IdentifierList ; | INPUT [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private ModuleItem parseInputDeclaration(){
+	private List<ModuleItem> parseInputDeclaration(){
 		if (willMatch(Token.Type.LBRACK)) {
 			skip();
 			ConstantExpression exp1 = parseConstantExpression();
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseInputWireVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> identList = parseInputWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return identList;
 		} else {
-			RegValueList identList = parseInputWireScalarDeclarationList();
+			List<ModuleItem> identList = parseInputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return identList;
 		}
@@ -954,18 +987,18 @@ public class Parser {
 
 	// OutputDeclaration -> OUTPUT IdentifierList ; | OUTPUT [ ConstExpression :
 	// ConstExpression ] IdentifierList ;
-	private ModuleItem parseOutputDeclaration(){
+	private List<ModuleItem> parseOutputDeclaration(){
 		if (willMatch(Token.Type.LBRACK)) {
 			skip();
 			ConstantExpression exp1 = parseConstantExpression();
 			match(Token.Type.COLON);
 			ConstantExpression exp2 = parseConstantExpression();
 			match(Token.Type.RBRACK);
-			RegValueList identList = parseOutputWireVectorDeclarationList(exp1, exp2);
+			List<ModuleItem> identList = parseOutputWireVectorDeclarationList(exp1, exp2);
 			match(Token.Type.SEMI);
 			return identList;
 		} else {
-			RegValueList identList = parseOutputWireScalarDeclarationList();
+			List<ModuleItem> identList = parseOutputWireScalarDeclarationList();
 			match(Token.Type.SEMI);
 			return identList;
 		}
@@ -973,14 +1006,14 @@ public class Parser {
 	}
 
 	// RealDeclaration -> REAL IdentifierList ;
-	private ModuleItem parseRealDeclaration(){
+	private List<ModuleItem> parseRealDeclaration(){
 		match(Token.Type.REAL);
-		RegValueList identList = parseRealDeclarationList();
+		List<ModuleItem> identList = parseRealDeclarationList();
 		match(Token.Type.SEMI);
 		return identList;
 	}
 
-	private RegValueList parseRealDeclarationList(){
+	private List<ModuleItem> parseRealDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -992,18 +1025,18 @@ public class Parser {
 			result.add(decl);
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// IntegerDeclaration -> INTEGER IdentifierList ;
-	private ModuleItem parseIntegerDeclaration(){
+	private List<ModuleItem> parseIntegerDeclaration(){
 		match(Token.Type.INTEGER);
-		RegValueList identList = parseIntegerDeclarationList();
+		List<ModuleItem> identList = parseIntegerDeclarationList();
 		match(Token.Type.SEMI);
 		return identList;
 	}
 
-	private RegValueList parseIntegerDeclarationList(){
+	private List<ModuleItem> parseIntegerDeclarationList(){
 		Position start = getStart();
 
 		List<ModuleItem> result = new ArrayList<>();
@@ -1026,7 +1059,7 @@ public class Parser {
 			}
 		} while (skipIfYummy(Token.Type.COMMA));
 
-		return new RegValueList(start, result);
+		return result;
 	}
 
 	// GateDeclaration -> GATYPE ( ExpressionList );

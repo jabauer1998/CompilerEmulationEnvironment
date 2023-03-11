@@ -20,7 +20,7 @@ public class Token {
 		ESCAPEDLINE, //n or when typed in a text editor it is just a /
 
 		//For dealing with Macros
-		MACRO_DEFINE,
+		MACRO_DEFINE,  
 		MACRO_INCLUDE,
 		MACRO_IFDEF,
 		MACRO_IFNDEF,

@@ -2,53 +2,30 @@ package edu.depauw.emulator_ide.gui;
 
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.common.io.Destination;
-import edu.depauw.emulator_ide.common.io.Source;
-import edu.depauw.emulator_ide.verilog_compiler.interpreter.Interpreter;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
-import edu.depauw.emulator_ide.verilog_compiler.parser.pre_processor.Preprocessor;
-import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.type_checker.TypeChecker;
 import edu.depauw.emulator_ide.gui.gui_job.GuiJob;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiFlag;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister;
-import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister.Format;
+import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.nodes.Node;
 
 public class Main extends Application {
 	private static String ConfigPath = null;
@@ -66,12 +43,6 @@ public class Main extends Application {
 			ConfigPath = config.get("config");
 		}
 
-		if(!config.containsKey("processor")){
-			Log.addItem(new ErrorItem("Error Processor Argument was not found!!"));
-		} else {
-			ProcessorPath = config.get("processor");
-		}
-
 		if(config.containsKey("config") && config.containsKey("processor")){
 			launch();
 		}
@@ -83,9 +54,6 @@ public class Main extends Application {
 			if(args[i].equals("--cfg") || args[i].equals("--config") || args[i].equals("-c")){
 				i++;
 				config.put("config", args[i]);
-			} else if(args[i].equals("--processor") || args[i].equals("-p") || args[i].equals("--proc")){
-				i++;
-				config.put("processor", args[i]);
 			}
 		}
 
@@ -129,7 +97,17 @@ public class Main extends Application {
 
 			//Collect the Title Information from the File that is pointed to
 			Document Doc = Builder.parse(ConfigFile);
+			
+			NodeList ProcessorElem = Doc.getElementsByTagName("Processor");
 			NodeList TitleElem = Doc.getElementsByTagName("Title");
+
+
+			if(ProcessorElem == null || TitleElem.getLength() == 0){
+				Element ProcessorTag = (Element)ProcessorElem.item(0);
+				ProcessorPath = ProcessorTag.getTextContent();
+			} else {
+				System.err.println("Error: The error output wasnt printed to the correct location");
+			}
 
 			if(TitleElem == null || TitleElem.getLength() == 0){
 				stage.setTitle("Emulator Development Environment");

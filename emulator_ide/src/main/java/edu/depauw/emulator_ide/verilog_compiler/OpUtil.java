@@ -663,7 +663,6 @@ public class OpUtil {
 			Input.Wire.Vector.Ident InputItem = (Input.Wire.Vector.Ident)Item;
 			return InputItem.declarationIdentifier;
 		} else {
-			OpUtil.errorAndExit("Error Invalid Type for paramater " + Item.getClass().toString());
 			return null;
 		}
 	}

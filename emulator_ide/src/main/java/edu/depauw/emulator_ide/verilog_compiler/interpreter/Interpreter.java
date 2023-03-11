@@ -162,6 +162,21 @@ public class Interpreter {
         }
     }
 
+	public IntVal interpretModuleItem(String moduleItem){
+		Source source = new Source(new StringReader(moduleItem));
+		Lexer lex = new Lexer(source, errorLog);
+		LinkedList<Token> tokens = lex.tokenize();
+		Parser parse = new Parser(tokens, errorLog);
+		List<ModuleItem> items = parse.parseModuleItem();
+		for(ModuleItem item : items){
+			Value Result = interpretModuleItem(item);
+			if(Result == OpUtil.errorOccured()){
+				return OpUtil.errorOccured();
+			}
+		}
+		return OpUtil.success();
+	}
+
     public IntVal interpretModule(String Module){
         Source source = new Source(new StringReader(Module));
         Lexer lex = new Lexer(source, errorLog);
@@ -489,7 +504,14 @@ public class Interpreter {
 	}
 
 	private IntVal interpretModuleInstance(ModuleInstance instance){
-		List<Expression> Expression = instance.expList;
+		List<Expression> expressions = instance.expList;
+
+		if(environment.moduleExists(instance.instanceName)){
+			ModuleDeclaration modDeclaration = environment.lookupModule(instance.instanceName);
+			//First Redeclare all of the Items in the Module inside a new Scope
+			interpretModule(modDeclaration);
+		}
+
 
 		OpUtil.errorAndExit("Error: module instances have not been handled by the interpreter up to this point...");
 
@@ -498,7 +520,7 @@ public class Interpreter {
 
 	private IntVal interpretModInstantiation(ModuleInstantiation modList){
 		List<ModuleInstance> modInstances = modList.modList;
-
+		
 		for(ModuleInstance Instance : modInstances){
 			interpretModuleInstance(Instance);
 		}
@@ -511,8 +533,8 @@ public class Interpreter {
 	 */
 
 	 private IntVal interpretProcedureDeclaration(ProcedureDeclaration Procedure){
-		if(Procedure instanceof FunctionDeclaration) return interpretTaskDeclaration((TaskDeclaration) Procedure);
-		else if (Procedure instanceof TaskDeclaration) return interpretFunctionDeclaration((FunctionDeclaration) Procedure);
+		if(Procedure instanceof TaskDeclaration) return interpretTaskDeclaration((TaskDeclaration) Procedure);
+		else if (Procedure instanceof FunctionDeclaration) return interpretFunctionDeclaration((FunctionDeclaration) Procedure);
 		else {
 			OpUtil.errorAndExit("Unknown Procedure Declaration SubType " + Procedure.getClass().getName());
 			return OpUtil.errorOccured();
@@ -658,8 +680,8 @@ public class Interpreter {
 
 	private IntVal interpretIdentDeclaration(IdentDeclaration declaration){
 		if(declaration instanceof ArrayDeclaration) return interpretArrayDeclaration((ArrayDeclaration)declaration);
-		else if(declaration instanceof Input.Wire.Vector.Ident) return interpretDeclaration((Input.Wire.Scalar.Ident)declaration);
-		else if(declaration instanceof Input.Reg.Vector.Ident) return interpretDeclaration((Input.Reg.Scalar.Ident)declaration);
+		else if(declaration instanceof Input.Wire.Vector.Ident) return interpretDeclaration((Input.Wire.Vector.Ident)declaration);
+		else if(declaration instanceof Input.Reg.Vector.Ident) return interpretDeclaration((Input.Reg.Vector.Ident)declaration);
 		else if(declaration instanceof Input.Wire.Scalar.Ident) return interpretDeclaration((Input.Wire.Scalar.Ident)declaration);
 		else if(declaration instanceof Input.Reg.Scalar.Ident) return interpretDeclaration((Input.Reg.Scalar.Ident)declaration);
 		else if(declaration instanceof Output.Wire.Vector.Ident) return interpretDeclaration((Output.Wire.Vector.Ident)declaration);
@@ -671,6 +693,7 @@ public class Interpreter {
 		else if(declaration instanceof Wire.Scalar.Ident) return interpretDeclaration((Wire.Scalar.Ident)declaration);
 		else if(declaration instanceof Reg.Scalar.Ident) return interpretDeclaration((Reg.Scalar.Ident)declaration);
 		else if(declaration instanceof Int.Ident) return interpretDeclaration((Int.Ident)declaration);
+		else if(declaration instanceof Real.Ident) return interpretDeclaration((Real.Ident)declaration);
 		else {
 			OpUtil.errorAndExit("Error Could not find Ident Declaration with the following type " + declaration.getClass().getName());
 			return OpUtil.errorOccured();
@@ -694,7 +717,7 @@ public class Interpreter {
 		Value val1 = interpretShallowExpression(exp1);
 		Value val2 = interpretShallowExpression(exp2);
 
-		if (!environment.variableExists(decl.declarationIdentifier)) {
+		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(val1.intValue(), val2.intValue()));
 		} else {
 			OpUtil.errorAndExit("Error identifier allready exists...");
@@ -712,7 +735,7 @@ public class Interpreter {
 
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new ArrayVal<RegVal>(ArraySize));
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -731,7 +754,7 @@ public class Interpreter {
 
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new ArrayVal<VectorVal>(ArraySize));
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -750,7 +773,7 @@ public class Interpreter {
 
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new ArrayVal<IntVal>(ArraySize));
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -774,7 +797,7 @@ public class Interpreter {
 		Value exp1Val = interpretShallowExpression(exp1);
 		Value exp2Val = interpretShallowExpression(exp2);
 
-		if (!environment.variableExists(decl.declarationIdentifier)) {
+		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(exp1Val.intValue(), exp2Val.intValue()));
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -792,7 +815,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Input.Wire.Scalar.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new WireVal());
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -810,7 +833,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Input.Reg.Scalar.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -827,7 +850,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Wire.Scalar.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new WireVal());
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -851,7 +874,7 @@ public class Interpreter {
 		Value index1Value = interpretShallowExpression(index1);
 		Value index2Value = interpretShallowExpression(index2);
 
-		if (!environment.variableExists(decl.declarationIdentifier)) {
+		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -868,7 +891,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Reg.Scalar.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -891,7 +914,7 @@ public class Interpreter {
 		Value index1Value = interpretShallowExpression(index1);
 		Value index2Value = interpretShallowExpression(index2);
 
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -909,7 +932,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Output.Wire.Scalar.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new WireVal());
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -925,7 +948,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Output.Reg.Scalar.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -941,7 +964,7 @@ public class Interpreter {
 		Value index1Value = interpretShallowExpression(index1);
 		Value index2Value = interpretShallowExpression(index2);
 
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -965,7 +988,7 @@ public class Interpreter {
 		Value index1Value = interpretShallowExpression(index1);
 		Value index2Value = interpretShallowExpression(index2);
 
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -982,7 +1005,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Int.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new IntVal(0));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -999,7 +1022,7 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretDeclaration(Real.Ident decl){
-		if(!environment.variableExists(decl.declarationIdentifier)){
+		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RealVal(0));
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
@@ -1018,7 +1041,7 @@ public class Interpreter {
 	private IntVal interpretUnidentifiedDeclaration(Unidentified.Declaration decl){
 		String Current = decl.declaration;
 
-		if(!environment.variableExists(Current)){
+		if(!environment.localVariableExists(Current)){
 			environment.addVariable(Current, null);
 		} else {
 			OpUtil.errorAndExit("Error Register allready exists with the name " + Current);
@@ -1126,7 +1149,13 @@ public class Interpreter {
 		 } else if(assign.leftHandSide instanceof Identifier){
 			Identifier leftHandIdent = (Identifier)assign.leftHandSide;
 			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandIdent.labelIdentifier);
+
 			leftHandPtr.assign(expVal);
+
+			String currentStackFrameTitle = environment.stackFrameTitle();
+			if(leftHandIdent.labelIdentifier.equals(currentStackFrameTitle)){
+				environment.setFunctionExit(); //Makes it so we are in the Return Part of a Verilog Function
+			}
 		 } else {
 			OpUtil.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
 			return OpUtil.errorOccured();
@@ -1237,8 +1266,8 @@ public class Interpreter {
 				} else {
 					OpUtil.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
 				}
-			 } else if(assign.leftHandSide instanceof Slice){
-				Slice leftHandSlice = (Slice)assign.leftHandSide;
+			 } else if(assign.leftHandSide.get(i) instanceof Slice){
+				Slice leftHandSlice = (Slice)assign.leftHandSide.get(i);
 	
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
 				Value leftHandDeref = leftHandPtr.deRefrence();
@@ -1254,8 +1283,8 @@ public class Interpreter {
 					OpUtil.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
 					return OpUtil.errorOccured();
 				}
-			 } else if(assign.leftHandSide instanceof Identifier){
-				Identifier leftHandIdent = (Identifier)assign.leftHandSide;
+			 } else if(assign.leftHandSide.get(i) instanceof Identifier){
+				Identifier leftHandIdent = (Identifier)assign.leftHandSide.get(i);
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandIdent.labelIdentifier);
 				leftHandPtr.assign(resultList.get(i));
 			 } else {
@@ -1354,15 +1383,15 @@ public class Interpreter {
 		if(stat instanceof CaseXStatement) return interpretCaseXStatement((CaseXStatement) stat);
 		else if (stat instanceof CaseZStatement) return interpretCaseZStatement((CaseZStatement) stat);
 		else {
-			Value switchExpVal = interpretShallowExpression(stat.exp);
+			
 
-			loop: for (CaseItem item : stat.itemList){
+			for (CaseItem item : stat.itemList){
+				Value switchExpVal = interpretShallowExpression(stat.exp);
 				if (item instanceof ExprCaseItem) {
 					ExprCaseItem exprItem = (ExprCaseItem)item;
-
-					for (Expression CaseExp : exprItem.expList) {
+					
+					loop: for (Expression CaseExp : exprItem.expList) {
 						Value exprValue = interpretShallowExpression(CaseExp);
-
 						if (OpUtil.caseBoolean(switchExpVal, exprValue)) {
 							interpretShallowStatement(exprItem.statement);
 							break loop;
@@ -1386,13 +1415,11 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretCaseXStatement(CaseXStatement stat){
-		Value switchExp = interpretShallowExpression(stat.exp);
-
-		loop: for (CaseItem item : stat.itemList){
+		for (CaseItem item : stat.itemList){
+			Value switchExp = interpretShallowExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
 				ExprCaseItem exprItem = (ExprCaseItem)item;
-
-				for (Expression CaseExp : exprItem.expList) {
+				loop: for (Expression CaseExp : exprItem.expList) {
 					Value exprValue = interpretShallowExpression(CaseExp);
 
 					if (OpUtil.caseBoolean(switchExp, exprValue)) {
@@ -1411,13 +1438,14 @@ public class Interpreter {
 	}
 
 	private IntVal interpretCaseZStatement(CaseZStatement stat){
-		Value switchExp = interpretShallowExpression(stat.exp);
+		
 
-		loop: for (CaseItem item : stat.itemList){
+		for (CaseItem item : stat.itemList){
+			Value switchExp = interpretShallowExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
 				ExprCaseItem exprItem = (ExprCaseItem)item;
 
-				for (Expression CaseExp : exprItem.expList) {
+				loop: for (Expression CaseExp : exprItem.expList) {
 					Value exprValue = interpretShallowExpression(CaseExp);
 
 					if (OpUtil.caseBoolean(switchExp, exprValue)) {
@@ -1442,7 +1470,10 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretForLoop(ForStatement forLoop){
-		for (interpretShallowBlockingAssignment(forLoop.init); interpretShallowExpression(forLoop.exp).boolValue(); interpretShallowStatement(forLoop.change)) {
+		for (interpretShallowBlockingAssignment(forLoop.init); 
+			interpretShallowExpression(forLoop.exp).boolValue() && !environment.stackFrameInExit(); 
+			interpretShallowStatement(forLoop.change)) {
+			
 			interpretShallowStatement(forLoop.stat);
 		}
 
@@ -1458,7 +1489,7 @@ public class Interpreter {
 	private IntVal interpretForeverLoop(ForeverStatement foreverLoop){
 		boolean tf = true;
 
-		while(tf) {
+		while(!environment.stackFrameInExit()) {
 			interpretShallowStatement(foreverLoop.stat);
 		}
 
@@ -1508,19 +1539,19 @@ public class Interpreter {
 	private IntVal interpretRepeatLoop(RepeatStatement stat){
 		Value expr = interpretShallowExpression(stat.exp);
 
-		if (expr.isLongValue() || expr.isVector()) {
-			long amount = expr.longValue();
-
-			for (long i = 0; i < amount; i++) {
-				interpretShallowStatement(stat.stat);
-			}
-		} else if (expr.isWire() || expr.isRegister() || expr.isBoolValue()) {
+		if (expr.isWire() || expr.isRegister() || expr.isBoolValue()) {
 			if (expr.boolValue()) {
 				interpretShallowStatement(stat.stat);
 			}
 		} else {
-			OpUtil.errorAndExit("Error Unknown type for Repeat Statement");
-			return OpUtil.errorOccured();
+			long amount = expr.longValue();
+
+			for (long i = 0; i < amount; i++) {
+				interpretShallowStatement(stat.stat);
+				if(environment.stackFrameInExit()){
+					break;
+				}
+			}
 		}
 
 		return OpUtil.success();
@@ -1534,7 +1565,10 @@ public class Interpreter {
 
 	private IntVal interpretShallowBlockOfStatements(SeqBlockStatement stat){
 		for (Statement stmt : stat.statementList) {
-			interpretShallowStatement(stat);
+			interpretShallowStatement(stmt);
+			if(environment.stackFrameInExit()){
+				break;
+			}
 		}
 
 		return OpUtil.success();
@@ -1542,7 +1576,7 @@ public class Interpreter {
 
 	private IntVal interpretDeepBlockOfStatements(SeqBlockStatement stat){
 		for (Statement stmt : stat.statementList) {
-			interpretDeepStatement(stat);
+			interpretDeepStatement(stmt);
 		}
 
 		return OpUtil.success();
@@ -1557,43 +1591,49 @@ public class Interpreter {
 	 */
 
 	private IntVal interpretTaskCall(TaskStatement task){
-		String tname = task.taskName;
+		if(task instanceof SystemTaskStatement) interpretSystemTaskCall((SystemTaskStatement)task);
+		else {
+			String tname = task.taskName;
 
-		if (environment.taskExists(tname)) {
-			// Collect symbol table data from the function
-			TaskDeclaration funcData = environment.lookupTask(tname);
-			environment.addStackFrame(tname);
-			environment.BeginParamaterDeclarations();
+			if (environment.taskExists(tname)) {
+				// Collect symbol table data from the function
+				TaskDeclaration funcData = environment.lookupTask(tname);
+				environment.addStackFrame(tname);
+				environment.BeginParamaterDeclarations();
 
-			List<String> paramaterNames = new LinkedList<String>();
+				List<String> paramaterNames = new LinkedList<String>();
 
-			for(ModuleItem Decl : funcData.paramaters){
-				String paramaterName = OpUtil.getParamaterName(Decl);
-				paramaterNames.add(paramaterName);
-			}
-
-			environment.EndParamaterDeclarations();
-			environment.removeStackFrame();
-
-			if (task.argumentList.size() == funcData.paramaters.size() && task.argumentList.size() == funcData.paramaters.size()) {
-				// Assign parameter value
-				for(int i = 0; i < paramaterNames.size(); i++){
-					String paramaterName = paramaterNames.get(i);
-					Pointer<Value> paramaterValue = environment.lookupVariable(paramaterName);
-					Expression argExpr = task.argumentList.get(i);
-					Value argValue = interpretShallowExpression(argExpr);
-					paramaterValue.assign(argValue);
+				for(ModuleItem Decl : funcData.paramaters){
+					String paramaterName = OpUtil.getParamaterName(Decl);
+					if(paramaterName != null){
+						paramaterNames.add(paramaterName);
+					}
+					interpretModuleItem(Decl);
 				}
+
+				environment.EndParamaterDeclarations();
+
+				if (task.argumentList.size() == paramaterNames.size()) {
+					// Assign parameter value
+					for(int i = 0; i < paramaterNames.size(); i++){
+						String paramaterName = paramaterNames.get(i);
+						Pointer<Value> paramaterValue = environment.lookupVariable(paramaterName);
+						Expression argExpr = task.argumentList.get(i);
+						Value argValue = interpretShallowExpression(argExpr);
+						paramaterValue.assign(argValue);
+					}
+				} else {
+					OpUtil.errorAndExit("Argument amount mismatch " + tname + " [Expected -> " + paramaterNames.size()
+						+ " | Got -> " + task.argumentList.size() + " ]");
+					return OpUtil.errorOccured();
+				}
+
+				interpretShallowStatement(funcData.stat);
+				environment.removeStackFrame();
 			} else {
-				OpUtil.errorAndExit("Argument amount mismatch " + tname + " [Expected -> " + paramaterNames.size()
-					+ " | Got -> " + task.argumentList.size() + " ]");
+				OpUtil.errorAndExit("Function Entry " + tname + " Doesnt Exist", task.position);
 				return OpUtil.errorOccured();
 			}
-
-			interpretShallowStatement(funcData.stat);
-		} else {
-			OpUtil.errorAndExit("Function Entry " + tname + " Doesnt Exist", task.position);
-			return OpUtil.errorOccured();
 		}
 
 		return OpUtil.success();
@@ -1605,7 +1645,7 @@ public class Interpreter {
 	 * @param stat
 	 */
 
-	private IntVal visit(SystemTaskStatement task){
+	private IntVal interpretSystemTaskCall(SystemTaskStatement task){
 		String taskName = task.taskName;
 
 		if (taskName.equals("fclose")) {
@@ -1705,8 +1745,9 @@ public class Interpreter {
 		else if (exp instanceof OctalNode) return interpretOctalNode((OctalNode)exp);
 		else if (exp instanceof StringNode) return interpretStringNode((StringNode)exp);
 		else if (exp instanceof ConstantExpression) return interpretConstantExpression((ConstantExpression)exp);
+		else if (exp instanceof Identifier) return interpretShallowIdentifier((Identifier)exp);
 		else {
-			OpUtil.errorAndExit("Error: Could not find an expression of type");
+			OpUtil.errorAndExit("Error: Could not find an expression of type" + exp.getClass().getName());
 			return OpUtil.errorOccured();
 		}
 	}
@@ -1718,8 +1759,9 @@ public class Interpreter {
 		else if (exp instanceof FunctionCall) return interpretDeepFunctionCall((FunctionCall)exp);
 		else if (exp instanceof TernaryOperation) return interpretDeepTernaryOperation((TernaryOperation)exp);
 		else if (exp instanceof PortConnection) return interpretDeepPortConnection((PortConnection)exp);
+		else if (exp instanceof Identifier) return interpretDeepIdentifier((Identifier)exp);
 		else {
-			OpUtil.errorAndExit("Error: Could not find an expression of type");
+			OpUtil.errorAndExit("Error: Could not find an expression of type " + exp.getClass().toString());
 			return OpUtil.errorOccured();
 		}
 	}
@@ -1783,7 +1825,7 @@ public class Interpreter {
 	 */
 
 	private Value interpretShallowUnaryOperation(UnaryOperation op){
-		Value right = interpretShallowExpression(op);
+		Value right = interpretShallowExpression(op.rightHandSideExpression);
 
 		switch(op.Op){
 			case PLUS: return right;
@@ -1802,7 +1844,7 @@ public class Interpreter {
 	 */
 
 	 private Value interpretDeepUnaryOperation(UnaryOperation op){
-		Value right = interpretDeepExpression(op);
+		Value right = interpretDeepExpression(op.rightHandSideExpression);
 
 		switch(op.Op){
 			case BNEG: 
@@ -1951,17 +1993,23 @@ public class Interpreter {
 			// Collect symbol table data from the function
 			FunctionDeclaration funcData = environment.lookupFunction(tname);
 
-			environment.addScope();
 			environment.addStackFrame(tname);
+
+			//Add the Function Name to the Symbol Table
+			interpretModuleItem(funcData.functionName);
+
 			List<String> paramaterNames = new LinkedList<String>();
-			for(ModuleItem Parameter : funcData.paramaters){
-				String parameterName = OpUtil.getParamaterName(Parameter);
-				paramaterNames.add(parameterName);
+			for(ModuleItem parameter : funcData.paramaters){
+				String paramaterName = OpUtil.getParamaterName(parameter);
+				if(paramaterName != null){
+					paramaterNames.add(paramaterName);
+				}
+				interpretModuleItem(parameter);
 			} // declare the return variable for the function
 
 			Pointer<Value> returnData = environment.lookupVariable(tname); // get return object
 
-			if (call.argumentList.size() == funcData.paramaters.size() && call.argumentList.size() == paramaterNames.size()) {
+			if (call.argumentList.size() == paramaterNames.size()) {
 				for(int i = 0; i < call.argumentList.size(); i++){
 					String paramaterName = paramaterNames.get(i);
 					Pointer<Value> paramValue = environment.lookupVariable(paramaterName);
@@ -1979,7 +2027,6 @@ public class Interpreter {
 			interpretShallowStatement(funcData.stat);
 			environment.EndFunctionBody();
 
-			environment.removeScope();
 			environment.removeStackFrame();
 			return returnData.deRefrence();
 		} else {
@@ -1997,7 +2044,6 @@ public class Interpreter {
 				// Collect symbol table data from the function
 				FunctionDeclaration funcData = environment.lookupFunction(tname);
 
-				environment.addScope();
 				environment.addStackFrame(tname);
 				List<String> paramaterNames = new LinkedList<String>();
 				for(ModuleItem Parameter : funcData.paramaters){
@@ -2025,7 +2071,6 @@ public class Interpreter {
 				interpretDeepStatement(funcData.stat);
 				environment.EndFunctionBody();
 
-				environment.removeScope();
 				environment.removeStackFrame();
 				return returnData.deRefrence();
 			} else {
@@ -2106,7 +2151,7 @@ public class Interpreter {
 	 */
 
 	private Value interpretShallowIdentifier(Identifier ident){
-		if (environment.functionExists(ident.labelIdentifier)) {
+		if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			return data.deRefrence();
 		} else {
@@ -2116,7 +2161,7 @@ public class Interpreter {
 	}
 
 	private Value interpretDeepIdentifier(Identifier ident){
-		if (environment.functionExists(ident.labelIdentifier)) {
+		if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			return data.deRefrence();
 		} else {
