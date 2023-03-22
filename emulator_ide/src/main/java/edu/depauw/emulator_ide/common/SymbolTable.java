@@ -21,28 +21,28 @@ public class SymbolTable<TableType> {
      * 
      * @author Jacob Bauer
      */
-    private Stack<HashMap<String, TableType>> environment;
+    private Stack<HashMap<String, TableType>> table;
 
     /**
      * The costructor dynamicaly initailizes the stack
      * 
      * @author Jacob Bauer
      */
-    public SymbolTable() { environment = new Stack<>(); }
+    public SymbolTable() { table = new Stack<>(); }
 
     /**
      * This is the method that removes the top scope or hashmap in the stack
      * 
      * @author Jacob Bauer
      */
-    public void removeScope(){ environment.pop(); }
+    public void removeScope(){ table.pop(); }
 
     /**
      * This is the method that adds a scope or hashmap to the stack
      * 
      * @author Jacob Bauer
      */
-    public void addScope(){ environment.push(new HashMap<>()); }
+    public void addScope(){ table.push(new HashMap<>()); }
 
     /**
      * This method is used to check if a variable exists within the entire stack
@@ -52,8 +52,12 @@ public class SymbolTable<TableType> {
      * @author        Jacob Bauer
      */
     public boolean entryExists(String symbolName){
-
-        for (HashMap<String, TableType> current : environment) { if (current.containsKey(symbolName)) { return true; } }
+        for (int i = table.size() - 1; i >= 0; i--){
+            HashMap<String, TableType> current = table.get(i); 
+            if (current.containsKey(symbolName)) { 
+                return true; 
+            }
+        }
 
         return false;
     }
@@ -66,9 +70,9 @@ public class SymbolTable<TableType> {
      * @author        Jacob Bauer
      */
     public boolean inScope(String symbolName){
-        HashMap<String, TableType> list = environment.pop();
+        HashMap<String, TableType> list = table.pop();
         boolean tf = list.containsKey(symbolName);
-        environment.push(list);
+        table.push(list);
         return tf;
     }
 
@@ -82,10 +86,11 @@ public class SymbolTable<TableType> {
 
     public TableType getEntry(String symbolName){
 
-        for (HashMap<String, TableType> current : environment) {
-
-            if (current.containsKey(symbolName)) { return current.get(symbolName); }
-
+        for (int i = table.size() - 1; i >= 0; i--) {
+            HashMap<String, TableType> current = table.get(i);
+            if (current.containsKey(symbolName)) { 
+                return current.get(symbolName); 
+            }
         }
 
         return null;
@@ -96,9 +101,9 @@ public class SymbolTable<TableType> {
      * 
      */
     public void addEntry(String name, TableType description){
-        HashMap<String, TableType> saved = environment.pop();
+        HashMap<String, TableType> saved = table.pop();
         saved.put(name, description);
-        environment.push(saved);
+        table.push(saved);
     }
 
     /**
@@ -109,9 +114,9 @@ public class SymbolTable<TableType> {
     public String toString(){
         StringBuilder mystring = new StringBuilder();
 
-        for (int i = environment.size() - 1; i >= 0; i--) {
+        for (int i = table.size() - 1; i >= 0; i--) {
             mystring.append("STACK LEVEL -> " + i + '\n');
-            HashMap<String, TableType> list = environment.get(i);
+            HashMap<String, TableType> list = table.get(i);
 
             for (String key : list.keySet()) {
                 mystring.append("KEY: " + key + " VALUE: ");

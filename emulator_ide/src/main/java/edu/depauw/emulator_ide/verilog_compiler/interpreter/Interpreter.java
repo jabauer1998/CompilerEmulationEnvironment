@@ -7,11 +7,11 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import edu.depauw.emulator_ide.Main;
 import edu.depauw.emulator_ide.common.Pointer;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.common.io.Source;
-import edu.depauw.emulator_ide.gui.Main;
 import edu.depauw.emulator_ide.verilog_compiler.OpUtil;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.ArrayVal;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.BoolVal;
@@ -1663,12 +1663,8 @@ public class Interpreter {
 			 	Value fString = interpretShallowExpression(task.argumentList.get(0));
 				Value  fData = interpretShallowExpression(task.argumentList.get(1));
 
-				PrintStream Stream = new PrintStream(Main.getByteOutputStream());
-				Stream.printf(fString.toString(), fData.toString());
-				Stream.flush();
 			} else if (task.argumentList.size() == 1) {
 				Value data = interpretShallowExpression(task.argumentList.get(0));				
-				Main.getByteOutputStream().writeBytes(("\t" + data.toString() + '\n').getBytes()); // write to standard output in the gui
 			} else {
 				OpUtil.errorAndExit("Unknown number of print arguments in " + task.taskName, task.position);
 			}
@@ -1998,6 +1994,14 @@ public class Interpreter {
 			//Add the Function Name to the Symbol Table
 			interpretModuleItem(funcData.functionName);
 
+			Pointer<Value> returnData = environment.lookupVariable(tname); // get return object
+
+			List<Value> paramaterValues = new LinkedList<Value>();
+			for(Expression paramExp : call.argumentList){
+				Value argVal = interpretShallowExpression(paramExp);
+				paramaterValues.add(argVal);
+			}
+
 			List<String> paramaterNames = new LinkedList<String>();
 			for(ModuleItem parameter : funcData.paramaters){
 				String paramaterName = OpUtil.getParamaterName(parameter);
@@ -2007,15 +2011,14 @@ public class Interpreter {
 				interpretModuleItem(parameter);
 			} // declare the return variable for the function
 
-			Pointer<Value> returnData = environment.lookupVariable(tname); // get return object
 
-			if (call.argumentList.size() == paramaterNames.size()) {
-				for(int i = 0; i < call.argumentList.size(); i++){
+			if (paramaterValues.size() == paramaterNames.size()) {
+				for(int i = 0; i < paramaterValues.size(); i++){
 					String paramaterName = paramaterNames.get(i);
-					Pointer<Value> paramValue = environment.lookupVariable(paramaterName);
-					Expression paramExp = call.argumentList.get(i);
-					Value argVal = interpretShallowExpression(paramExp);
-					paramValue.assign(argVal);
+					Value paramaterValue = paramaterValues.get(i);
+
+					Pointer<Value> paramaterHolder = environment.lookupVariable(paramaterName);
+					paramaterHolder.assign(paramaterValue);
 				}
 			} else {
 				OpUtil.errorAndExit("Argument amount mismatch " + tname + " [Expected -> " + funcData.paramaters.size()

@@ -1,4 +1,4 @@
-package edu.depauw.emulator_ide.gui;
+package edu.depauw.emulator_ide;
 
 
 import javafx.application.Application;
@@ -11,8 +11,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,53 +27,60 @@ import org.w3c.dom.NodeList;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.common.io.Destination;
+import edu.depauw.emulator_ide.gui.GuiEde;
 import edu.depauw.emulator_ide.gui.gui_job.GuiJob;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiFlag;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister;
 import edu.depauw.emulator_ide.verilog_compiler.interpreter.value.circuit_elem.nodes.Node;
 
 public class Main extends Application {
-	private static String ConfigPath = null;
-	private static String ProcessorPath = null;
-	public static void main(String[] args){
+	private String ConfigPath;
+	private ErrorLog errLog;
+
+	private Main(){
 		Destination errorOut = new Destination(System.err);
-
-		HashMap<String, String> config = parseArgs(args);
-
-		ErrorLog Log = new ErrorLog(errorOut);
-
-		if(!config.containsKey("config")){
-			Log.addItem(new ErrorItem("Error Config Argument was not found!!"));
-		} else {
-			ConfigPath = config.get("config");
-		}
-
-		if(config.containsKey("config") && config.containsKey("processor")){
-			launch();
-		}
-	}
-
-	private static HashMap<String, String> parseArgs(String[] args){
-		HashMap<String, String> config = new HashMap<>();
-		for(int i = 0; i < args.length; i++){
-			if(args[i].equals("--cfg") || args[i].equals("--config") || args[i].equals("-c")){
-				i++;
-				config.put("config", args[i]);
+		errLog = new ErrorLog(errorOut);
+		ConfigPath = null;
+		try{
+			Enumeration<URL> resources = this.getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+			loop: while (resources.hasMoreElements()) {
+				URL resource = resources.nextElement();
+				try {
+			  		Manifest manifest = new Manifest(resource.openStream());
+			  		// check that this is your manifest and do what you need or get the next one
+					Attributes attributes = manifest.getMainAttributes();
+					String cfgPath = attributes.getValue("Config");
+					if(cfgPath != null && cfgPath.contains("xml")){
+						ConfigPath = cfgPath;
+						break loop;
+					}
+				} catch (IOException E) {
+					errLog.addItem(new ErrorItem("Cannot Open URL " + resource.toString()));
+				}
 			}
+		} catch(Exception exp){
+			errLog.addItem(new ErrorItem("Error Loading Resources via Reflection!!!"));
 		}
-
-		return config;
 	}
 
-	private static ByteArrayInputStream  byteStream;
-	private static ByteArrayOutputStream byteOutputStream;
+	public static void main(String[] args){
+		//Scan the current manifest. to find an XML Config File
 
-	public static InputStream getByteInputStream(){ return byteStream; }
+		Main Loader = new Main();
+		Loader.launch();
+	}
 
-	public static ByteArrayOutputStream getByteOutputStream(){ return byteOutputStream; }
-
-	@Override
+	
 	public void start(Stage stage){
+
+		if(ConfigPath == null){
+			errLog.addItem(new ErrorItem("Error: No .xml config file found in the manifest"));
+			errLog.printLog();
+			return;
+		}
+
+		String ProcessorPath = null;
+
 		Screen screen = Screen.getPrimary();
 		Rectangle2D bounds = screen.getVisualBounds();
 
@@ -135,10 +147,6 @@ public class Main extends Application {
 			}
 
 			GuiEde EdeInstance = new GuiEde(NumberOfBytes, NumberOfBytesInRow, stage.getMaxWidth(), stage.getMaxHeight());
-			EdeInstance.setMaxWidth(stage.getMaxWidth());
-			EdeInstance.setMaxHeight(stage.getMaxHeight());
-			EdeInstance.setPrefWidth(stage.getMaxWidth());
-			EdeInstance.setPrefHeight(stage.getMaxHeight());
 
 			//Now we need to Build the Jobs Portion of the Ede
 			//We will go into each of the Jobs and generate the Jobs

@@ -401,11 +401,10 @@ public class InterpreterTest {
 	@Test
 	public void testRecursiveFunctionCall(){
 		String functionDeclaration = "function reg [31:0] fibonacci;\n"
-								   + "  input reg [31:0] n;"
+								   + "  input reg[31:0] n;"
 								   + "  begin\n"
-								   + "    if(n <= 0) fibonacci = 0;\n"
-								   + "    else if(n == 1) fibonacci = 1;\n"
-								   + "    else fibonacci = fibonacci(n - 1) + fibonacci(n - 2);"
+								   + "    if(n <= 1) fibonacci = n;\n"
+								   + "    else fibonacci = fibonacci(n - 1) + fibonacci(n - 2);\n"
 								   + "  end\n"
 								   + "endfunction\n";
 
@@ -414,18 +413,24 @@ public class InterpreterTest {
 		Interpreter intr = new Interpreter(errLog);
 
 		intr.interpretModuleItem(functionDeclaration);
-		
-		Value fib1 = intr.interpretExpression("fibonacci(1)");
-		assertTrue("Error: result is not equal to 1", fib1.intValue() == 1);
 
 		Value fib0 = intr.interpretExpression("fibonacci(0)");
 		assertTrue("Error: result is not equal to 0", fib0.intValue() == 0);
 
+		Value fib1 = intr.interpretExpression("fibonacci(1)");
+		assertTrue("Error: result is not equal to 1", fib1.intValue() == 1);
+
 		Value fib2 = intr.interpretExpression("fibonacci(2)");
 		assertTrue("Error: result is not equal to 1", fib2.intValue() == 1);
 
+		Value fib3 = intr.interpretExpression("fibonacci(3)");
+		assertTrue("Error: result is not equal to 2", fib3.intValue() == 2);
+
 		Value fib4 = intr.interpretExpression("fibonacci(4)");
-		assertTrue("Error: result is not equal to 2", fib4.intValue() == 2);
+		assertTrue("Error: Result is not equal to 3", fib4.intValue() == 3);
+
+		Value fib5 = intr.interpretExpression("fibonacci(5)");
+		assertTrue("Error: Result is not equal to 5", fib5.intValue() == 5);
 	}
 
 	

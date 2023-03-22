@@ -9,8 +9,6 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>emulator_ide</name>
-  <!-- FIXME change it to the project's website -->
-  <url>https://github.com/h20man13/Ludo-Board_Game</url>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -76,6 +74,7 @@
             <archive>
               <manifest>
         	      <mainClass>edu.depauw.emulator_ide.gui.Main</mainClass>
+                <Config>src/main/java/edu/depauw/emulator_ide/processor/ConfigExample.xml</Config>
               </manifest>
             </archive>
             <descriptorRefs>
@@ -98,6 +97,10 @@
           <version>0.0.6</version>
           <configuration>
             <mainClass>edu.depauw.emulator_ide.gui.Main</mainClass>
+            <arguments>
+              <argument>--config</argument>
+              <argument>src/main/java/edu/depauw/emulator_ide/processor/ConfigExample.xml</argument>
+            </arguments>
           </configuration>
         </plugin>
       </plugins>

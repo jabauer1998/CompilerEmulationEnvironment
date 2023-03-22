@@ -335,7 +335,7 @@ public class OpUtil {
         } else if (left.isRealValue() && !right.isRealValue()) {
             return new BoolVal(left.realValue() <= right.longValue());
         } else if (!left.isRealValue() && right.isRealValue()) {
-            return new BoolVal(left.realValue() <= right.longValue());
+            return new BoolVal(left.longValue() <= right.realValue());
         } else {
             return new BoolVal(left.longValue() <= right.longValue());
         }
@@ -347,7 +347,7 @@ public class OpUtil {
         } else if (left.isRealValue() && !right.isRealValue()) {
             return new BoolVal(left.realValue() < right.longValue());
         } else if (!left.isRealValue() && right.isRealValue()) {
-            return new BoolVal(left.realValue() < right.longValue());
+            return new BoolVal(left.longValue() < right.realValue());
         } else {
             return new BoolVal(left.longValue() < right.longValue());
         }
@@ -359,7 +359,7 @@ public class OpUtil {
         } else if (left.isRealValue() && !right.isRealValue()) {
             return new BoolVal(left.realValue() >= right.longValue());
         } else if (!left.isRealValue() && right.isRealValue()) {
-            return new BoolVal(left.realValue() >= right.longValue());
+            return new BoolVal(left.longValue() >= right.realValue());
         } else {
             return new BoolVal(left.longValue() >= right.longValue());
         }
@@ -371,7 +371,7 @@ public class OpUtil {
         } else if (left.isRealValue() && !right.isRealValue()) {
             return new BoolVal(left.realValue() > right.longValue());
         } else if (!left.isRealValue() && right.isRealValue()) {
-            return new BoolVal(left.realValue() > right.longValue());
+            return new BoolVal(left.longValue() > right.realValue());
         } else {
             return new BoolVal(left.longValue() > right.longValue());
         }
