@@ -3,14 +3,13 @@ package edu.depauw.emulator_ide.checkpoint;
 
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
-
+import edu.depauw.emulator_ide.verilog_interpreter.parser.Lexer;
+import edu.depauw.emulator_ide.verilog_interpreter.parser.Parser;
+import edu.depauw.emulator_ide.verilog_interpreter.parser.Token;
+import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
+import edu.depauw.emulator_ide.verilog_interpreter.visitor_passes.Indexer;
+import edu.depauw.emulator_ide.verilog_interpreter.visitor_passes.type_checker.TypeChecker;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
-import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.Indexer;
-import edu.depauw.emulator_ide.verilog_compiler.visitor_passes.type_checker.TypeChecker;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Parser;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
-import edu.depauw.emulator_ide.verilog_compiler.parser.ast.ModuleDeclaration;
 import org.junit.Test;
 import java.io.StringReader;
 import java.io.BufferedReader;

@@ -1,17 +1,32 @@
 <Cfg>
-    <Title>{Title Of Ede Environment Is Here}</Title>
+    <Title>ARM7TDMIS</Title>
     <Jobs>
-        <Job Name="{Name of Job}"/>
+        <Job Name="Assemble"/>
         <Job Name="Execute"/>
     </Jobs>
     <Machine>
-        <Config>
-            <BytesPerRow>{Number of Bytes Located in Eech Row of Memory Here}</BytesPerRow>
-            <NumBytes>{Total Number of Bytes Here}</NumBytes>
-        </Config>
+        <Memory>
+            <BytesPerRow>4</BytesPerRow>
+            <NumBytes>1000</NumBytes>
+        </Memory>
         <RegisterFile>
-            <Reg Name="{Register Name Here}" Width="{Register Width Here}" Format="Binary"/>
-            <Reg Name="{Register Name Here}" Width="40" Format="Hexadecimal"/>
+            <Reg Name="CPSR" Width="32" Format="Binary"/>
+            <Reg Name="R0" Width="32" Format="Binary"/>
+            <Reg Name="R1" Width="32" Format="Binary"/>
+            <Reg Name="R2" Width="32" Format="Binary"/>
+            <Reg Name="R3" Width="32" Format="Binary"/>
+            <Reg Name="R4" Width="32" Format="Binary"/>
+            <Reg Name="R5" Width="32" Format="Binary"/>
+            <Reg Name="R6" Width="32" Format="Binary"/>
+            <Reg Name="R7" Width="32" Format="Binary"/>
+            <Reg Name="R8" Width="32" Format="Binary"/>
+            <Reg Name="R9" Width="32" Format="Binary"/>
+            <Reg Name="R10" Width="32" Format="Binary"/>
+            <Reg Name="R11" Width="32" Format="Binary"/>
+            <Reg Name="R12" Width="32" Format="Binary"/>
+            <Reg Name="R13" Width="32" Format="Binary"/>
+            <Reg Name="R14" Width="32" Format="Binary"/>
+            <Reg Name="R15" Width="32" Format="Binary"/>
         </RegisterFile>
     </Machine>
 </Cfg>

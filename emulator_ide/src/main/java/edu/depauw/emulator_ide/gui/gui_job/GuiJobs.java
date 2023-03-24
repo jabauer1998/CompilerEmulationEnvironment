@@ -1,7 +1,11 @@
 package edu.depauw.emulator_ide.gui.gui_job;
 
+import java.util.LinkedList;
+import java.util.List;
+import edu.depauw.emulator_ide.gui.GuiEde;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 
 public class GuiJobs extends VBox {
@@ -9,23 +13,34 @@ public class GuiJobs extends VBox {
 
     private double JobHeight;
     private double JobWidth;
+
+    List<TextArea> Jobs;
     
     public GuiJobs(double Width, double Height){
         JobsPane = new ScrollPane();
-        JobsPane.setPrefHeight(Height);
-        JobsPane.setPrefWidth(Width);
-        this.setPrefHeight(Height);
-        this.setPrefWidth(Width);
         JobsPane.setContent(this);
+
         this.JobHeight = Height / 3;
         this.JobWidth = Width;
+
         this.setAlignment(Pos.CENTER_LEFT);
+
+        Jobs = new LinkedList<>();
     }
 
-    public void AddJob(GuiJob Job){
-        Job.setPrefWidth(JobWidth);
-        Job.setPrefHeight(JobHeight);
+    public void AddExeJob(String JobName, String ExecString, String OutputFile, String ErrorFile, String InputFile){
+        GuiJob Job = new ExeJob(JobName, JobWidth, JobHeight, ExecString, InputFile, OutputFile, ErrorFile, Jobs);
         this.getChildren().addAll(Job);
+
+        Jobs.add(Job.getInputSection());
+    }
+
+    public void AddVerilogJob(String JobName, String VerilogFile, GuiEde EdeInstance, String ErrorPane){
+        VerilogJob Job = new VerilogJob(JobName, JobWidth, JobHeight, EdeInstance, ErrorPane);
+
+        this.getChildren().addAll(Job);
+        
+        Jobs.add(Job.getInputSection());
     }
 
     public ScrollPane getJobsPane(){

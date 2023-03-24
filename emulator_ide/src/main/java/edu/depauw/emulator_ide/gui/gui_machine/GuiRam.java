@@ -2,6 +2,8 @@ package edu.depauw.emulator_ide.gui.gui_machine;
 
 import java.util.LinkedList;
 import java.util.List;
+import edu.depauw.emulator_ide._interface.Memory;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -9,7 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
-public class GuiRam extends VBox {
+public class GuiRam extends VBox implements Memory{
     private Label[] Bytes;
     private Label[] Addresses;
     
@@ -30,13 +32,21 @@ public class GuiRam extends VBox {
         this.BytesPerRow = BytesPerRow;
         this.NumberOfBytes = NumberOfBytes;
         this.NumberRowsRounded = (int)Math.ceil((NumberOfBytes / BytesPerRow));
-        this.Pane = new ScrollPane();
-        this.Pane.setPrefHeight(Height);
-        this.Pane.setPrefWidth(Width);
-        this.Pane.setContent(this);
-        this.Pane.setHbarPolicy(ScrollBarPolicy.NEVER);
+
+        this.setMaxHeight(Height);
+        this.setMaxWidth(Width);
         this.setPrefWidth(Width);
         this.setPrefHeight(Height);
+        
+        this.Pane = new ScrollPane();
+        this.Pane.setMaxHeight(Height);
+        this.Pane.setMaxWidth(Width);
+        this.Pane.setPrefHeight(Height);
+        this.Pane.setPrefWidth(Width);
+        
+        this.Pane.setContent(this);
+        this.Pane.setHbarPolicy(ScrollBarPolicy.NEVER);
+
         Bytes = new Label[this.NumberOfBytes];
         Addresses = new Label[NumberRowsRounded];
         int Byte = 0;
@@ -49,17 +59,18 @@ public class GuiRam extends VBox {
             Addresses[Row] = new Label(Integer.toString(Byte));
             for(int i = 0; i < this.BytesPerRow; i++, Byte++){
                 Bytes[Byte] = new Label("00");
+                Bytes[Byte].setPrefWidth(Width/(this.BytesPerRow * 2));
                 Bytes[Byte].setTextAlignment(TextAlignment.RIGHT);
                 RowOfMemory.getChildren().add(Bytes[Byte]);
+                RowOfMemory.setAlignment(Pos.CENTER_RIGHT);
             }
             Addresses[Row].setTextAlignment(TextAlignment.LEFT);
+            Addresses[Row].setPrefWidth(Width/3);
             AddressToMemory.getChildren().addAll(Addresses[Row], RowOfMemory);
+            AddressToMemory.setPrefWidth(Width);
+            AddressToMemory.setAlignment(Pos.CENTER_LEFT);
             this.getChildren().add(AddressToMemory);
         }
-    }
-
-    public void SetMemory(int Address, String Data){
-        this.Bytes[Address].setText(Data);
     }
 
     public void LoadProgram(String Program){
@@ -78,5 +89,22 @@ public class GuiRam extends VBox {
 
     public ScrollPane getScrollPane(){
         return Pane;
+    }
+
+    @Override
+    public void setMemoryValue(int address, long dataValue){
+        Label Byte = Bytes[address];
+        String asString = Long.toBinaryString(dataValue);
+        Byte.setText(asString); 
+    }
+
+    @Override
+    public long getMemoryValue(int address){ // TODO Auto-generated method stub
+        Label Byte = Bytes[address];
+        String text = Byte.getText();
+        
+        long Result = Long.parseLong(text);
+
+        return Result;
     }
 }

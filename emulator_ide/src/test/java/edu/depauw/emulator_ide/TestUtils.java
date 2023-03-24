@@ -3,9 +3,9 @@ package edu.depauw.emulator_ide;
 
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
-import edu.depauw.emulator_ide.verilog_compiler.interpreter.circuit_elem.test_utils.Tuple;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_compiler.parser.Token;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
+import edu.depauw.emulator_ide.verilog_interpreter.parser.Lexer;
+import edu.depauw.emulator_ide.verilog_interpreter.parser.Token;
 import edu.depauw.emulator_ide.common.Position;
 
 import java.util.ArrayList;
