@@ -1,6 +1,9 @@
 package edu.depauw.emulator_ide.gui.gui_machine;
 
 import edu.depauw.emulator_ide._interface.Machine;
+import edu.depauw.emulator_ide.gui.gui_machine.GuiRam.AddressFormat;
+import edu.depauw.emulator_ide.gui.gui_machine.GuiRam.MemoryFormat;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -10,13 +13,13 @@ public class GuiMachine extends HBox implements Machine{
     private GuiFlags Flags;
     private GuiIO Io;
     
-    public GuiMachine(int NumberOfBytesInMemory, int NumberOfBytesInRow, double Width, double Height){
+    public GuiMachine(int NumberOfBytesInMemory, int NumberOfBytesInRow, AddressFormat AddrFormat, MemoryFormat MemFormat, double Width, double Height){
         this.RegFile = new GuiRegisterFile(Width / 3, Height);
-        this.Mem = new GuiRam(NumberOfBytesInMemory, NumberOfBytesInRow, Width / 3, Height);
+        this.Mem = new GuiRam(NumberOfBytesInMemory, NumberOfBytesInRow, AddrFormat, MemFormat, Width / 3, Height);
         
         VBox FlagsAndIo = new VBox();
-        this.Flags = new GuiFlags(Width/3, Height/2);
-        this.Io = new GuiIO(Width/3, Height/2);
+        this.Flags = new GuiFlags(Width/3, Height/7);
+        this.Io = new GuiIO(Width/3, Height*6/7);
 
         FlagsAndIo.getChildren().addAll(Flags.getScrollPane(), this.Io.getTabPane());
 
@@ -52,6 +55,10 @@ public class GuiMachine extends HBox implements Machine{
         return this.RegFile.getRegisterValue(regName);
     }
 
+    public long getRegisterValue(int RegNumber){
+        return this.RegFile.getRegisterValue(RegNumber);
+    }
+
     public long getMemoryValue(int address){
         return this.Mem.getMemoryValue(address);
     }
@@ -60,4 +67,20 @@ public class GuiMachine extends HBox implements Machine{
         return this.Flags.getStatusValue(statusName);
     }
 
+    @Override
+    public void setRegisterValue(int regNumber, long regValue){
+        this.RegFile.setRegisterValue(regNumber, regValue);
+    }
+
+    public void appendIoText(String Name, String textToAppend){
+        this.Io.appendIoText(Name, textToAppend);
+    }
+
+    public void writeIoText(String Name, String textToWrite){
+        this.Io.writeIoText(Name, textToWrite);
+    }
+
+    public String readIoText(String Name){
+        return this.Io.readIoText(Name);
+    }
 }

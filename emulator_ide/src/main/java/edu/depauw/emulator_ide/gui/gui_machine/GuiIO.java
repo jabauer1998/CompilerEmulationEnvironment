@@ -14,7 +14,7 @@ public class GuiIO extends VBox{
     private double actualWidth;
     private double actualHeight;
 
-    HashMap<String, TextArea> IoPaneMap;
+    private HashMap<String, TextArea> IoPaneMap;
     
     public GuiIO(double Width, double Height){
         TabPane = new TabPane();
@@ -50,5 +50,23 @@ public class GuiIO extends VBox{
 
     public TabPane getTabPane(){
         return TabPane;
+    }
+
+    public void writeIoText(String textAreaName, String toWrite){
+        TextArea ioArea = IoPaneMap.get(textAreaName);
+        ioArea.setText(toWrite);
+    }
+
+    public String readIoText(String textAreaName){
+        TextArea ioArea = IoPaneMap.get(textAreaName);
+        return ioArea.getText();
+    }
+
+    public void appendIoText(String textAreaName, String toAppend){
+        TextArea ioArea = IoPaneMap.get(textAreaName);
+        StringBuilder appender = new StringBuilder();
+        appender.append(ioArea.getText());
+        appender.append(toAppend);
+        ioArea.setText(appender.toString());
     }
 }

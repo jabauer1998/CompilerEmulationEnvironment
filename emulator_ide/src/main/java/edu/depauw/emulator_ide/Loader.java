@@ -15,7 +15,7 @@ import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.gui.GuiEde;
-import edu.depauw.emulator_ide.gui.gui_machine.GuiFlag;
+import edu.depauw.emulator_ide.gui.gui_machine.GuiRam;
 import edu.depauw.emulator_ide.gui.gui_machine.GuiRegister;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
@@ -112,10 +112,12 @@ public class Loader extends Application {
 		int NumberOfBytes = 1000;
 		int NumberOfBytesInRow = 4;
 
-		GuiEde EdeInstance = new GuiEde(NumberOfBytes, NumberOfBytesInRow, stage.getMaxWidth(), stage.getMaxHeight());
+		GuiEde EdeInstance = new GuiEde(NumberOfBytes, NumberOfBytesInRow, GuiRam.AddressFormat.DECIMAL, GuiRam.MemoryFormat.HEXADECIMAL, stage.getMaxWidth(), stage.getMaxHeight());
 
-		EdeInstance.AddExeJob("Assemble", "ArmAssembler.exe -i TempInput -o TempOutput -e TempError", "TempInput", "TempOutput", "TempError");
-		EdeInstance.AddVerilogJob("Execute", "Processor.v", "ErrorFile");
+		EdeInstance.AddExeJob("Compile", "OberonCompiler.exe -i TempInput -o TempOutput -e TempError", "TempInput", "TempOutput", "TempError", "StandardError");
+		EdeInstance.AddExeJob("Assemble", "ArmAssembler.exe -i TempInput -o TempOutput -e TempError", "TempInput", "TempOutput", "TempError", "StandardError");
+		System.out.println("Current Folder : " + System.getProperty("user.dir"));
+		EdeInstance.AddVerilogJob("Execute", "emulator_ide/src/main/java/edu/depauw/emulator_ide/processor/ARM7TDMIS.v", "default", "StandardInput", "StandardOutput", "StandardError");
 
 		int RegisterLength = 32;
 		EdeInstance.AddRegister("CPSR", RegisterLength, GuiRegister.Format.BINARY);
@@ -136,12 +138,11 @@ public class Loader extends Application {
 		EdeInstance.AddRegister("R14", RegisterLength, GuiRegister.Format.BINARY);
 		EdeInstance.AddRegister("R15", RegisterLength, GuiRegister.Format.BINARY);
 
-
 		EdeInstance.AddFlag("C");
 		EdeInstance.AddFlag("V");
 		EdeInstance.AddFlag("N");
 		EdeInstance.AddFlag("O");
-
+		EdeInstance.AddFlag("Z");
 
 		EdeInstance.AddIoSection("Errors", "StandardError");
 		EdeInstance.AddIoSection("Io", "StandardInput", "StandardOutput");
@@ -220,7 +221,7 @@ public class Loader extends Application {
 				}
 			}
 
-			GuiEde EdeInstance = new GuiEde(NumberOfBytes, NumberOfBytesInRow, stage.getMaxWidth(), stage.getMaxHeight());
+			GuiEde EdeInstance = new GuiEde(NumberOfBytes, NumberOfBytesInRow, GuiRam.AddressFormat.DECIMAL, GuiRam.MemoryFormat.HEXADECIMAL, stage.getMaxWidth(), stage.getMaxHeight());
 
 			//Now we need to Build the Jobs Portion of the Ede
 			//We will go into each of the Jobs and generate the Jobs
@@ -232,7 +233,8 @@ public class Loader extends Application {
 				String Input = JobElem.getAttribute("Input");
 				String Output = JobElem.getAttribute("Output");
 				String Error = JobElem.getAttribute("Error");
-				EdeInstance.AddExeJob(JobName, Exec, Input, Output, Error);
+				String Pane = JobElem.getAttribute("ErrPane");
+				EdeInstance.AddExeJob(JobName, Exec, Input, Output, Error, Pane);
 			}
 
 			//The Final Job that is required is a Verilog Job that is utilized to run the Interpreter
@@ -241,7 +243,11 @@ public class Loader extends Application {
 				Element JobElem = (Element)VerilogNodes.item(i);
 				String JobName = JobElem.getAttribute("Name");
 				String Processor = JobElem.getAttribute("Proc");
-				EdeInstance.AddVerilogJob(JobName, Processor, "ErrOut");
+				String InputFile = JobElem.getAttribute("Input");
+				String InputPane = JobElem.getAttribute("IPane");
+				String OutputPane = JobElem.getAttribute("OPane");
+				String ErrorPane = JobElem.getAttribute("EPane");
+				EdeInstance.AddVerilogJob(JobName, Processor, InputFile, InputPane, OutputPane, ErrorPane);
 			}
 
 			

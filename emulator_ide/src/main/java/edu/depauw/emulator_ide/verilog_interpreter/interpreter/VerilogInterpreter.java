@@ -1,6 +1,7 @@
 package edu.depauw.emulator_ide.verilog_interpreter.interpreter;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.StringReader;
 import java.util.LinkedList;
@@ -36,6 +37,7 @@ public class VerilogInterpreter extends Interpreter {
      * 
      * @param Expression
      * @return
+     * @throws Exception
      */
 
      public Value interpretExpression(String Expression){
@@ -43,8 +45,14 @@ public class VerilogInterpreter extends Interpreter {
         Lexer lex = new Lexer(source, errorLog);
         LinkedList<Token> tokens = lex.tokenize();
         Parser parse = new Parser(tokens, errorLog);
-        Expression Exp = parse.parseExpression();
-        return interpretShallowExpression(Exp);
+        Expression exp = parse.parseExpression();
+
+		try{
+        	return interpretShallowExpression(exp);
+		} catch(Exception exception){
+			errorLog.addItem(new ErrorItem(exception.toString()));
+			return OpUtil.errorOccured();
+		}
     }
 
     public IntVal interpretStatement(String Statement){
@@ -53,14 +61,15 @@ public class VerilogInterpreter extends Interpreter {
         LinkedList<Token> tokens = lex.tokenize();
         Parser parse = new Parser(tokens, errorLog);
         Statement Stat = parse.parseStatement();
-        interpretShallowStatement(Stat);
 
-        if(errorLog.size() > 0){
-            errorLog.printLog();
-            return OpUtil.errorOccured();
-        } else {
-            return OpUtil.success();
-        }
+		try{
+        	interpretShallowStatement(Stat);
+		} catch(Exception exp) {
+			errorLog.addItem(new ErrorItem(exp.toString()));
+			return OpUtil.errorOccured();
+		}
+
+		return OpUtil.success();
     }
 
 	public IntVal interpretModuleItem(String moduleItem){
@@ -70,8 +79,13 @@ public class VerilogInterpreter extends Interpreter {
 		Parser parse = new Parser(tokens, errorLog);
 		List<ModuleItem> items = parse.parseModuleItem();
 		for(ModuleItem item : items){
-			Value Result = interpretModuleItem(item);
-			if(Result == OpUtil.errorOccured()){
+			try{
+				Value Result = interpretModuleItem(item);
+				if(Result == OpUtil.errorOccured()){
+					return OpUtil.errorOccured();
+				}
+			} catch(Exception exp){
+				errorLog.addItem(new ErrorItem(exp.toString()));
 				return OpUtil.errorOccured();
 			}
 		}
@@ -84,7 +98,12 @@ public class VerilogInterpreter extends Interpreter {
         LinkedList<Token> tokens = lex.tokenize();
         Parser parse = new Parser(tokens, errorLog);
         ModuleDeclaration Decl = parse.parseModuleDeclaration();
-        interpretModule(Decl);
+
+		try{
+        	interpretModule(Decl);
+		} catch(Exception exp){
+			errorLog.addItem(new ErrorItem(exp.toString()));
+		}
 
         if(errorLog.size() > 0){
             errorLog.printLog();
@@ -98,8 +117,10 @@ public class VerilogInterpreter extends Interpreter {
         try{
 			FileReader Reader = new FileReader(FileName);
 			return interpretFile(Reader);
-		} catch(Exception exc) {
+		} catch(FileNotFoundException exc) {
 			errorLog.addItem(new ErrorItem("Could not make file stream exception thrown" + exc.toString()));
+		} catch (Exception exp){
+			errorLog.addItem(new ErrorItem("Exception occured when interpreting file " + exp.toString()));
 		}
 
 		return OpUtil.errorOccured();
@@ -115,7 +136,8 @@ public class VerilogInterpreter extends Interpreter {
 		 */
         
 		List<Token> tokens = lex.tokenize();
-        Preprocessor Prepros = new Preprocessor(errorLog, tokens);
+        
+		Preprocessor Prepros = new Preprocessor(errorLog, tokens);
 		tokens = Prepros.executePass();
 
 		/**
@@ -126,7 +148,12 @@ public class VerilogInterpreter extends Interpreter {
 		Parser P = new Parser(tokens, errorLog);
 		VerilogFile File = P.parseVerilogFile();
 
-		return interpretFile(File);
+		try{
+			return interpretFile(File);
+		} catch(Exception exp){
+			errorLog.addItem(new ErrorItem(exp.toString()));
+			return OpUtil.errorOccured();
+		}
 	}
 
 	public IntVal interpretFile(FileInputStream Stream){
@@ -146,10 +173,17 @@ public class VerilogInterpreter extends Interpreter {
 		 VerilogFile File = P.parseVerilogFile();
 
 
-		return interpretFile(File);
+		try{
+			IntVal interpreterResult = interpretFile(File);
+			return interpreterResult;
+		} catch(Exception exp) {
+			errorLog.addItem(new ErrorItem(exp.toString()));
+		}
+		
+		return OpUtil.errorOccured();
 	}
 
-    protected IntVal interpretSystemTaskCall(SystemTaskStatement task){
+    protected IntVal interpretSystemTaskCall(SystemTaskStatement task) throws Exception{
 		String taskName = task.taskName;
 
 		if (taskName.equals("fclose")) {
@@ -181,7 +215,7 @@ public class VerilogInterpreter extends Interpreter {
 		return OpUtil.success();
     }
 
-    protected Value interpretSystemFunctionCall(SystemFunctionCall call){
+    protected Value interpretSystemFunctionCall(SystemFunctionCall call) throws Exception{
 		String functionName = call.functionName;
 
 		if (functionName.equals("fopen")) {

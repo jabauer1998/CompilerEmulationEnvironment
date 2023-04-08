@@ -37,69 +37,72 @@ public class StrVal implements Value{
     }
 
     @Override
-    public boolean isBoolValue(){ // TODO Auto-generated method stub
+    public boolean isBoolValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isShortValue(){ // TODO Auto-generated method stub
+    public boolean isShortValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isUnsignedShortValue(){ // TODO Auto-generated method stub
+    public boolean isUnsignedShortValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isByteValue(){ // TODO Auto-generated method stub
+    public boolean isByteValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isUnsignedByteValue(){ // TODO Auto-generated method stub
+    public boolean isUnsignedByteValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isIntValue(){ // TODO Auto-generated method stub
+    public boolean isIntValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isUnsignedIntValue(){ // TODO Auto-generated method stub
+    public boolean isUnsignedIntValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isLongValue(){ // TODO Auto-generated method stub
+    public boolean isLongValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isUnsignedLongValue(){ // TODO Auto-generated method stub
+    public boolean isUnsignedLongValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isRealValue(){ // TODO Auto-generated method stub
+    public boolean isRealValue(){ 
         return false; 
     }
 
     @Override
-    public boolean isStringValue(){ // TODO Auto-generated method stub
+    public boolean isStringValue(){ 
+        return true; 
+    }
+
+    @Override
+    public boolean isVector(){ 
         return false; 
     }
 
     @Override
-    public boolean isVector(){ // TODO Auto-generated method stub
-    return false; }
+    public boolean isRegister(){ 
+        return false; 
+    }
 
     @Override
-    public boolean isRegister(){ // TODO Auto-generated method stub
-    return false; }
-
-    @Override
-    public boolean isWire(){ // TODO Auto-generated method stub
-    return false; }
+    public boolean isWire(){ 
+        return false; 
+    }
 }

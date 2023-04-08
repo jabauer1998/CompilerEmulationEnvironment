@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import edu.depauw.emulator_ide.gui.GuiEde;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
 import javafx.scene.control.TextArea;
 
@@ -16,20 +17,26 @@ public class ExeJob extends GuiJob {
     private String OutputFile;
     private String ErrorFile;
     private List<TextArea> guiJobs;
+    private String errorTextAreaName;
 
-    public ExeJob(String ButtonText, double Width, double Height, String ExeString, String InputFile, String OutputFile, String ErrorFile, List<TextArea> guiJobs) { 
+    private GuiEde edeInstance;
+
+    public ExeJob(String ButtonText, double Width, double Height, String ExeString, String InputFile, String OutputFile, String ErrorFile, String errorTextAreaName, List<TextArea> guiJobs, GuiEde edeInstance) { 
         super(ButtonText, Width, Height);
         this.ExeString = ExeString;
         this.InputFile = InputFile;
         this.OutputFile = OutputFile;
         this.ErrorFile = ErrorFile;
         this.guiJobs = guiJobs;
+        this.edeInstance = edeInstance;
+        this.errorTextAreaName = errorTextAreaName;
     }
 
     public void RunJob(){
         CreateFiles();
         RunCommand();
         CopyOverOutputData();
+        CollectErrorData();
     }
 
     private void RunCommand(){
@@ -81,18 +88,47 @@ public class ExeJob extends GuiJob {
             try {
                 StringBuilder memText = new StringBuilder();
                 FileReader outputReader = new FileReader(OutputFilePtr);
-                while(outputReader.read() != -1){
-                    memText.append((char)outputReader.read());
+                while(true){
+                    int outputCharFull = (char)outputReader.read();
+                    if(outputCharFull == -1)
+                        break;
+                    memText.append((char)outputCharFull);
                 }
                 OutputTextArea.setText(memText.toString());
                 outputReader.close();
             } catch (FileNotFoundException e) {
+                edeInstance.appendIoText(errorTextAreaName, e.toString());
+            } catch (IOException e) {
+                edeInstance.appendIoText(errorTextAreaName, e.toString());
+            }
+        }
+    }
+
+    private void CollectErrorData(){
+        File errorFilePtr = new File(ErrorFile);
+        if(errorFilePtr.exists()){
+            //If it exists we need to collect the Error Data
+            try {
+                FileReader fReader = new FileReader(errorFilePtr);
+                StringBuilder memText = new StringBuilder();
+                
+                while(true){
+                    int outputCharFull = fReader.read();
+                     if(outputCharFull == -1){
+                        break;
+                     }
+                     memText.append((char)outputCharFull);
+                }
+
+                edeInstance.appendIoText(errorTextAreaName, memText.toString());
+            } catch (FileNotFoundException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                edeInstance.appendIoText(errorTextAreaName, e.toString());
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                edeInstance.appendIoText(errorTextAreaName, e.toString());
             }
+
         }
     }
 }

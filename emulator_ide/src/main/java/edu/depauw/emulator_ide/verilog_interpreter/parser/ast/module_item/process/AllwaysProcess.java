@@ -2,6 +2,7 @@ package edu.depauw.emulator_ide.verilog_interpreter.parser.ast.module_item.proce
 
 import java.util.concurrent.Semaphore;
 import edu.depauw.emulator_ide.common.Position;
+import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.Interpreter;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
 import edu.depauw.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
@@ -11,7 +12,7 @@ public class AllwaysProcess extends ProcessBase {
 		super(start, statement);
 	}
 
-	public void executeProcess(Interpreter interpreter, Semaphore Semaphore){
+	public void executeProcess(Interpreter interpreter, Semaphore Semaphore) throws Exception{
 		boolean AllwaysTrue = true;
 		while(AllwaysTrue){
 			interpreter.interpretShallowStatement(this.statement);

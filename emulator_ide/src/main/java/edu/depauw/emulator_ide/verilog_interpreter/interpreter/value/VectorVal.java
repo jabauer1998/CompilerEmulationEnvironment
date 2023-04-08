@@ -14,8 +14,7 @@ import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_ele
  */
 
 public class VectorVal implements Value{
-
-	private List<CircuitElem>  data;
+	private List<CircuitElem> data;
 	private final int index1;
 	private final int index2;
 
@@ -32,7 +31,10 @@ public class VectorVal implements Value{
 		this.index1 = index1;
 		this.index2 = index2;
 		int size = this.getSize();
-		data = new ArrayList<>(size);
+		this.data = new ArrayList<>();
+		for(int i = 0; i < size; i++){
+			this.data.add(new RegVal(false));
+		}
 	}
 
 	public CircuitElem getValue(int index){
@@ -89,11 +91,17 @@ public class VectorVal implements Value{
 		return vec;
 	}
 
-	public int getIndex1(){ return index1; }
+	public int getIndex1(){ 
+		return index1; 
+	}
 
-	public int getIndex2(){ return index2; }
+	public int getIndex2(){ 
+		return index2; 
+	}
 
-	public int getSize(){ return (index1 > index2) ? index1 - index2 + 1 : index2 - index1 + 1; }
+	public int getSize(){ 
+		return (index1 > index2) ? index1 - index2 + 1 : index2 - index1 + 1; 
+	}
 
 	public void setValue(int index, CircuitElem val){
 		int realIndex = (index1 <= index2) ? index - index1 : index1 - index;
@@ -219,60 +227,73 @@ public class VectorVal implements Value{
 	}
 
 	@Override
-	public boolean isBoolValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isBoolValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isShortValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isShortValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isUnsignedShortValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isUnsignedShortValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isByteValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isByteValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isUnsignedByteValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isUnsignedByteValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isIntValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isIntValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isUnsignedIntValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isUnsignedIntValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isLongValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isLongValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isUnsignedLongValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isUnsignedLongValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isRealValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isRealValue(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isStringValue(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isStringValue(){ // 
+		return false;
+	}
 
 	@Override
 	public boolean isVector(){
-		 // TODO Auto-generated method stub
+		 // 
 		return true; 
 	}
 
 	@Override
-	public boolean isRegister(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isRegister(){ // 
+		return false; 
+	}
 
 	@Override
-	public boolean isWire(){ // TODO Auto-generated method stub
-	return false; }
+	public boolean isWire(){ // 
+		return false; 
+	}
 }

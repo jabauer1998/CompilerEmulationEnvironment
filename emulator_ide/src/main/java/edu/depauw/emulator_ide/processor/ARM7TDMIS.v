@@ -77,14 +77,14 @@ module Arm();
 	 handler = $fopen("default", "r");
 	 while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
-	    $setMemory($getRegister(15), binaryLine[31:24]);
-	    $setMemory($getRegister(15) + 1, binaryLine[23:16]);
-	    $setMemory($getRegister(15) + 2, binaryLine[15:8]);
-	    $setMemory($getRegister(15) + 3, binaryLine[7:0]);
-	    $setRegister(15, $getRegister(15) + 4); //incriment program counter
+	    $setMemory($getRegister("R15"), binaryLine[31:24]);
+	    $setMemory($getRegister("R15") + 1, binaryLine[23:16]);
+	    $setMemory($getRegister("R15") + 2, binaryLine[15:8]);
+	    $setMemory($getRegister("R15") + 3, binaryLine[7:0]);
+	    $setRegister("R15", $getRegister("R15") + 4); //incriment program counter
 	 end
 	 $fclose(handler); //close handler
-	 $setRegister(15, address); //set the program counter back to the beginning
+	 $setRegister("R15", address); //set the program counter back to the beginning
       end
    endtask //loadProgram
 
@@ -129,7 +129,7 @@ module Arm();
 	   `DATAPROC: decode = instruction[24:21] + 2; // 2 to 17
 	   `LDRSTR : decode = 23;
 	   default: begin
-	      $display("Error: Unidentified intruction %d\n", instruction);
+	      $display("Error: Unidentified intsruction when decoding instruction %d\n", instruction);
 	      $finish;
 	      decode = -1;
 	   end
@@ -157,7 +157,7 @@ module Arm();
 	   `LE : checkCC = $getStatus("Z") | ($getStatus("N") != $getStatus("V"));
 	   `AL : checkCC = 1; //allways exec
 	   default: begin
-	      $display("Error: Unidentified intsruction %d\n", code);
+	      $display("Error: Unidentified intsruction when checkingCC %d\n", code);
 	      $finish;
 	      checkCC = -1;
 	   end
@@ -167,7 +167,7 @@ module Arm();
    
 
    task incriment;
-      $setRegister(15, $getRegister(15) + 4); //incriment program counter by 4 bytes
+      $setRegister("R15", $getRegister("R15") + 4); //incriment program counter by 4 bytes
    endtask // incriment
 
    task execute;
@@ -186,7 +186,7 @@ module Arm();
       if(checkCC(INSTR[31:28]))
 	begin
 	case(code)
-	  0: $setRegister(15, $getRegister(INSTR[3:0])); //BX or BE
+	  0: $setRegister("R15", $getRegister(INSTR[3:0])); //BX or BE
 	  1: begin //BL | B
 	     if(INSTR[24]) //check if Link bit is set
 	       $setRegister(14, $getRegister(15));
@@ -250,10 +250,10 @@ module Arm();
 	     endcase // case (code)
 	     
 	     if(INSTR[20]) begin //set the status bits if necessary
-		$setStatus("C", solution32[32]);
-		$setStatus("Z", !solution32);
-		$setStatus("N", solution32[31]);
-                $setStatus("V", (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]));
+			$setStatus("C", solution32[32]);
+			$setStatus("Z", !solution32);
+			$setStatus("N", solution32[31]);
+            $setStatus("V", (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]));
 	     end
 
 	     if(code >= 2 && code <= 9 || code >= 14 && code <= 17) //If the instruction wants a result return it
@@ -568,10 +568,10 @@ module Arm();
    initial begin
       loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
       while(InstructionCode != 28 && $getRegister(15) < `MEMSIZE) begin
-	 INSTR = fetch($getRegister(15)); //old Fetch
-	 InstructionCode = decode(INSTR);
-	 incriment; //increment the program counter by a word or 4 bytes
-	 execute(InstructionCode);
+	 	INSTR = fetch($getRegister(15)); //old Fetch
+	 	InstructionCode = decode(INSTR);
+	 	incriment; //increment the program counter by a word or 4 bytes
+	 	execute(InstructionCode);
       end
    end
    

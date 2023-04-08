@@ -3,30 +3,44 @@ package edu.depauw.emulator_ide.gui.gui_job;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.gui.GuiEde;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.EdeInterpreter;
 
 public class VerilogJob extends GuiJob{
-    GuiEde EdeInstance;
+    private GuiEde edeInstance;
+    private String errorPane;
+    private String verilogFile;
+    private String inputFile;
+    private String outputPane;
+    private String inputPane;
 
-    public VerilogJob(String JobName, double Width, double Height, GuiEde Ede, String ErrorPane){
+    public VerilogJob(String JobName, double Width, double Height, String verilogFile, String inputFile, String inputPane, String outputPane, String errorPane, GuiEde Ede){
         super(JobName, Width, Height);
-        EdeInstance = Ede;
+        this.edeInstance = Ede;
+        this.errorPane = errorPane;
+        this.verilogFile = verilogFile;
+        this.inputFile = inputFile;
+        this.outputPane = outputPane;
+        this.inputPane = inputPane;
     }
 
     @Override
     public void RunJob(){ // TODO Auto-generated method stub
         CopyDataToOutputFile();
-        Destination Dest = new Destination(System.err);
+        StringWriter writer = new StringWriter();
+        Destination Dest = new Destination(writer);
         ErrorLog errLog = new ErrorLog(Dest);
-        EdeInterpreter Interpreter = new EdeInterpreter(errLog, EdeInstance);
-        Interpreter.interpretFile("InterpretTemp");
+        EdeInterpreter interpreter = new EdeInterpreter(errLog, edeInstance, outputPane, inputPane);
+        interpreter.interpretFile(verilogFile);
+        errLog.printLog();
+        edeInstance.appendIoText(errorPane, writer.toString());
     }
 
     public void CopyDataToOutputFile(){
-        File File = new File("InterpretTemp");
+        File File = new File(inputFile);
         if(File.exists()){
             File.delete();
         }
@@ -37,8 +51,7 @@ public class VerilogJob extends GuiJob{
             Writer.write(this.getInputSection().getText());
             Writer.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            edeInstance.appendIoText(errorPane, e.toString());
         }
     }
 }

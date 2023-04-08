@@ -6,7 +6,7 @@ import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_ele
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
 
 public class RippleCarrySubtractor {
-    public RippleCarrySubtractor(WireVal CarryOut, VectorVal Output, VectorVal Input1, VectorVal Input2){
+    public RippleCarrySubtractor(WireVal CarryOut, VectorVal Output, VectorVal Input1, VectorVal Input2) throws Exception{
         if(Input1.getSize() == Input2.getSize()){
             int Start1 = Input1.getStart();
         int Start2 = Input2.getStart();

@@ -16,6 +16,7 @@ public class GuiRegisterFile extends VBox implements RegFile {
     private double actualHeight;
 
     private HashMap<String, GuiRegister> regFile;
+    private HashMap<Integer, GuiRegister> intRegFile;
     
     public GuiRegisterFile(double Width, double Height){
         actualWidth = Width;
@@ -29,6 +30,7 @@ public class GuiRegisterFile extends VBox implements RegFile {
         this.RegisterHeight = Height / 6;
 
         regFile = new HashMap<>();
+        intRegFile = new HashMap<>();
     }
 
     public ScrollPane getScrollPane(){
@@ -38,7 +40,21 @@ public class GuiRegisterFile extends VBox implements RegFile {
     public void AddGuiRegister(String Title, int Length, GuiRegister.Format Format){
         GuiRegister Register = new GuiRegister(Title, Length, Format, RegisterWidth, RegisterHeight);
         
-        regFile.put(Register.getTitle(), Register);
+        regFile.put(Title, Register);
+
+        StringBuilder numberBuilder = new StringBuilder();
+        char[] TitleChars = Title.toCharArray();
+
+        for(char TitleChar : TitleChars){
+            if(Character.isDigit(TitleChar)){
+                numberBuilder.append(TitleChar);
+            }
+        }
+
+        if(numberBuilder.toString().length() > 0){
+            int lookupInt = Integer.parseInt(numberBuilder.toString());
+            intRegFile.put(lookupInt, Register);
+        }
 
         this.getChildren().add(Register);
         resizeRegisterFile();
@@ -55,16 +71,23 @@ public class GuiRegisterFile extends VBox implements RegFile {
     @Override
     public long getRegisterValue(String regName){
         GuiRegister Reg = regFile.get(regName);
+        return Reg.GetRegisterValue();
+    }
 
-        String value = Reg.GetRegisterValue();
-
-        return Long.parseLong(value);
+    public long getRegisterValue(int RegNumber){
+        GuiRegister Reg = intRegFile.get(RegNumber);
+        return Reg.GetRegisterValue();
     }
 
     @Override
     public void setRegisterValue(String regName, long regValue){ 
        GuiRegister Reg = regFile.get(regName);
-       String regValueString = Long.toBinaryString(regValue);
-       Reg.SetRegisterValue(regValueString);
+       Reg.SetRegisterValue(regValue);
+    }
+
+     
+    public void setRegisterValue(int regNumber, long regValue){
+        GuiRegister Reg = intRegFile.get(regNumber);
+        Reg.SetRegisterValue(regValue);
     }
 }

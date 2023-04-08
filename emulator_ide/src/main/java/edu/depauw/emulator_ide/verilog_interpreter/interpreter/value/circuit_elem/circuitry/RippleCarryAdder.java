@@ -5,7 +5,7 @@ import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
 
 public class RippleCarryAdder {
-    public RippleCarryAdder(WireVal CarryOut, VectorVal Output, VectorVal Input1, VectorVal Input2){
+    public RippleCarryAdder(WireVal CarryOut, VectorVal Output, VectorVal Input1, VectorVal Input2) throws Exception{
         if(Input1.getSize() == Input2.getSize()){
             int Start1 = Input1.getStart();
             int Start2 = Input2.getStart();

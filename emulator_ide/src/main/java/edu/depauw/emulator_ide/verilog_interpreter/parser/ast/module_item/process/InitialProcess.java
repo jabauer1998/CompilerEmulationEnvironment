@@ -12,7 +12,7 @@ public class InitialProcess extends ProcessBase{
         super(start, statement);
     }
 
-    public void executeProcess(Interpreter Interpreter, Semaphore semaphore){
+    public void executeProcess(Interpreter interpreter, Semaphore semaphore) throws Exception{
         interpreter.interpretShallowStatement(this.statement);
         semaphore.release();
     }

@@ -28,15 +28,15 @@ public class GuiJobs extends VBox {
         Jobs = new LinkedList<>();
     }
 
-    public void AddExeJob(String JobName, String ExecString, String OutputFile, String ErrorFile, String InputFile){
-        GuiJob Job = new ExeJob(JobName, JobWidth, JobHeight, ExecString, InputFile, OutputFile, ErrorFile, Jobs);
+    public void AddExeJob(String JobName, String ExecString, String InputFile, String OutputFile, String ErrorFile, String errorTextBox,  GuiEde edeInstance){
+        GuiJob Job = new ExeJob(JobName, JobWidth, JobHeight, ExecString, InputFile, OutputFile, ErrorFile, errorTextBox, Jobs, edeInstance);
         this.getChildren().addAll(Job);
 
         Jobs.add(Job.getInputSection());
     }
 
-    public void AddVerilogJob(String JobName, String VerilogFile, GuiEde EdeInstance, String ErrorPane){
-        VerilogJob Job = new VerilogJob(JobName, JobWidth, JobHeight, EdeInstance, ErrorPane);
+    public void AddVerilogJob(String JobName, String verilogFile, String inputFile, String inputPane, String outputPane, String errorPane, GuiEde edeInstance){
+        VerilogJob Job = new VerilogJob(JobName, JobWidth, JobHeight, verilogFile, inputFile, inputPane, outputPane, errorPane, edeInstance);
 
         this.getChildren().addAll(Job);
         

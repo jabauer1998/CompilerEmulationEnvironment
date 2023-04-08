@@ -18,6 +18,10 @@ public class ArrayVal<ArrayType extends Value> implements Value {
         ArrList.set(Index, Elem);
     }
 
+    public void AddElem(ArrayType Elem){
+        ArrList.add(Elem);
+    }
+
     @Override
     public double realValue(){
         // TODO Auto-generated method stub
@@ -54,73 +58,73 @@ public class ArrayVal<ArrayType extends Value> implements Value {
 
     @Override
     public boolean isBoolValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isBoolValue();
+        return false;
     }
 
     @Override
     public boolean isShortValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isShortValue();
+        return false;
     }
 
     @Override
     public boolean isUnsignedShortValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isUnsignedShortValue();
+        return false;
     }
 
     @Override
     public boolean isByteValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isByteValue();
+        return false;
     }
 
     @Override
     public boolean isUnsignedByteValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isUnsignedByteValue();
+        return false;
     }
 
     @Override
     public boolean isIntValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isIntValue();
+        return false;
     }
 
     @Override
     public boolean isUnsignedIntValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isUnsignedIntValue();
+        return false;
     }
 
     @Override
     public boolean isLongValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isLongValue();
+        return false;
     }
 
     @Override
     public boolean isUnsignedLongValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isUnsignedLongValue();
+        return false;
     }
 
     @Override
     public boolean isRealValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isRealValue();
+        return false;
     }
 
     @Override
     public boolean isStringValue(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isStringValue();
+        return false;
     }
 
     @Override
     public boolean isVector(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isVector(); 
+        return false; 
     }
 
     @Override
     public boolean isRegister(){ 
         // TODO Auto-generated method stub
-        return this.ArrList.get(0).isRegister();
+        return false;
     }
 
     @Override
     public boolean isWire(){ // TODO Auto-generated method stub
-        return this.ArrList.get(0).isWire();
+        return false;
     }
     
 }

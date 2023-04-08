@@ -5,24 +5,10 @@ import edu.depauw.emulator_ide.common.io.Destination;
 import edu.depauw.emulator_ide.common.io.Source;
 
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.VerilogInterpreter;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Primitive;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.Value;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.Parser;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.Token;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.*;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.expression.*;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.*;
 import org.junit.Test;
-import static edu.depauw.emulator_ide.TestUtils.*;
 import static org.junit.Assert.*;
-import java.io.StringReader;
 
 public class InterpreterTest {
 

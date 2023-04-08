@@ -33,7 +33,7 @@ public abstract class Pattern implements Value{
         return pattern;
     }
 
-    public boolean match(Value value){
+    public boolean match(Value value) throws Exception{
         if(value.isBoolValue()) return match((BoolVal)value);
         else if(value.isByteValue()) return match((ByteVal)value);
         else if(value.isIntValue()) return match((IntVal)value);

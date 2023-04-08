@@ -1,21 +1,13 @@
 package edu.depauw.emulator_ide.verilog_interpreter.interpreter;
 
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.PrintStream;
-import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.Semaphore;
-import edu.depauw.emulator_ide.Main;
 import edu.depauw.emulator_ide.common.Pointer;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
-import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_interpreter.OpUtil;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
-import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.RealVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
@@ -34,9 +26,9 @@ import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_ele
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.XorGate;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.Web;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.Lexer;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.Parser;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.Token;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.pattern.BinaryPattern;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.pattern.HexadecimalPattern;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.pattern.OctalPattern;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.VerilogFile;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.expression.ConstantExpression;
@@ -106,7 +98,7 @@ import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.branchin
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.branching._if_.IfStatement;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.task.TaskStatement;
-import edu.depauw.emulator_ide.verilog_interpreter.parser.pre_processor.Preprocessor;
+import javafx.application.Platform;
 
 /**
  * The Follwowing Class can be utilized to Interpret Verilog Modules
@@ -131,7 +123,7 @@ public abstract class Interpreter {
         this.environment = new Environment();
     }
 
-	protected IntVal interpretFile(VerilogFile File){
+	protected IntVal interpretFile(VerilogFile File) throws Exception{
 		for(ModuleDeclaration Decl : File.modules){
 			interpretModule(Decl);
 		}
@@ -143,22 +135,22 @@ public abstract class Interpreter {
 
 		for(int i = 0; i < numberOfExitTickets; i++){
 			ProcessBase Process = environment.getProcess(i);
-			Process.initEnvironment(this, exitTickets);
-			Thread Thread = new Thread(Process);
-			Thread.start();
+			Process.initEnvironment(this, errorLog, exitTickets);
+			Thread Tr = new Thread(Process);
+			Tr.run();
 		}
 
 		try {
 			exitTickets.acquire();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			errorLog.addItem(new ErrorItem("Could Not Aquire the Semaphore"));
 		}
 
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretModule(ModuleDeclaration mod){
+	protected IntVal interpretModule(ModuleDeclaration mod) throws Exception{
 		String modName = mod.moduleName;
 
 		if (environment.moduleExists(modName)) {
@@ -178,14 +170,14 @@ public abstract class Interpreter {
 	 * Below is the code for visiting ModItem constructs
 	 */
 
-	 protected IntVal interpretModuleItem(ModuleItem Item){
+	 protected IntVal interpretModuleItem(ModuleItem Item) throws Exception{
 		if(Item instanceof GateDeclaration) return interpretGateDeclaration((GateDeclaration)Item);
 		else if (Item instanceof IdentDeclaration) return interpretIdentDeclaration((IdentDeclaration)Item);
 		else if (Item instanceof Unidentified.Declaration) return interpretUnidentifiedDeclaration((Unidentified.Declaration)Item);
 		else if (Item instanceof ModuleInstance) return interpretModuleInstance((ModuleInstance)Item);
 		else if (Item instanceof ModuleInstantiation) return interpretModInstantiation((ModuleInstantiation)Item);
 		else if (Item instanceof ProcedureDeclaration) return interpretProcedureDeclaration((ProcedureDeclaration)Item);
-		else if (Item instanceof Process) return interpretProcess((ProcessBase)Item);
+		else if (Item instanceof ProcessBase) return interpretProcess((ProcessBase)Item);
 		else if (Item instanceof ContinuousAssignment) return interpretContinuousAssignment((ContinuousAssignment)Item);
 		else if (Item instanceof EmptyModItem) return interpretEmptyModItem((EmptyModItem)Item);
 		else {
@@ -194,7 +186,7 @@ public abstract class Interpreter {
 		}
 	 }
 
-	 protected IntVal interpretGateDeclaration(GateDeclaration Item){
+	 protected IntVal interpretGateDeclaration(GateDeclaration Item) throws Exception{
 		if(Item instanceof AndGateDeclaration) return interpretAndGate((AndGateDeclaration)Item);
 		else if (Item instanceof NandGateDeclaration) return interpretNandGate((NandGateDeclaration)Item);
 		else if (Item instanceof NorGateDeclaration) return interpretNorGate((NorGateDeclaration)Item);
@@ -212,9 +204,10 @@ public abstract class Interpreter {
 	 * This is used to visit any andgate declaration in verilog. Ex. integer a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretAndGate(AndGateDeclaration decl){
+	protected IntVal interpretAndGate(AndGateDeclaration decl) throws Exception{
 
 	   List<Expression> inputs = decl.gateConnections;
 	   Expression output = inputs.remove(0);
@@ -243,9 +236,10 @@ public abstract class Interpreter {
 	 * This is used to visit any orgate declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretOrGate(OrGateDeclaration decl){
+	protected IntVal interpretOrGate(OrGateDeclaration decl) throws Exception{
 	   List<Expression> inputs = decl.gateConnections;
 	   Expression output = inputs.remove(0);
 	   Expression input1 = inputs.remove(0);
@@ -272,9 +266,10 @@ public abstract class Interpreter {
 	 * This is used to visit any nandgate declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	 protected IntVal interpretNandGate(NandGateDeclaration decl){
+	 protected IntVal interpretNandGate(NandGateDeclaration decl) throws Exception{
 
 		List<Expression> inputs = decl.gateConnections;
 		Expression output = inputs.remove(0);
@@ -303,9 +298,10 @@ public abstract class Interpreter {
 	 * This is used to visit any norgate declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	 protected IntVal interpretNorGate(NorGateDeclaration decl){
+	 protected IntVal interpretNorGate(NorGateDeclaration decl) throws Exception{
 
 		List<Expression> inputs = decl.gateConnections;
 		Expression output = inputs.remove(0);
@@ -334,9 +330,10 @@ public abstract class Interpreter {
 	 * This is used to visit any xorgate declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	 protected IntVal interpretXorGate(XorGateDeclaration decl){
+	 protected IntVal interpretXorGate(XorGateDeclaration decl) throws Exception{
 
 		List<Expression> inputs = decl.gateConnections;
 		Expression output = inputs.remove(0);
@@ -361,7 +358,7 @@ public abstract class Interpreter {
 		 return OpUtil.success();
 	 }
 
-	 protected IntVal interpretXnorGate(XnorGateDeclaration decl){
+	 protected IntVal interpretXnorGate(XnorGateDeclaration decl) throws Exception{
 
 		List<Expression> inputs = decl.gateConnections;
 		Expression output = inputs.remove(0);
@@ -390,9 +387,10 @@ public abstract class Interpreter {
 	 * This is used to visit any notgate declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretNotGate(NotGateDeclaration decl){
+	protected IntVal interpretNotGate(NotGateDeclaration decl) throws Exception{
 		List<Expression> connections = decl.gateConnections;
 
 		Expression outputConnection = connections.remove(0);
@@ -405,7 +403,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretModuleInstance(ModuleInstance instance){
+	protected IntVal interpretModuleInstance(ModuleInstance instance) throws Exception{
 		List<Expression> expressions = instance.expList;
 
 		if(environment.moduleExists(instance.instanceName)){
@@ -420,7 +418,7 @@ public abstract class Interpreter {
 		return OpUtil.errorOccured();
 	}
 
-	protected IntVal interpretModInstantiation(ModuleInstantiation modList){
+	protected IntVal interpretModInstantiation(ModuleInstantiation modList) throws Exception{
 		List<ModuleInstance> modInstances = modList.modList;
 		
 		for(ModuleInstance Instance : modInstances){
@@ -432,9 +430,10 @@ public abstract class Interpreter {
 
 	/**
 	 * Now we will defined the Procedure Declarations and where those statements reside
+	 * @throws Exception
 	 */
 
-	 protected IntVal interpretProcedureDeclaration(ProcedureDeclaration Procedure){
+	 protected IntVal interpretProcedureDeclaration(ProcedureDeclaration Procedure) throws Exception{
 		if(Procedure instanceof TaskDeclaration) return interpretTaskDeclaration((TaskDeclaration) Procedure);
 		else if (Procedure instanceof FunctionDeclaration) return interpretFunctionDeclaration((FunctionDeclaration) Procedure);
 		else {
@@ -447,9 +446,10 @@ public abstract class Interpreter {
 	 * This is used to visit a task declaration in verilog
 	 * 
 	 * @param task
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretTaskDeclaration(TaskDeclaration task){
+	protected IntVal interpretTaskDeclaration(TaskDeclaration task) throws Exception{
 		String taskName = task.taskName;
 
 		if (environment.functionExists(taskName)) {
@@ -462,12 +462,12 @@ public abstract class Interpreter {
 		return null;
 	}
 
-	protected IntVal interpretFunctionDeclaration(FunctionDeclaration function){
+	protected IntVal interpretFunctionDeclaration(FunctionDeclaration function) throws Exception{
 		StrVal functionName = OpUtil.fetchFunctionName(function.functionName);
 		// May need to finish this later
 
 		if(environment.functionExists(functionName.toString())){
-			OpUtil.errorAndExit("Error: no function with the name of " + functionName + " was found");
+			OpUtil.errorAndExit("Error: No function with the name of " + functionName + " was found");
 			return OpUtil.errorOccured();
 		} else {
 			environment.addFunction(functionName.toString(), function);
@@ -475,7 +475,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected IntVal interpretProcess(ProcessBase process){
+	protected IntVal interpretProcess(ProcessBase process) throws Exception{
 		if(process instanceof AllwaysProcess) return interpretAllwaysProcess((AllwaysProcess)process);
 		else if(process instanceof InitialProcess) return interpretInitialProcess((InitialProcess)process);
 		else {
@@ -506,9 +506,10 @@ public abstract class Interpreter {
 	 * This is the code to visit a Continuous Assignment in Verilog.
 	 * 
 	 * @param assign
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretContinuousAssignment(ContinuousAssignment assign){
+	protected IntVal interpretContinuousAssignment(ContinuousAssignment assign) throws Exception{
 		for (BlockingAssignment amnt : assign.assignmentList){
 			interpretDeepAssignment(amnt);
 		}
@@ -516,7 +517,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeepAssignment(BlockingAssignment Assignment){
+	protected IntVal interpretDeepAssignment(BlockingAssignment Assignment) throws Exception{
 		Value ExpressionResult = interpretDeepExpression(Assignment.rightHandSide);
 
 		if(Assignment.leftHandSide instanceof Element){
@@ -577,7 +578,7 @@ public abstract class Interpreter {
 		return null; // this class is just for completeness
 	}
 
-	protected IntVal interpretIdentDeclaration(IdentDeclaration declaration){
+	protected IntVal interpretIdentDeclaration(IdentDeclaration declaration) throws Exception{
 		if(declaration instanceof ArrayDeclaration) return interpretArrayDeclaration((ArrayDeclaration)declaration);
 		else if(declaration instanceof Input.Wire.Vector.Ident) return interpretDeclaration((Input.Wire.Vector.Ident)declaration);
 		else if(declaration instanceof Input.Reg.Vector.Ident) return interpretDeclaration((Input.Reg.Vector.Ident)declaration);
@@ -599,7 +600,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected IntVal interpretArrayDeclaration(ArrayDeclaration declaration){
+	protected IntVal interpretArrayDeclaration(ArrayDeclaration declaration) throws Exception{
 		if(declaration instanceof Reg.Scalar.Array) return interpretDeclaration((Reg.Scalar.Array)declaration);
 		else if(declaration instanceof Reg.Vector.Array) return interpretDeclaration((Reg.Vector.Array)declaration);
 		else if(declaration instanceof Int.Array) return interpretDeclaration((Int.Array)declaration);
@@ -609,7 +610,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected IntVal interpretDeclaration(Input.Wire.Vector.Ident decl){
+	protected IntVal interpretDeclaration(Input.Wire.Vector.Ident decl) throws Exception{
 		Expression exp1 = decl.GetIndex1();
 		Expression exp2 = decl.GetIndex2();
 
@@ -625,7 +626,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeclaration(Reg.Scalar.Array decl){
+	protected IntVal interpretDeclaration(Reg.Scalar.Array decl) throws Exception{
 		Expression RegIndex1 = decl.arrayIndex1;
 		Expression RegIndex2 = decl.arrayIndex2;
 
@@ -635,7 +636,11 @@ public abstract class Interpreter {
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new ArrayVal<RegVal>(ArraySize));
+			ArrayVal<RegVal> arrayDec = new ArrayVal<RegVal>(ArraySize);
+			for(int i = 0; i < ArraySize; i++){
+				arrayDec.AddElem(new RegVal(false));
+			}
+			environment.addVariable(decl.declarationIdentifier, arrayDec);
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
 			return OpUtil.errorOccured();
@@ -644,17 +649,27 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeclaration(Reg.Vector.Array decl){
+	protected IntVal interpretDeclaration(Reg.Vector.Array decl) throws Exception{
 		Expression RegIndex1 = decl.arrayIndex1;
 		Expression RegIndex2 = decl.arrayIndex2;
 
 		Value RegVal1 = interpretShallowExpression(RegIndex1);
 		Value RegVal2 = interpretShallowExpression(RegIndex2);
 
+		Expression vecIndex1 = decl.GetIndex1();
+		Expression vecIndex2 = decl.GetIndex2();
+
+		Value vecVal1 = interpretShallowExpression(vecIndex1);
+		Value vecVal2 = interpretShallowExpression(vecIndex2);
+
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new ArrayVal<VectorVal>(ArraySize));
+			ArrayVal<VectorVal> arrVal = new ArrayVal<VectorVal>(ArraySize);
+			for(int i = 0; i < ArraySize; i++){
+				arrVal.AddElem(new VectorVal(vecVal1.intValue(), vecVal2.intValue()));
+			}
+			environment.addVariable(decl.declarationIdentifier, arrVal);
 		} else {
 			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
 			return OpUtil.errorOccured();
@@ -663,7 +678,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeclaration(Int.Array decl){
+	protected IntVal interpretDeclaration(Int.Array decl) throws Exception{
 		Expression RegIndex1 = decl.arrayIndex1;
 		Expression RegIndex2 = decl.arrayIndex2;
 
@@ -687,9 +702,10 @@ public abstract class Interpreter {
 	 * Ex. input a, b, c ...;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Input.Reg.Vector.Ident decl){
+	protected IntVal interpretDeclaration(Input.Reg.Vector.Ident decl) throws Exception{
 		Expression exp1 = decl.GetIndex1();
 		Expression exp2 = decl.GetIndex2();
 
@@ -711,9 +727,10 @@ public abstract class Interpreter {
 	 * c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Input.Wire.Scalar.Ident decl){
+	protected IntVal interpretDeclaration(Input.Wire.Scalar.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new WireVal());
 		} else {
@@ -729,9 +746,10 @@ public abstract class Interpreter {
 	 * c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Input.Reg.Scalar.Ident decl){
+	protected IntVal interpretDeclaration(Input.Reg.Scalar.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
@@ -746,9 +764,10 @@ public abstract class Interpreter {
 	 * ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Wire.Scalar.Ident decl){
+	protected IntVal interpretDeclaration(Wire.Scalar.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new WireVal());
 		} else {
@@ -763,9 +782,10 @@ public abstract class Interpreter {
 	 * ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Wire.Vector.Ident decl){
+	protected IntVal interpretDeclaration(Wire.Vector.Ident decl) throws Exception{
 		Expression index1 = decl.GetIndex1();
 		 // check whether the expressions return ints
 		Expression index2 = decl.GetIndex2();
@@ -787,9 +807,10 @@ public abstract class Interpreter {
 	 * This is used to visit any reg scalar declaration in verilog. Ex. reg a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Reg.Scalar.Ident decl){
+	protected IntVal interpretDeclaration(Reg.Scalar.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
@@ -804,9 +825,10 @@ public abstract class Interpreter {
 	 * ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Reg.Vector.Ident decl){
+	protected IntVal interpretDeclaration(Reg.Vector.Ident decl) throws Exception{
 		Expression index1 = decl.GetIndex1();
 		Expression index2 = decl.GetIndex2();
 
@@ -828,9 +850,10 @@ public abstract class Interpreter {
 	 * ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Output.Wire.Scalar.Ident decl){
+	protected IntVal interpretDeclaration(Output.Wire.Scalar.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new WireVal());
 		} else {
@@ -844,9 +867,10 @@ public abstract class Interpreter {
 	 * This is where I will declare the output Register Scalar declaration
 	 * 
 	 * @param Jacob Bauer
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Output.Reg.Scalar.Ident decl){
+	protected IntVal interpretDeclaration(Output.Reg.Scalar.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
@@ -856,7 +880,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeclaration(Output.Wire.Vector.Ident decl){
+	protected IntVal interpretDeclaration(Output.Wire.Vector.Ident decl) throws Exception{
 		Expression index1 = decl.GetIndex1();
 		Expression index2 = decl.GetIndex2();
 
@@ -878,9 +902,10 @@ public abstract class Interpreter {
 	 * ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Output.Reg.Vector.Ident decl, Object... argv){
+	protected IntVal interpretDeclaration(Output.Reg.Vector.Ident decl, Object... argv) throws Exception{
 		Expression index1 = decl.GetIndex1();
 		Expression index2 = decl.GetIndex2();
 
@@ -901,9 +926,10 @@ public abstract class Interpreter {
 	 * This is used to visit any integer declaration in verilog. Ex. integer a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Int.Ident decl){
+	protected IntVal interpretDeclaration(Int.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new IntVal(0));
 		} else {
@@ -918,9 +944,10 @@ public abstract class Interpreter {
 	 * This is used to visit any real declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretDeclaration(Real.Ident decl){
+	protected IntVal interpretDeclaration(Real.Ident decl) throws Exception{
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RealVal(0));
 		} else {
@@ -935,9 +962,10 @@ public abstract class Interpreter {
 	 * This is used to visit any Unidentified declaration in verilog. Ex. real a, b, c ... ;
 	 * 
 	 * @param decl
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretUnidentifiedDeclaration(Unidentified.Declaration decl){
+	protected IntVal interpretUnidentifiedDeclaration(Unidentified.Declaration decl) throws Exception{
 		String Current = decl.declaration;
 
 		if(!environment.localVariableExists(Current)){
@@ -955,9 +983,10 @@ public abstract class Interpreter {
 	 * @param assign
 	 * @param argv
 	 * @return
+	 * @throws Exception
 	 */
 
-	public IntVal interpretShallowStatement(Statement Stat){
+	public IntVal interpretShallowStatement(Statement Stat) throws Exception{
 		if(Stat instanceof CaseStatement) return interpretCaseStatement((CaseStatement)Stat);
 		else if (Stat instanceof Assignment) return interpretShallowAssignment((Assignment)Stat);
 		else if (Stat instanceof IfStatement) return interpretIfStatement((IfStatement)Stat);
@@ -973,7 +1002,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected IntVal interpretDeepStatement(Statement Stat){
+	protected IntVal interpretDeepStatement(Statement Stat) throws Exception{
 		if(Stat instanceof Assignment) return interpretDeepAssignment((Assignment)Stat);
 		else if(Stat instanceof SeqBlockStatement) return interpretDeepBlockOfStatements((SeqBlockStatement)Stat);
 	    else {
@@ -984,7 +1013,7 @@ public abstract class Interpreter {
 
 	
 
-	protected IntVal interpretShallowAssignment(Assignment assign){
+	protected IntVal interpretShallowAssignment(Assignment assign) throws Exception{
 		if(assign instanceof BlockingAssignment) return interpretShallowBlockingAssignment((BlockingAssignment)assign);
 		else if (assign instanceof NonBlockingAssignment) return interpretShallowNonBlockingAssignment((NonBlockingAssignment)assign);
 		else {
@@ -993,7 +1022,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected IntVal interpretDeepAssignment(Assignment assign){
+	protected IntVal interpretDeepAssignment(Assignment assign) throws Exception{
 		if(assign instanceof BlockingAssignment) return interpretDeepBlockingAssignment((BlockingAssignment)assign);
 		else if (assign instanceof NonBlockingAssignment) return interpretDeepNonBlockingAssignment((NonBlockingAssignment)assign);
 		else {
@@ -1002,7 +1031,7 @@ public abstract class Interpreter {
 		}
 	}
 	
-	protected IntVal interpretShallowBlockingAssignment(BlockingAssignment assign) {
+	protected IntVal interpretShallowBlockingAssignment(BlockingAssignment assign) throws Exception {
 		 Expression exp = assign.rightHandSide;
 		 Value expVal = interpretShallowExpression(exp);
 		 
@@ -1049,7 +1078,16 @@ public abstract class Interpreter {
 			Identifier leftHandIdent = (Identifier)assign.leftHandSide;
 			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandIdent.labelIdentifier);
 
-			leftHandPtr.assign(expVal);
+			Value leftHandDeref = leftHandPtr.deRefrence();
+			if(leftHandDeref instanceof VectorVal){
+				//If it is a vector then we need to use the OpUtil.shallowAssign on the Vector
+				VectorVal Vec = (VectorVal)leftHandDeref;
+				OpUtil.shallowAssign(Vec, expVal.longValue());
+			} else {
+				//If it is not a vector then just replace the value with whatever is on the Right Hand Side
+				leftHandPtr.assign(expVal);
+			}
+			
 
 			String currentStackFrameTitle = environment.stackFrameTitle();
 			if(leftHandIdent.labelIdentifier.equals(currentStackFrameTitle)){
@@ -1063,7 +1101,7 @@ public abstract class Interpreter {
 		 return OpUtil.success();
 	}
 
-	protected IntVal interpretDeepBlockingAssignment(BlockingAssignment assign){
+	protected IntVal interpretDeepBlockingAssignment(BlockingAssignment assign) throws Exception{
 		 Expression exp = assign.rightHandSide;
 		 Value expVal = interpretDeepExpression(exp);
 		 
@@ -1135,7 +1173,7 @@ public abstract class Interpreter {
 		 return OpUtil.success();
 	}
 
-	protected IntVal interpretShallowNonBlockingAssignment(NonBlockingAssignment assign){
+	protected IntVal interpretShallowNonBlockingAssignment(NonBlockingAssignment assign) throws Exception{
 		List<Value> resultList = new LinkedList<Value>();
 		for(Expression exp: assign.rightHandSide){
 		 	Value rhsVal = interpretShallowExpression(exp);
@@ -1195,7 +1233,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeepNonBlockingAssignment(NonBlockingAssignment assign){
+	protected IntVal interpretDeepNonBlockingAssignment(NonBlockingAssignment assign) throws Exception{
 		List<Value> resultList = new LinkedList<Value>();
 		for(Expression exp: assign.rightHandSide){
 		 	Value rhsVal = interpretDeepExpression(exp);
@@ -1276,9 +1314,10 @@ public abstract class Interpreter {
 	 * This is used to visit case statements in verilog
 	 * 
 	 * @param assign
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretCaseStatement(CaseStatement stat){
+	protected IntVal interpretCaseStatement(CaseStatement stat) throws Exception{
 		if(stat instanceof CaseXStatement) return interpretCaseXStatement((CaseXStatement) stat);
 		else if (stat instanceof CaseZStatement) return interpretCaseZStatement((CaseZStatement) stat);
 		else {
@@ -1311,9 +1350,10 @@ public abstract class Interpreter {
 	 * This is used to visit case statements in verilog
 	 * 
 	 * @param assign
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretCaseXStatement(CaseXStatement stat){
+	protected IntVal interpretCaseXStatement(CaseXStatement stat) throws Exception{
 		for (CaseItem item : stat.itemList){
 			Value switchExp = interpretShallowExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
@@ -1336,7 +1376,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretCaseZStatement(CaseZStatement stat){
+	protected IntVal interpretCaseZStatement(CaseZStatement stat) throws Exception{
 		
 
 		for (CaseItem item : stat.itemList){
@@ -1366,9 +1406,10 @@ public abstract class Interpreter {
 	 * This is used to visit a for loop in verilog
 	 * 
 	 * @param forLoop
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretForLoop(ForStatement forLoop){
+	protected IntVal interpretForLoop(ForStatement forLoop) throws Exception{
 		for (interpretShallowBlockingAssignment(forLoop.init); 
 			interpretShallowExpression(forLoop.exp).boolValue() && !environment.stackFrameInExit(); 
 			interpretShallowStatement(forLoop.change)) {
@@ -1383,9 +1424,10 @@ public abstract class Interpreter {
 	 * This is used to visit a forever loop in verilog
 	 * 
 	 * @param foreverLoop
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretForeverLoop(ForeverStatement foreverLoop){
+	protected IntVal interpretForeverLoop(ForeverStatement foreverLoop) throws Exception{
 		boolean tf = true;
 
 		while(!environment.stackFrameInExit()) {
@@ -1399,9 +1441,10 @@ public abstract class Interpreter {
 	 * This is used to visit a if else statement in verilog
 	 * 
 	 * @param ifElseStatement
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretIfElseStatement(IfElseStatement ifElseStatement){
+	protected IntVal interpretIfElseStatement(IfElseStatement ifElseStatement) throws Exception{
 		Value expr = interpretShallowExpression(ifElseStatement.condition);
 		if (expr.boolValue()) {
 			return interpretShallowStatement(ifElseStatement.trueStatement);
@@ -1414,9 +1457,10 @@ public abstract class Interpreter {
 	 * This is used to visit a if else statement in verilog
 	 * 
 	 * @param ifElseStatement
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretIfStatement(IfStatement ifStatement){
+	protected IntVal interpretIfStatement(IfStatement ifStatement) throws Exception{
 		if(ifStatement instanceof IfElseStatement) return interpretIfElseStatement((IfElseStatement)ifStatement);
 		else {
 			Value expr = interpretShallowExpression(ifStatement.condition);
@@ -1433,9 +1477,10 @@ public abstract class Interpreter {
 	 * This is used to visit a repeat statement in verilog
 	 * 
 	 * @param stat
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretRepeatLoop(RepeatStatement stat){
+	protected IntVal interpretRepeatLoop(RepeatStatement stat) throws Exception{
 		Value expr = interpretShallowExpression(stat.exp);
 
 		if (expr.isWire() || expr.isRegister() || expr.isBoolValue()) {
@@ -1460,9 +1505,10 @@ public abstract class Interpreter {
 	 * This is used to visit a seq block in verilog
 	 * 
 	 * @param stat
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretShallowBlockOfStatements(SeqBlockStatement stat){
+	protected IntVal interpretShallowBlockOfStatements(SeqBlockStatement stat) throws Exception{
 		for (Statement stmt : stat.statementList) {
 			interpretShallowStatement(stmt);
 			if(environment.stackFrameInExit()){
@@ -1473,7 +1519,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeepBlockOfStatements(SeqBlockStatement stat){
+	protected IntVal interpretDeepBlockOfStatements(SeqBlockStatement stat) throws Exception{
 		for (Statement stmt : stat.statementList) {
 			interpretDeepStatement(stmt);
 		}
@@ -1487,9 +1533,10 @@ public abstract class Interpreter {
 	 * This is used to visit a taskcall in verilog
 	 * 
 	 * @param stat
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretTaskCall(TaskStatement task){
+	protected IntVal interpretTaskCall(TaskStatement task) throws Exception{
 		if(task instanceof SystemTaskStatement) interpretSystemTaskCall((SystemTaskStatement)task);
 		else {
 			String tname = task.taskName;
@@ -1547,12 +1594,13 @@ public abstract class Interpreter {
 	 * This is used to visit a system task statement in verilog
 	 * 
 	 * @param stat
+	 * @throws Exception
 	 */
 
-	protected abstract IntVal interpretSystemTaskCall(SystemTaskStatement task);
+	protected abstract IntVal interpretSystemTaskCall(SystemTaskStatement task) throws Exception;
 
 
-	protected IntVal interpretWaitStatement(WaitStatement wait){
+	protected IntVal interpretWaitStatement(WaitStatement wait) throws Exception{
 		Expression expr = wait.exp;
 		while(interpretShallowExpression(expr).boolValue());
 		return interpretShallowStatement(wait.stat);
@@ -1562,9 +1610,10 @@ public abstract class Interpreter {
 	 * This is used to visit a while loop in verilog
 	 * 
 	 * @param whileLoop
+	 * @throws Exception
 	 */
 
-	protected IntVal interpretWhileLoop(WhileStatement whileLoop){
+	protected IntVal interpretWhileLoop(WhileStatement whileLoop) throws Exception{
 
 		while(interpretShallowExpression(whileLoop.exp).boolValue()) {
 			interpretShallowStatement(whileLoop.stat);
@@ -1591,7 +1640,7 @@ public abstract class Interpreter {
 	 * @param op
 	 */
 
-	protected Value interpretShallowExpression(Expression exp){
+	protected Value interpretShallowExpression(Expression exp) throws Exception{
 		if(exp instanceof BinaryOperation) return interpretShallowBinaryOperation((BinaryOperation)exp);
 		else if (exp instanceof UnaryOperation) return interpretShallowUnaryOperation((UnaryOperation)exp);
 		else if (exp instanceof Concatenation) return interpretShallowConcatenation((Concatenation)exp);
@@ -1603,6 +1652,8 @@ public abstract class Interpreter {
 		else if (exp instanceof OctalNode) return interpretOctalNode((OctalNode)exp);
 		else if (exp instanceof StringNode) return interpretStringNode((StringNode)exp);
 		else if (exp instanceof ConstantExpression) return interpretConstantExpression((ConstantExpression)exp);
+		else if (exp instanceof Slice) return interpretShallowSlice((Slice)exp);
+		else if (exp instanceof Element) return interpretShallowElement((Element)exp);
 		else if (exp instanceof Identifier) return interpretShallowIdentifier((Identifier)exp);
 		else {
 			OpUtil.errorAndExit("Error: Could not find an expression of type" + exp.getClass().getName());
@@ -1610,7 +1661,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretDeepExpression(Expression exp){
+	protected Value interpretDeepExpression(Expression exp) throws Exception{
 		if(exp instanceof BinaryOperation) return interpretDeepBinaryOperation((BinaryOperation)exp);
 		else if (exp instanceof UnaryOperation) return interpretDeepUnaryOperation((UnaryOperation)exp);
 		else if (exp instanceof Concatenation) return interpretDeepConcatenation((Concatenation)exp);
@@ -1624,7 +1675,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretDeepBinaryOperation(BinaryOperation op){
+	protected Value interpretDeepBinaryOperation(BinaryOperation op) throws Exception{
 		Value left = interpretDeepExpression(op.left);
 		Value right = interpretDeepExpression(op.right);
 
@@ -1643,7 +1694,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretShallowBinaryOperation(BinaryOperation op){
+	protected Value interpretShallowBinaryOperation(BinaryOperation op) throws Exception{
 		Value left = interpretShallowExpression(op.left);
 		Value right = interpretShallowExpression(op.right);
 
@@ -1680,9 +1731,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting unary operations
 	 * 
 	 * @param op
+	 * @throws Exception
 	 */
 
-	protected Value interpretShallowUnaryOperation(UnaryOperation op){
+	protected Value interpretShallowUnaryOperation(UnaryOperation op) throws Exception{
 		Value right = interpretShallowExpression(op.rightHandSideExpression);
 
 		switch(op.Op){
@@ -1699,9 +1751,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting unary operations
 	 * 
 	 * @param op
+	 * @throws Exception
 	 */
 
-	 protected Value interpretDeepUnaryOperation(UnaryOperation op){
+	 protected Value interpretDeepUnaryOperation(UnaryOperation op) throws Exception{
 		Value right = interpretDeepExpression(op.rightHandSideExpression);
 
 		switch(op.Op){
@@ -1717,9 +1770,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting concatenations
 	 * 
 	 * @param concat
+	 * @throws Exception
 	 */
 
-	protected Value interpretDeepConcatenation(Concatenation concat){
+	protected Value interpretDeepConcatenation(Concatenation concat) throws Exception{
 		int size = 0;
 
 		for(Expression expr : concat.circuitElementExpressionList){
@@ -1769,9 +1823,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting concatenations
 	 * 
 	 * @param concat
+	 * @throws Exception
 	 */
 
-	 protected Value interpretShallowConcatenation(Concatenation concat){
+	 protected Value interpretShallowConcatenation(Concatenation concat) throws Exception{
 		int size = 0;
 
 		for(Expression expr : concat.circuitElementExpressionList){
@@ -1820,9 +1875,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting Constant Expressions
 	 * 
 	 * @param expr
+	 * @throws Exception
 	 */
 
-	protected Value interpretConstantExpression(ConstantExpression expr){ 
+	protected Value interpretConstantExpression(ConstantExpression expr) throws Exception{ 
 		return interpretShallowExpression(expr.expression);
 	}
 
@@ -1840,9 +1896,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting Function Calls
 	 * 
 	 * @param call
+	 * @throws Exception
 	 */
 
-	protected Value interpretShallowFunctionCall(FunctionCall call){
+	protected Value interpretShallowFunctionCall(FunctionCall call) throws Exception{
 		if(call instanceof SystemFunctionCall) return interpretSystemFunctionCall((SystemFunctionCall)call);
 		else {
 		String tname = call.functionName;
@@ -1901,7 +1958,7 @@ public abstract class Interpreter {
 	}
 	}
 
-	protected Value interpretDeepFunctionCall(FunctionCall call){
+	protected Value interpretDeepFunctionCall(FunctionCall call) throws Exception{
 		if(!(call instanceof SystemFunctionCall)){
 			String tname = call.functionName;
 
@@ -1952,16 +2009,18 @@ public abstract class Interpreter {
 	 * This is the code for visiting Function Calls
 	 * 
 	 * @param call
+	 * @throws Exception
 	 */
-	protected abstract Value interpretSystemFunctionCall(SystemFunctionCall call);
+	protected abstract Value interpretSystemFunctionCall(SystemFunctionCall call) throws Exception;
 
 	/**
 	 * This is the code for visiting an Identifier
 	 * 
 	 * @param ident
+	 * @throws Exception
 	 */
 
-	protected Value interpretShallowIdentifier(Identifier ident){
+	protected Value interpretShallowIdentifier(Identifier ident) throws Exception{
 		if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			return data.deRefrence();
@@ -1971,7 +2030,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretDeepIdentifier(Identifier ident){
+	protected Value interpretDeepIdentifier(Identifier ident) throws Exception{
 		if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			return data.deRefrence();
@@ -1986,9 +2045,10 @@ public abstract class Interpreter {
 	* This is the code for visiting a port connection in verilog
 	* 
 	* @param connection
+ * @throws Exception
 	*/
 
-	protected Value interpretDeepPortConnection(PortConnection connection){
+	protected Value interpretDeepPortConnection(PortConnection connection) throws Exception{
 		Expression exp = connection.connectingFrom;
 		String connectTo = connection.connectingTo;
 
@@ -2019,9 +2079,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting a TernaryOperation in verilog
 	 * 
 	 * @param expr
+	 * @throws Exception
 	 */
 
-	protected Value interpretShallowTernaryOperation(TernaryOperation expr){
+	protected Value interpretShallowTernaryOperation(TernaryOperation expr) throws Exception{
 		if (interpretShallowExpression(expr.condition).boolValue()) {
 			return interpretShallowExpression(expr.ifTrue);
 		} else {
@@ -2029,7 +2090,7 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretDeepTernaryOperation(TernaryOperation expr){
+	protected Value interpretDeepTernaryOperation(TernaryOperation expr) throws Exception{
 		Expression Condition = expr.condition;
 		Expression IfTrue = expr.ifTrue;
 		Expression IfFalse = expr.ifFalse;
@@ -2095,9 +2156,10 @@ public abstract class Interpreter {
 	 * This is the code for visiting a VectorVal in verilog
 	 * 
 	 * @param string
+	 * @throws Exception
 	 */
 
-	protected Value interpretShallowElement(Element Elem){
+	protected Value interpretShallowElement(Element Elem) throws Exception{
 		String ident = Elem.labelIdentifier;
 		Value expr = interpretShallowExpression(Elem.index1);
 
@@ -2105,13 +2167,13 @@ public abstract class Interpreter {
 			Pointer<Value> data = environment.lookupVariable(ident);
 			Value dataObject = data.deRefrence();
 
-			if (dataObject instanceof ArrayVal && dataObject.isVector()) {
+			if (dataObject instanceof ArrayVal) {
 				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
 				VectorVal vec = arr.ElemAtIndex(expr.intValue());
 				return vec;
 			} else if (dataObject instanceof VectorVal) {
 				return ((VectorVal)dataObject).getValue(expr.intValue());
-			} else if (dataObject instanceof ArrayVal && dataObject.isIntValue()) {
+			} else if (dataObject instanceof ArrayVal) {
 				return ((ArrayVal<IntVal>)dataObject).ElemAtIndex(expr.intValue());
 			} else {
 				OpUtil.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]",
@@ -2125,12 +2187,12 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretShallowSlice(Slice vector){
+	protected Value interpretShallowSlice(Slice vector) throws Exception{
 		String ident = vector.labelIdentifier;
 		Value startIndex = interpretShallowExpression(vector.index1);
 		Value endIndex = interpretShallowExpression(vector.index2);
 
-		if (environment.localVariableExists(ident)) {
+		if (environment.variableExists(ident)) {
 			Pointer<Value> data = environment.lookupVariable(ident);
 			Value dataObject = data.deRefrence();
 
@@ -2138,7 +2200,7 @@ public abstract class Interpreter {
 				VectorVal toRet = ((VectorVal)dataObject).getShallowSlice(startIndex.intValue(), endIndex.intValue());
 				return toRet;
 			} else {
-				OpUtil.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
+				OpUtil.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
 				return OpUtil.errorOccured();
 			}
 
@@ -2148,23 +2210,75 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected Value interpretBinaryNode(BinaryNode Bin){
-		return new UnsignedIntVal(Integer.parseUnsignedInt(Bin.lexeme));
+	protected Value interpretBinaryNode(BinaryNode Bin) throws Exception{
+		int indexOfColon = Bin.lexeme.indexOf('\'');
+
+		if(indexOfColon == -1){
+			OpUtil.errorAndExit("Error: Malformed BinaryNode");
+			return OpUtil.errorOccured();
+		} else {
+			String beforeIndex = Bin.lexeme.substring(0, indexOfColon - 1);
+			String afterIndex = Bin.lexeme.substring(indexOfColon + 2, Bin.lexeme.length() - 1);
+
+			if(OpUtil.numberIsPattern(afterIndex)){
+				//Then it is a pattern and we need to return the Pattern
+				return new BinaryPattern(afterIndex);
+			} else {
+				//Otherwise it is a typical Binary Number and we need to return the number
+				return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 2));
+			}
+		}
 	}
 
-	protected Value interpretHexadecimalNode(HexadecimalNode Hex){
-		return new UnsignedIntVal(Integer.parseUnsignedInt(Hex.lexeme));
+	protected Value interpretHexadecimalNode(HexadecimalNode Hex) throws Exception{
+		int indexOfColon = Hex.lexeme.indexOf('\'');
+
+		if(indexOfColon == -1){
+			OpUtil.errorAndExit("Error: Malformed HexNode");
+			return OpUtil.errorOccured();
+		} else {
+			String beforeIndex = Hex.lexeme.substring(0, indexOfColon - 1);
+			String afterIndex = Hex.lexeme.substring(indexOfColon + 2, Hex.lexeme.length() - 1);
+
+			if(OpUtil.numberIsPattern(afterIndex)){
+				return new HexadecimalPattern(afterIndex);
+			} else {
+				return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 16));
+			}
+		}
 	}
 
-	protected Value interpretDecimalNode(DecimalNode Dec){
-		return new UnsignedIntVal(Integer.parseUnsignedInt(Dec.lexeme));
+	protected Value interpretDecimalNode(DecimalNode Dec) throws Exception{
+		int indexOfColon = Dec.lexeme.indexOf('\'');
+
+		if(indexOfColon == -1){
+			return new UnsignedIntVal(Integer.parseInt(Dec.lexeme));
+		} else {
+			String beforeIndex = Dec.lexeme.substring(0, indexOfColon - 1);
+			String afterIndex = Dec.lexeme.substring(indexOfColon + 2, Dec.lexeme.length() - 1);
+			return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 16));
+		}
 	}
 
-	protected Value interpretOctalNode(OctalNode Oct){
-		return new UnsignedIntVal(Integer.parseUnsignedInt(Oct.lexeme));
+	protected Value interpretOctalNode(OctalNode Oct) throws Exception{
+		int indexOfColon = Oct.lexeme.indexOf('\'');
+
+		if(indexOfColon == -1){
+			OpUtil.errorAndExit("Error: Malformed OctalNode");
+			return OpUtil.errorOccured();
+		} else {
+			String beforeIndex = Oct.lexeme.substring(0, indexOfColon - 1);
+			String afterIndex = Oct.lexeme.substring(indexOfColon + 2, Oct.lexeme.length() - 1);
+
+			if(OpUtil.numberIsPattern(afterIndex)){
+				return new OctalPattern(afterIndex);
+			} else {
+				return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 8));
+			}
+		}
 	}
 
 	protected Value interpretStringNode(StringNode Str){
-		return new StrVal(Str.toString());
+		return new StrVal(Str.lexeme);
 	}
 }

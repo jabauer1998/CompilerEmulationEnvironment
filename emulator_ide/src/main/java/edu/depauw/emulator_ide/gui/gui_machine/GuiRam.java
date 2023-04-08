@@ -20,18 +20,28 @@ public class GuiRam extends VBox implements Memory{
     private int BytesPerRow;
 
     private ScrollPane Pane;
+    private AddressFormat AddrFormat;
+    private MemoryFormat MemFormat;
 
-    enum AddressFormat{
+    public enum AddressFormat{
         BINARY,
         HEXIDECIMAL,
         OCTAL,
         DECIMAL
     }
 
-    public GuiRam(int NumberOfBytes, int BytesPerRow, double Width, double Height){
+    public enum MemoryFormat{
+        BINARY,
+        HEXADECIMAL,
+    }
+
+    public GuiRam(int NumberOfBytes, int BytesPerRow, AddressFormat AddrFormat, MemoryFormat MemFormat, double Width, double Height){
         this.BytesPerRow = BytesPerRow;
         this.NumberOfBytes = NumberOfBytes;
         this.NumberRowsRounded = (int)Math.ceil((NumberOfBytes / BytesPerRow));
+
+        this.MemFormat = MemFormat;
+        this.AddrFormat = AddrFormat;
 
         this.setMaxHeight(Height);
         this.setMaxWidth(Width);
@@ -56,11 +66,28 @@ public class GuiRam extends VBox implements Memory{
             //They are also stored into arrays to make the Labels Addressable when we need to modify a specific Label
             HBox AddressToMemory = new HBox();
             HBox RowOfMemory = new HBox();
-            Addresses[Row] = new Label(Integer.toString(Byte));
+
+            if(this.AddrFormat == AddressFormat.HEXIDECIMAL){
+                Addresses[Row] = new Label(Integer.toHexString(Byte));
+            } else if(this.AddrFormat == AddressFormat.BINARY){
+                Addresses[Row] = new Label(Integer.toBinaryString(Byte));
+            } else if(this.AddrFormat == AddressFormat.OCTAL){
+                Addresses[Row] = new Label(Integer.toOctalString(Byte));
+            } else {
+                Addresses[Row] = new Label(Integer.toString(Byte));
+            }
+            
             for(int i = 0; i < this.BytesPerRow; i++, Byte++){
-                Bytes[Byte] = new Label("00");
-                Bytes[Byte].setPrefWidth(Width/(this.BytesPerRow * 2));
-                Bytes[Byte].setTextAlignment(TextAlignment.RIGHT);
+
+                if(this.MemFormat == MemoryFormat.HEXADECIMAL){
+                    Bytes[Byte] = new Label("00");
+                    Bytes[Byte].setPrefWidth(Width/(this.BytesPerRow * 2));
+                    Bytes[Byte].setTextAlignment(TextAlignment.RIGHT);
+                } else {
+                    Bytes[Byte] = new Label("00000000");
+                    Bytes[Byte].setPrefWidth(Width/(this.BytesPerRow * 3));
+                    Bytes[Byte].setTextAlignment(TextAlignment.RIGHT);
+                }
                 RowOfMemory.getChildren().add(Bytes[Byte]);
                 RowOfMemory.setAlignment(Pos.CENTER_RIGHT);
             }
@@ -94,8 +121,35 @@ public class GuiRam extends VBox implements Memory{
     @Override
     public void setMemoryValue(int address, long dataValue){
         Label Byte = Bytes[address];
-        String asString = Long.toBinaryString(dataValue);
-        Byte.setText(asString); 
+        if(MemFormat == MemoryFormat.BINARY){
+            String asString = Long.toBinaryString(dataValue);
+            if(asString.length() > 8){
+                asString = asString.substring(asString.length() - 8);
+            } else if(asString.length() < 8){
+                StringBuilder Builder = new StringBuilder();
+                int NumberOfZeros = 8 - asString.length();
+                for(int i = 0; i < NumberOfZeros; i++){
+                    Builder.append('0');
+                }
+                Builder.append(asString);
+                asString = Builder.toString();
+            }
+            Byte.setText(asString);
+        } else {
+            String asString = Long.toHexString(dataValue);
+            if(asString.length() > 2){
+                asString = asString.substring(asString.length() - 2);
+            } else if(asString.length() < 2){
+                StringBuilder Builder = new StringBuilder();
+                int NumberOfZeros = 2 - asString.length();
+                for(int i = 0; i < NumberOfZeros; i++){
+                    Builder.append('0');
+                }
+                Builder.append(asString);
+                asString = Builder.toString();
+            }
+            Byte.setText(asString);
+        }
     }
 
     @Override
@@ -103,8 +157,10 @@ public class GuiRam extends VBox implements Memory{
         Label Byte = Bytes[address];
         String text = Byte.getText();
         
-        long Result = Long.parseLong(text);
-
-        return Result;
+        if(MemFormat == MemoryFormat.BINARY){
+            return Long.parseLong(text, 2);
+        } else {
+            return Long.parseLong(text, 16);
+        }
     }
 }

@@ -137,15 +137,14 @@ public class OpUtil {
 
 	/**
 	 * Below are some errorHandling routines
+	 * @throws Exception
 	 */
-	public static void errorAndExit(String errorParam){ 
-		Error error = new Error(errorParam);
-		throw new RuntimeErrorException(error);
+	public static void errorAndExit(String errorParam) throws Exception{ 
+		throw new Exception(errorParam);
 	}
 
-	public static void errorAndExit(String errorParam, edu.depauw.emulator_ide.common.Position position){
-		Error error = new Error(errorParam + position.toString());
-		throw new RuntimeErrorException(error);
+	public static void errorAndExit(String errorParam, edu.depauw.emulator_ide.common.Position position) throws Exception{
+		OpUtil.errorAndExit(errorParam + position.toString());
 	}
 
 	public static String GetRuntimeDir(){
@@ -160,13 +159,13 @@ public class OpUtil {
 		return new IntVal(0);
 	}
 
-	public static StrVal fetchFunctionName(ModuleItem functionDeclaration){
+	public static StrVal fetchFunctionName(ModuleItem functionDeclaration) throws Exception{
 		if(functionDeclaration instanceof Reg.Scalar.Ident){
 			return new StrVal(((Reg.Scalar.Ident)functionDeclaration).declarationIdentifier);
 		} else if(functionDeclaration instanceof Reg.Vector.Ident) {
 			return new StrVal(((Reg.Vector.Ident)functionDeclaration).declarationIdentifier);
-		} else if(functionDeclaration instanceof Int){
-			return new StrVal(((Int)functionDeclaration).toString());
+		} else if(functionDeclaration instanceof Int.Ident){
+			return new StrVal(((Int.Ident)functionDeclaration).declarationIdentifier);
 		} else {
 			OpUtil.errorAndExit("Unknown Function Type found " + functionDeclaration.toString());
 			return null;
@@ -185,11 +184,11 @@ public class OpUtil {
         }
     }
 
-	public static Value createAdder(Value left, Value right){
+	public static Value createAdder(Value left, Value right) throws Exception{
 		return createRippleCarryAdder(left, right);
 	}
 
-	public static Value createRippleCarryAdder(Value left, Value right){
+	public static Value createRippleCarryAdder(Value left, Value right) throws Exception{
 		if(left.isWire() && right.isWire()){
 			WireVal Input1 = (WireVal)left;
 			WireVal Input2 = (WireVal)right;
@@ -225,7 +224,7 @@ public class OpUtil {
         }
     }
 
-	public static Value createSubtractor(Value left, Value right){
+	public static Value createSubtractor(Value left, Value right) throws Exception{
 		if(left.isVector() && right.isVector()){
 			//If they are both vectors we will create a RippleAdder
 			WireVal CarryOut = new WireVal();
@@ -381,7 +380,7 @@ public class OpUtil {
         return new LongVal(left.longValue() & right.longValue());
     }
 
-	public static Value bitwiseAndCircuit(Value left, Value right){
+	public static Value bitwiseAndCircuit(Value left, Value right) throws Exception{
 		if(left.isWire() && right.isWire()){
 			WireVal Output = new WireVal();
 			new AndGate(Output, (WireVal)left, (WireVal)right);
@@ -430,7 +429,7 @@ public class OpUtil {
         return new LongVal(left.longValue() | right.longValue());
     }
 
-	public static Value bitwiseOrCircuit(Value left, Value right){
+	public static Value bitwiseOrCircuit(Value left, Value right) throws Exception{
 		if(left.isWire() && right.isWire()){
 			WireVal Output = new WireVal();
 			new OrGate(Output, (WireVal)left, (WireVal)right);
@@ -479,7 +478,7 @@ public class OpUtil {
         return new LongVal(left.longValue() ^ right.longValue());
     }
 
-	public static Value bitwiseXorCircuit(Value left, Value right){
+	public static Value bitwiseXorCircuit(Value left, Value right) throws Exception{
 		if(left.isWire() && right.isWire()){
 			WireVal Output = new WireVal();
 			new XorGate(Output, (WireVal)left, (WireVal)right);
@@ -528,7 +527,7 @@ public class OpUtil {
         return new LongVal(~(left.longValue() ^ right .longValue()));
     }
 
-	public static Value bitwiseXnorCircuit(Value left, Value right){
+	public static Value bitwiseXnorCircuit(Value left, Value right) throws Exception{
 		if(left.isWire() && right.isWire()){
 			WireVal Output = new WireVal();
 			new XnorGate(Output, (WireVal)left, (WireVal)right);
@@ -589,7 +588,7 @@ public class OpUtil {
         }
     }
 
-	public static Value notGateCircuit(Value right){
+	public static Value notGateCircuit(Value right) throws Exception{
 		if(right.isWire()){
 			WireVal Output = new WireVal();
 			WireVal rightW = (WireVal)right;
@@ -638,9 +637,10 @@ public class OpUtil {
 	 * This is used to visit casedz statements in verilog
 	 * 
 	 * @param assign
+	 * @throws Exception
 	 */
 
-	public static boolean caseBoolean(Value target, Value Val){
+	public static boolean caseBoolean(Value target, Value Val) throws Exception{
 		if (Val instanceof Pattern) {
 			Pattern pat = (Pattern)Val;
 			return pat.match(target);
@@ -938,19 +938,20 @@ public class OpUtil {
 	 * hand side so changes come across in both variables.
 	 * 
 	 * @author Jacob Bauer
+	 * @throws Exception
 	 */
 
-	public static void deepAssign(VectorVal vec1, int index, Value vec2){
+	public static void deepAssign(VectorVal vec1, int index, Value vec2) throws Exception{
 		CircuitElem assignTo = vec1.getValue(index);
 		OpUtil.deepAssign(assignTo, vec2);
 	}
 
-	public static void deepAssign(ArrayVal<Value> arr1, int index, Value vec2){
+	public static void deepAssign(ArrayVal<Value> arr1, int index, Value vec2) throws Exception{
 		Value arrVal = arr1.ElemAtIndex(index);
 		OpUtil.deepAssign((CircuitElem)arrVal, vec2);
 	}
 
-	public static void deepAssign(VectorVal vec1, int index1, int index2, Value elem2){
+	public static void deepAssign(VectorVal vec1, int index1, int index2, Value elem2) throws Exception{
 		int start = vec1.getStart();
 		int end = vec1.getEnd();
 		OpUtil.deepAssign(vec1, start, elem2);
@@ -980,7 +981,7 @@ public class OpUtil {
 		vec1Value.assignInput(elem2);
 	}
 
-	public static void deepAssign(CircuitElem elemTo, Value vec2){
+	public static void deepAssign(CircuitElem elemTo, Value vec2) throws Exception{
 		if(vec2.isWire()){
 			WireVal connector = new WireVal();
 			WireVal vec2Wire = (WireVal)vec2;
@@ -1102,12 +1103,12 @@ public class OpUtil {
 		}
 	}
 
-	public static void shallowAssign(CircuitElem elem1, VectorVal vec2){
+	public static void shallowAssign(CircuitElem elem1, VectorVal vec2) throws Exception{
 		int index = vec2.getStart();
 		OpUtil.shallowAssign(elem1, vec2.getValue(index));
 	}
 
-	public static void shallowAssign(VectorVal vec1, CircuitElem elem2){
+	public static void shallowAssign(VectorVal vec1, CircuitElem elem2) throws Exception{
 		int start = vec1.getStart();
 		int end = vec1.getEnd();
 		OpUtil.shallowAssign(vec1.getValue(start), elem2);
@@ -1119,7 +1120,7 @@ public class OpUtil {
 		}
 	}
 
-	public static void shallowAssign(CircuitElem elem1, CircuitElem elem2){
+	public static void shallowAssign(CircuitElem elem1, CircuitElem elem2) throws Exception{
 		if(elem1.isRegister()){
 			RegVal reg1 = (RegVal)elem1;
 			reg1.setSignal(elem2.getStateSignal());
@@ -1128,7 +1129,7 @@ public class OpUtil {
 		}
 	}
 
-	public static void shallowAssign(VectorVal vec1, int index1, int index2, CircuitElem elem2){
+	public static void shallowAssign(VectorVal vec1, int index1, int index2, CircuitElem elem2) throws Exception{
 		int start = vec1.getStart();
 		int end = vec1.getEnd();
 		int startIndex1 = start + 1;
@@ -1254,5 +1255,21 @@ public class OpUtil {
 	public static void shallowAssign(CircuitElem elem1, boolean bool2){ 
 		RegVal reg1 = (RegVal)elem1;
 		reg1.setSignal(bool2);
+	}
+
+	public static boolean numberIsPattern(String Number){
+		return Number.contains("x") || Number.contains("X") || Number.contains("z") || Number.contains("Z");
+	}
+
+	public static Object getRawValue(Value val){
+		if(val.isBoolValue()) return val.boolValue();
+		else if(val.isRealValue()) return val.realValue();
+		else if(val.isStringValue()) return val.toString();
+		else if(val.isByteValue()) return val.byteValue();
+		else if(val.isUnsignedByteValue()) return val.shortValue();
+		else if(val.isShortValue()) return val.shortValue();
+		else if(val.isUnsignedShortValue()) return val.intValue();
+		else if(val.isIntValue()) return val.intValue();
+		else return val.longValue();
 	}
 }
