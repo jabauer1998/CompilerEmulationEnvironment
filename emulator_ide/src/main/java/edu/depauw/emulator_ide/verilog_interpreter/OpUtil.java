@@ -4,9 +4,11 @@ import java.io.File;
 import javax.management.RuntimeErrorException;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.RealVal;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
@@ -1271,5 +1273,14 @@ public class OpUtil {
 		else if(val.isUnsignedShortValue()) return val.intValue();
 		else if(val.isIntValue()) return val.intValue();
 		else return val.longValue();
+	}
+
+	public static Value convertToRawValue(Object obj){
+		if(obj instanceof Integer) return new IntVal((int)obj);
+		else if(obj instanceof Boolean) return new BoolVal((boolean)obj);
+		else if(obj instanceof Long) return new LongVal((long)obj);
+		else if(obj instanceof Short) return new ShortVal((short)obj);
+		else if(obj instanceof Byte) return new ByteVal((byte)obj);
+		else return new StrVal((String)obj);
 	}
 }

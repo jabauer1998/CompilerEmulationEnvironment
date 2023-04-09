@@ -73,18 +73,20 @@ module Arm();
       integer 	   status, handler;
       reg [31:0]   binaryLine;
       begin
-	 $setRegister(15, address); // initialize stack pointer to address 0
-	 handler = $fopen("default", "r");
-	 while(!$feof(handler)) begin
+	  $display("Setting Stack pointer to address %d", address);
+	  $setRegister(15, address); // initialize stack pointer to address 0
+	  handler = $fopen("default", "r");
+	  $display("Create a Read only Handler %d", handler);
+	  while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
-	    $setMemory($getRegister("R15"), binaryLine[31:24]);
-	    $setMemory($getRegister("R15") + 1, binaryLine[23:16]);
-	    $setMemory($getRegister("R15") + 2, binaryLine[15:8]);
-	    $setMemory($getRegister("R15") + 3, binaryLine[7:0]);
-	    $setRegister("R15", $getRegister("R15") + 4); //incriment program counter
-	 end
-	 $fclose(handler); //close handler
-	 $setRegister("R15", address); //set the program counter back to the beginning
+			$setMemory($getRegister("R15"), binaryLine[31:24]);
+			$setMemory($getRegister("R15") + 1, binaryLine[23:16]);
+			$setMemory($getRegister("R15") + 2, binaryLine[15:8]);
+			$setMemory($getRegister("R15") + 3, binaryLine[7:0]);
+			$setRegister("R15", $getRegister("R15") + 4); //incriment program counter
+	 	end
+	 	$fclose(handler); //close handler
+	 	$setRegister("R15", address); //set the program counter back to the beginning
       end
    endtask //loadProgram
 
@@ -566,7 +568,7 @@ module Arm();
    endtask // execute
 
    initial begin
-      loadProgram(0); //load program at memory location 2 and set the stack pointer to the top of the program after loading
+      loadProgram(0); //load program at memory location 0 and set the stack pointer to the top of the program after loading
       while(InstructionCode != 28 && $getRegister(15) < `MEMSIZE) begin
 	 	INSTR = fetch($getRegister(15)); //old Fetch
 	 	InstructionCode = decode(INSTR);

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Stack;
 import edu.depauw.emulator_ide.common.Pointer;
 import edu.depauw.emulator_ide.common.SymbolTable;
+import edu.depauw.emulator_ide.common.io.FormattedScanner;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
@@ -28,7 +29,7 @@ public class Environment {
     private Stack<String> callStack;
 	private Stack<Boolean> exitStack;
 
-    private ArrayList<FileReader> readOnlyFileDescriptorArray;
+    private ArrayList<FormattedScanner> readOnlyFileDescriptorArray;
     private ArrayList<FileWriter> writableFileDescriptorArray;
 
     private boolean InParamaterSequence;
@@ -43,7 +44,7 @@ public class Environment {
         variableTable = new SymbolTable<>();
         callStack = new Stack<String>();
         exitStack = new Stack<Boolean>();
-        readOnlyFileDescriptorArray = new ArrayList<FileReader>();
+        readOnlyFileDescriptorArray = new ArrayList<FormattedScanner>();
         writableFileDescriptorArray = new ArrayList<FileWriter>();
         processList = new LinkedList<ProcessBase>();
         moduleTable.addScope();
@@ -217,7 +218,8 @@ public class Environment {
 
     public int createReadOnlyFileDescriptor(String fileName){
         try{
-            FileReader scanner = new FileReader(fileName);
+            FileReader reader = new FileReader(fileName);
+            FormattedScanner scanner = new FormattedScanner(reader); 
             for(int i = 0; i < readOnlyFileDescriptorArray.size(); i++){
                 if(readOnlyFileDescriptorArray.get(i) == null){
                     readOnlyFileDescriptorArray.set(i, scanner);
@@ -249,7 +251,7 @@ public class Environment {
         }
     }
 
-    public FileReader getFileReader(int fileDescriptor){
+    public FormattedScanner getFileReader(int fileDescriptor){
         return readOnlyFileDescriptorArray.get(fileDescriptor);
     }
 

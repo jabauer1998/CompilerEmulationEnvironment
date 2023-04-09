@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Scanner;
 import edu.depauw.emulator_ide.common.debug.ErrorLog;
 import edu.depauw.emulator_ide.common.debug.item.ErrorItem;
+import edu.depauw.emulator_ide.common.io.FormattedScanner;
 import edu.depauw.emulator_ide.common.io.Source;
 import edu.depauw.emulator_ide.verilog_interpreter.OpUtil;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
 import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import edu.depauw.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.Lexer;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.Parser;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.Token;
@@ -188,7 +190,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if (taskName.equals("fclose")) {
 			Value fileDescriptor = interpretShallowExpression(task.argumentList.get(0));
-			FileReader Scanner = environment.getFileReader(fileDescriptor.intValue());
+			FormattedScanner Scanner = environment.getFileReader(fileDescriptor.intValue());
 			try{
 				Scanner.close();
 				environment.clearFileReader(fileDescriptor.intValue());
@@ -235,11 +237,11 @@ public class VerilogInterpreter extends Interpreter {
 			} 
 		} else if (functionName.equals("feof")) {
 			Value fileDescriptor = interpretShallowExpression(call.argumentList.get(0));
-			FileReader reader = environment.getFileReader(fileDescriptor.intValue());
-
+			FormattedScanner reader = environment.getFileReader(fileDescriptor.intValue());
 			try{
-				return new BoolVal(reader.ready());
+				return new BoolVal(reader.atEof());
 			} catch(Exception exp){
+				errorLog.addItem(new ErrorItem("Error: FileStream ready failed with exception" + exp.toString()));
 				return OpUtil.errorOccured();
 			}
 		} else if (functionName.equals("fscanf")) {
@@ -247,13 +249,25 @@ public class VerilogInterpreter extends Interpreter {
 			Value fString = interpretShallowExpression(call.argumentList.get(1));
 			Value location = interpretShallowExpression(call.argumentList.get(2));
 			
-			FileReader fReader = environment.getFileReader(fileDescriptor.intValue());
-			Scanner fScanner = new Scanner(fReader);
+			FormattedScanner fScanner = environment.getFileReader(fileDescriptor.intValue());
 
-			String Data = fScanner.findInLine(fString.toString());
-			StrVal DataVal = new StrVal(Data);
+			List<Object> result = fScanner.scanf(fString.toString());
 			
-			return OpUtil.errorOccured(); // allways true just for consistency with verilog
+			if(result.size() == 0){
+				OpUtil.errorAndExit("Result in Scanf returned no Objects");
+				return OpUtil.errorOccured();
+			} else {
+				Value scanfResult = OpUtil.convertToRawValue(result.get(0));
+
+				if(location.isVector()){
+					VectorVal vecVal = (VectorVal)location;
+					OpUtil.shallowAssign(vecVal, scanfResult.longValue());
+					return OpUtil.success();					
+				} else {
+					OpUtil.errorAndExit("Invalid location type of " + location.getClass().getName());
+					return OpUtil.errorOccured();
+				}
+			}
 		} else {
 			OpUtil.errorAndExit("Could not find a systemcall with the name " + functionName, call.position);
 		}
