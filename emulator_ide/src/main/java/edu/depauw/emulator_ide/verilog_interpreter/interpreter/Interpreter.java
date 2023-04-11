@@ -98,7 +98,6 @@ import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.branchin
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.branching._if_.IfStatement;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
 import edu.depauw.emulator_ide.verilog_interpreter.parser.ast.statement.task.TaskStatement;
-import javafx.application.Platform;
 
 /**
  * The Follwowing Class can be utilized to Interpret Verilog Modules
@@ -1321,14 +1320,12 @@ public abstract class Interpreter {
 		if(stat instanceof CaseXStatement) return interpretCaseXStatement((CaseXStatement) stat);
 		else if (stat instanceof CaseZStatement) return interpretCaseZStatement((CaseZStatement) stat);
 		else {
-			
-
-			for (CaseItem item : stat.itemList){
+			loop: for (CaseItem item : stat.itemList){
 				Value switchExpVal = interpretShallowExpression(stat.exp);
 				if (item instanceof ExprCaseItem) {
 					ExprCaseItem exprItem = (ExprCaseItem)item;
 					
-					loop: for (Expression CaseExp : exprItem.expList) {
+					for (Expression CaseExp : exprItem.expList) {
 						Value exprValue = interpretShallowExpression(CaseExp);
 						if (OpUtil.caseBoolean(switchExpVal, exprValue)) {
 							interpretShallowStatement(exprItem.statement);
@@ -1354,11 +1351,11 @@ public abstract class Interpreter {
 	 */
 
 	protected IntVal interpretCaseXStatement(CaseXStatement stat) throws Exception{
-		for (CaseItem item : stat.itemList){
+		loop: for (CaseItem item : stat.itemList){
 			Value switchExp = interpretShallowExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
 				ExprCaseItem exprItem = (ExprCaseItem)item;
-				loop: for (Expression CaseExp : exprItem.expList) {
+				for (Expression CaseExp : exprItem.expList) {
 					Value exprValue = interpretShallowExpression(CaseExp);
 
 					if (OpUtil.caseBoolean(switchExp, exprValue)) {
@@ -1379,12 +1376,12 @@ public abstract class Interpreter {
 	protected IntVal interpretCaseZStatement(CaseZStatement stat) throws Exception{
 		
 
-		for (CaseItem item : stat.itemList){
+		loop: for (CaseItem item : stat.itemList){
 			Value switchExp = interpretShallowExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
 				ExprCaseItem exprItem = (ExprCaseItem)item;
 
-				loop: for (Expression CaseExp : exprItem.expList) {
+				for (Expression CaseExp : exprItem.expList) {
 					Value exprValue = interpretShallowExpression(CaseExp);
 
 					if (OpUtil.caseBoolean(switchExp, exprValue)) {
@@ -2217,8 +2214,8 @@ public abstract class Interpreter {
 			OpUtil.errorAndExit("Error: Malformed BinaryNode");
 			return OpUtil.errorOccured();
 		} else {
-			String beforeIndex = Bin.lexeme.substring(0, indexOfColon - 1);
-			String afterIndex = Bin.lexeme.substring(indexOfColon + 2, Bin.lexeme.length() - 1);
+			String beforeIndex = Bin.lexeme.substring(0, indexOfColon);
+			String afterIndex = Bin.lexeme.substring(indexOfColon + 2, Bin.lexeme.length());
 
 			if(OpUtil.numberIsPattern(afterIndex)){
 				//Then it is a pattern and we need to return the Pattern
@@ -2237,8 +2234,8 @@ public abstract class Interpreter {
 			OpUtil.errorAndExit("Error: Malformed HexNode");
 			return OpUtil.errorOccured();
 		} else {
-			String beforeIndex = Hex.lexeme.substring(0, indexOfColon - 1);
-			String afterIndex = Hex.lexeme.substring(indexOfColon + 2, Hex.lexeme.length() - 1);
+			String beforeIndex = Hex.lexeme.substring(0, indexOfColon);
+			String afterIndex = Hex.lexeme.substring(indexOfColon + 2, Hex.lexeme.length());
 
 			if(OpUtil.numberIsPattern(afterIndex)){
 				return new HexadecimalPattern(afterIndex);
@@ -2254,8 +2251,8 @@ public abstract class Interpreter {
 		if(indexOfColon == -1){
 			return new UnsignedIntVal(Integer.parseInt(Dec.lexeme));
 		} else {
-			String beforeIndex = Dec.lexeme.substring(0, indexOfColon - 1);
-			String afterIndex = Dec.lexeme.substring(indexOfColon + 2, Dec.lexeme.length() - 1);
+			String beforeIndex = Dec.lexeme.substring(0, indexOfColon);
+			String afterIndex = Dec.lexeme.substring(indexOfColon + 2, Dec.lexeme.length());
 			return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 16));
 		}
 	}
@@ -2267,8 +2264,8 @@ public abstract class Interpreter {
 			OpUtil.errorAndExit("Error: Malformed OctalNode");
 			return OpUtil.errorOccured();
 		} else {
-			String beforeIndex = Oct.lexeme.substring(0, indexOfColon - 1);
-			String afterIndex = Oct.lexeme.substring(indexOfColon + 2, Oct.lexeme.length() - 1);
+			String beforeIndex = Oct.lexeme.substring(0, indexOfColon);
+			String afterIndex = Oct.lexeme.substring(indexOfColon + 2, Oct.lexeme.length());
 
 			if(OpUtil.numberIsPattern(afterIndex)){
 				return new OctalPattern(afterIndex);

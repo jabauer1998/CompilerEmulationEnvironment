@@ -45,14 +45,33 @@ public class VerilogInterpreter extends Interpreter {
      public Value interpretExpression(String Expression){
         Source source = new Source(new StringReader(Expression));
         Lexer lex = new Lexer(source, errorLog);
-        LinkedList<Token> tokens = lex.tokenize();
+		List<Token> tokens = lex.tokenize();
+
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
+        
+		Preprocessor preProc = new Preprocessor(errorLog, tokens);
+		tokens = preProc.executePass();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+		
         Parser parse = new Parser(tokens, errorLog);
         Expression exp = parse.parseExpression();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
 
 		try{
         	return interpretShallowExpression(exp);
 		} catch(Exception exception){
 			errorLog.addItem(new ErrorItem(exception.toString()));
+			errorLog.printLog();
 			return OpUtil.errorOccured();
 		}
     }
@@ -60,14 +79,32 @@ public class VerilogInterpreter extends Interpreter {
     public IntVal interpretStatement(String Statement){
         Source source = new Source(new StringReader(Statement));
         Lexer lex = new Lexer(source, errorLog);
-        LinkedList<Token> tokens = lex.tokenize();
+        List<Token> tokens = lex.tokenize();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
+		Preprocessor preProc = new Preprocessor(errorLog, tokens);
+		tokens = preProc.executePass();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
         Parser parse = new Parser(tokens, errorLog);
         Statement Stat = parse.parseStatement();
+
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
 
 		try{
         	interpretShallowStatement(Stat);
 		} catch(Exception exp) {
 			errorLog.addItem(new ErrorItem(exp.toString()));
+			errorLog.printLog();
 			return OpUtil.errorOccured();
 		}
 
@@ -76,14 +113,29 @@ public class VerilogInterpreter extends Interpreter {
 
 	public IntVal interpretModuleItem(String moduleItem){
 		Source source = new Source(new StringReader(moduleItem));
+		
 		Lexer lex = new Lexer(source, errorLog);
-		LinkedList<Token> tokens = lex.tokenize();
+		List<Token> tokens = lex.tokenize();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
+
+		Preprocessor preProc = new Preprocessor(errorLog, tokens);
+		tokens = preProc.executePass();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
 		Parser parse = new Parser(tokens, errorLog);
 		List<ModuleItem> items = parse.parseModuleItem();
 		for(ModuleItem item : items){
 			try{
 				Value Result = interpretModuleItem(item);
 				if(Result == OpUtil.errorOccured()){
+					errorLog.printLog();
 					return OpUtil.errorOccured();
 				}
 			} catch(Exception exp){
@@ -97,14 +149,31 @@ public class VerilogInterpreter extends Interpreter {
     public IntVal interpretModule(String Module){
         Source source = new Source(new StringReader(Module));
         Lexer lex = new Lexer(source, errorLog);
-        LinkedList<Token> tokens = lex.tokenize();
+        List<Token> tokens = lex.tokenize();
+
+		Preprocessor preProc = new Preprocessor(errorLog, tokens);
+		tokens = preProc.executePass();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
         Parser parse = new Parser(tokens, errorLog);
         ModuleDeclaration Decl = parse.parseModuleDeclaration();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
 
 		try{
         	interpretModule(Decl);
 		} catch(Exception exp){
 			errorLog.addItem(new ErrorItem(exp.toString()));
+			if(errorLog.size() > 0){
+				errorLog.printLog();
+				return OpUtil.errorOccured();
+			}
 		}
 
         if(errorLog.size() > 0){
@@ -138,9 +207,19 @@ public class VerilogInterpreter extends Interpreter {
 		 */
         
 		List<Token> tokens = lex.tokenize();
+
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
         
 		Preprocessor Prepros = new Preprocessor(errorLog, tokens);
 		tokens = Prepros.executePass();
+
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
 
 		/**
 		 * On the preprocessed file
@@ -150,10 +229,16 @@ public class VerilogInterpreter extends Interpreter {
 		Parser P = new Parser(tokens, errorLog);
 		VerilogFile File = P.parseVerilogFile();
 
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
 		try{
 			return interpretFile(File);
 		} catch(Exception exp){
 			errorLog.addItem(new ErrorItem(exp.toString()));
+			errorLog.printLog();
 			return OpUtil.errorOccured();
 		}
 	}
@@ -161,10 +246,19 @@ public class VerilogInterpreter extends Interpreter {
 	public IntVal interpretFile(FileInputStream Stream){
 		Source Source = new Source(Stream);
 		Lexer lex = new Lexer(Source, errorLog);
-        
 		List<Token> tokens = lex.tokenize();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
+
+		
         Preprocessor Prepros = new Preprocessor(errorLog, tokens);
 		tokens = Prepros.executePass();
+		if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
 
 		/**
 		 * On the preprocessed file
@@ -173,13 +267,17 @@ public class VerilogInterpreter extends Interpreter {
 
 		 Parser P = new Parser(tokens, errorLog);
 		 VerilogFile File = P.parseVerilogFile();
-
+		 if(errorLog.size() > 0){
+			errorLog.printLog();
+			return OpUtil.errorOccured();
+		}
 
 		try{
 			IntVal interpreterResult = interpretFile(File);
 			return interpreterResult;
 		} catch(Exception exp) {
 			errorLog.addItem(new ErrorItem(exp.toString()));
+			errorLog.printLog();
 		}
 		
 		return OpUtil.errorOccured();

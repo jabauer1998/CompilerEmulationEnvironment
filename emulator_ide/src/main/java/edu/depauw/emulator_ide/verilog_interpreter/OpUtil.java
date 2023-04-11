@@ -1158,7 +1158,7 @@ public class OpUtil {
 			int end = vec1.getEnd();
 
 			for (int i = start; i <= end; i++) {
-				boolean signal = (int2 & (1<<over)) > 0;
+				boolean signal = ((int2 >> over) & 1) > 0;
 				OpUtil.shallowAssign(vec1, i, signal);
 				over++;
 			}
@@ -1169,8 +1169,8 @@ public class OpUtil {
 			int sIndex1 = start;
 
 			for (int i = 0; i < 64; i++) {
-				boolean signal = (int2 & (1<<i)) > 0;
-				OpUtil.shallowAssign(vec1, i, signal);
+				boolean signal = ((int2 >> i) & 1) > 0;
+				OpUtil.shallowAssign(vec1, sIndex1, signal);
 				sIndex1++;
 			}
 
