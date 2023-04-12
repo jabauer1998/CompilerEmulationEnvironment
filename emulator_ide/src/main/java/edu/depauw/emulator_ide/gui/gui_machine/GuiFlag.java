@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 
 public class GuiFlag extends VBox {
     private Label Name;
-    private CheckBox BitSet;
+    private Label BitSet;
     
     public GuiFlag(String Name, double Width, double Height){
         this.Name = new Label(Name);
@@ -18,18 +18,16 @@ public class GuiFlag extends VBox {
         this.Name.setMaxHeight(Height/2);
         this.Name.setPrefWidth(Width);
         this.Name.setPrefHeight(Height/2);
+        this.Name.setAlignment(Pos.CENTER);
 
-        this.BitSet = new CheckBox();
+        this.BitSet = new Label("0");
         this.BitSet.setMaxWidth(Width);
         this.BitSet.setMaxHeight(Height/2);
         this.BitSet.setMinWidth(Width);
         this.BitSet.setMinHeight(Height/2);
         this.BitSet.setPrefWidth(Width);
         this.BitSet.setPrefHeight(Height/2);
-
-        this.BitSet.selectedProperty().setValue(false);
-        this.BitSet.setDisable(true);
-        this.BitSet.setOpacity(100);
+        this.BitSet.setAlignment(Pos.CENTER);
 
         this.getChildren().addAll(this.Name, this.BitSet);
         this.setAlignment(Pos.CENTER);
@@ -41,7 +39,11 @@ public class GuiFlag extends VBox {
     }
 
     public void Set(boolean IsSet){
-        this.BitSet.selectedProperty().setValue(IsSet);
+        if(IsSet){
+            this.BitSet.setText("1");
+        } else {
+            this.BitSet.setText("0");
+        }
     }
 
     public String getName(){
@@ -49,6 +51,11 @@ public class GuiFlag extends VBox {
     }
 
     public boolean isSet(){
-        return BitSet.isArmed();
+        String Text = this.BitSet.getText();
+        if(Text.equals("1")){
+            return true;
+        } else {
+            return false;
+        }
     }
 }

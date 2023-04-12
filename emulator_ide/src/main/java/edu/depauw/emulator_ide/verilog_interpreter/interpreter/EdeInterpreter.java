@@ -64,7 +64,7 @@ public class EdeInterpreter extends VerilogInterpreter {
                
 
                String formattedString = String.format(fString.toString(), Params);
-               guiInstance.appendIoText(standardOutputPane, formattedString);
+               guiInstance.appendIoText(standardOutputPane, formattedString + "\r\n");
            } else if (stat.argumentList.size() == 1) {
                Value data = interpretShallowExpression(stat.argumentList.get(0));
                guiInstance.appendIoText(standardOutputPane, data.toString());

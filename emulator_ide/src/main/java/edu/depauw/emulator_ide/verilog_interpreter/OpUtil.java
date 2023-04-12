@@ -1134,7 +1134,6 @@ public class OpUtil {
 	public static void shallowAssign(VectorVal vec1, int index1, int index2, CircuitElem elem2) throws Exception{
 		int start = vec1.getStart();
 		int end = vec1.getEnd();
-		int startIndex1 = start + 1;
 		
 		OpUtil.shallowAssign(vec1.getValue(start), elem2);
 		int sIndex1 = start + 1;
@@ -1191,7 +1190,7 @@ public class OpUtil {
 			int over = 0;
 
 			for (int i = start; i <= end; i++) {
-				boolean signal = (int2 & (1<<over)) > 0;
+				boolean signal = ((int2 >> over)& 1) > 0;
 				OpUtil.shallowAssign(vec1, i, signal);
 				over++;
 			}
@@ -1202,7 +1201,7 @@ public class OpUtil {
 			int sIndex1 = start;
 
 			for (int i = 0; i < 64; i++) {
-				boolean signal = (int2 & (1<<i)) > 0;
+				boolean signal = ((int2 >> i) & 1) > 0;
 				OpUtil.shallowAssign(vec1, sIndex1, signal);
 				sIndex1++;
 			}

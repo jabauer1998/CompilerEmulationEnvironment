@@ -189,7 +189,10 @@ module Arm();
       integer 	   i;
       if(checkCC(INSTR[31:28])) begin
 		case(code)
-	  		0: $setRegister("R15", $getRegister(INSTR[3:0])); //BX or BE
+	  		0: begin
+				$setRegister("R15", $getRegister(INSTR[3:0]));
+				$display("Branching to address %d", $getRegister(INSTR[3:0]));
+			end //BX or BE
 	  		1: begin //BL | B
 	     		if(INSTR[24]) //check if Link bit is set
 	       			$setRegister(14, $getRegister(15));
@@ -197,13 +200,13 @@ module Arm();
 	  		end
 	  		2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17: begin //AND Instruction
 	     		op1 = $getRegister(INSTR[19:16]);
-	     		if(INSTR[25]) begin //Operand 2 is rotated
+	     		if(INSTR[25]) begin //Operand 2 is immediate and rotated
 					op2 = INSTR[7:0];
 					for(i=0; i <= `WIDTH; i = i + 1)
 		  				copy[i] = op2[(i + INSTR[11:8] * 2) % (`WIDTH+1)];
 					op2 = copy;
 	     		end else begin //Operand 2 is shifted
-					op2 = R[INSTR[3:0]];
+					op2 = $getRegister(INSTR[3:0]);
 					if(INSTR[4]) //shift is stored in register value
 		  				case(INSTR[6:5])
 		    				2'b00: op2 = op2 << ($getRegister(INSTR[11:8]) & 8'b11111111); //Logical left
@@ -235,14 +238,14 @@ module Arm();
 		    				end
 		  				endcase
 	     			end // else
-
-				$display("Code is %d\n", code);
-				$display("Before solution 32 is %d", solution32);
 	     
 	     		case(code) //perform the specified operation
 	       			2, 10: solution32 = op1 & op2;
 	       			3, 11: solution32 = op1 ^ op2;
-	       			4, 12: solution32 = op1 - op2;
+	       			4, 12: begin
+						solution32 = op1 - op2;
+						$display("Subtracting %d - %d to get %d", op1, op2, solution32);
+					end
 	       			5: solution32 = op2 - op1;
 	       			6, 13: solution32 = op1 + op2;
 	       			7: solution32 = op1 + op2 + $getStatus("C");
@@ -253,12 +256,8 @@ module Arm();
 	       			16: solution32 = op1 & ~op2;
 	       			17: solution32 = ~op2;
 	     		endcase // case (code)
-
-				
-				$display("Solution 32 is %d", solution32);
-				$display("Op2 is %d", op2);
-				$finish;
 	     
+		        $display("Instruction 20 is %d", INSTR[20]);
 	     		if(INSTR[20]) begin //set the status bits if necessary
 					$setStatus("C", solution32[32]);
 					$setStatus("Z", !solution32);
@@ -266,8 +265,12 @@ module Arm();
             		$setStatus("V", (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]));
 	     		end
 
-	     		if(code >= 2 && code <= 9 || code >= 14 && code <= 17) //If the instruction wants a result return it
+				$display("Code is %d", code);
+				//If the instruction wants a result return it
+	     		if(code >= 2 && code <= 9 || code >= 12 && code <= 17) begin 
+				    $display("Setting Register %d to value %d", INSTR[15:12], solution32[31:0]);
 	       			$setRegister(INSTR[15:12], solution32[31:0]);
+				end
 	  		end
 	  		18: begin //MRS Instruction
 	     			if(INSTR[22]) begin 
@@ -543,7 +546,9 @@ module Arm();
 	  		27: begin //software interupt
 	     		case(INSTR[23:0])
 				//0: R[0] = $input;
-				1: $display($getRegister(0)); //displays value in RO
+				1: begin 
+					$display("Displaying register in R0 which has the value of %d", $getRegister(0));
+				end //displays value in RO
 				default: begin
 						$display("Error: invalid interupt vector number");
 						$finish;
