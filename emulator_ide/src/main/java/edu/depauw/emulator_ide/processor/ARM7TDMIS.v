@@ -73,10 +73,8 @@ module Arm();
       integer 	   status, handler;
       reg [31:0]   binaryLine;
       begin
-	  $display("Setting Stack pointer to address %d", address);
 	  $setRegister(15, address); // initialize stack pointer to address 0
 	  handler = $fopen("default", "r");
-	  $display("Create a Read only Handler %d", handler);
 	  while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
 		$setMemory($getRegister("R15"), binaryLine[31:24]);
@@ -142,8 +140,6 @@ module Arm();
    function checkCC;
       input [3:0] codecc;
       begin
-	 $display("CC input is %d", codecc);
-	 $display("Condition Code is %d", `AL);
 	 case(codecc)
 	   `EQ : checkCC = $getStatus("Z");
 	   `NE : checkCC = ~$getStatus("Z");
@@ -189,10 +185,7 @@ module Arm();
       integer 	   i;
       if(checkCC(INSTR[31:28])) begin
 		case(code)
-	  		0: begin
-				$setRegister("R15", $getRegister(INSTR[3:0]));
-				$display("Branching to address %d", $getRegister(INSTR[3:0]));
-			end //BX or BE
+	  		0: $setRegister("R15", $getRegister(INSTR[3:0])); //BX or BE
 	  		1: begin //BL | B
 	     		if(INSTR[24]) //check if Link bit is set
 	       			$setRegister(14, $getRegister(15));
@@ -242,10 +235,7 @@ module Arm();
 	     		case(code) //perform the specified operation
 	       			2, 10: solution32 = op1 & op2;
 	       			3, 11: solution32 = op1 ^ op2;
-	       			4, 12: begin
-						solution32 = op1 - op2;
-						$display("Subtracting %d - %d to get %d", op1, op2, solution32);
-					end
+	       			4, 12: solution32 = op1 - op2;
 	       			5: solution32 = op2 - op1;
 	       			6, 13: solution32 = op1 + op2;
 	       			7: solution32 = op1 + op2 + $getStatus("C");
@@ -257,7 +247,6 @@ module Arm();
 	       			17: solution32 = ~op2;
 	     		endcase // case (code)
 	     
-		        $display("Instruction 20 is %d", INSTR[20]);
 	     		if(INSTR[20]) begin //set the status bits if necessary
 					$setStatus("C", solution32[32]);
 					$setStatus("Z", !solution32);
@@ -265,10 +254,8 @@ module Arm();
             		$setStatus("V", (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]));
 	     		end
 
-				$display("Code is %d", code);
 				//If the instruction wants a result return it
-	     		if(code >= 2 && code <= 9 || code >= 12 && code <= 17) begin 
-				    $display("Setting Register %d to value %d", INSTR[15:12], solution32[31:0]);
+	     		if(code >= 2 && code <= 9 || code >= 10 && code <= 17) begin 
 	       			$setRegister(INSTR[15:12], solution32[31:0]);
 				end
 	  		end
@@ -547,7 +534,7 @@ module Arm();
 	     		case(INSTR[23:0])
 				//0: R[0] = $input;
 				1: begin 
-					$display("Displaying register in R0 which has the value of %d", $getRegister(0));
+					$display("%d\n", $getRegister(0));
 				end //displays value in RO
 				default: begin
 						$display("Error: invalid interupt vector number");
@@ -571,7 +558,6 @@ module Arm();
 
    initial begin
       loadProgram(0); //load program at memory location 0 and set the stack pointer to the top of the program after loading
-	  $display("Program loaded at address 0");
       while(InstructionCode != 28 && $getRegister(15) < `MEMSIZE) begin
 	 	INSTR = fetch($getRegister(15)); //old Fetch
 	 	InstructionCode = decode(INSTR);
