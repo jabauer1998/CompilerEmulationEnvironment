@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes;
 
 /**
  * This is the register class it will be used to simulate regs in the verilog language

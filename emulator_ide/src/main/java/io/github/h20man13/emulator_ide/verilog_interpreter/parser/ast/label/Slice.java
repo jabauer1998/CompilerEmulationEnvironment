@@ -1,11 +1,11 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.label;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label;
 
 
-import io.github.h20man13.emulator_ide.common.Pointer;
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.common.SymbolTable;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.ConstantExpression;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
+import io.github.H20man13.emulator_ide.common.Pointer;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.SymbolTable;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.ConstantExpression;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The vectorslice class is used to par.E a call to an array cell

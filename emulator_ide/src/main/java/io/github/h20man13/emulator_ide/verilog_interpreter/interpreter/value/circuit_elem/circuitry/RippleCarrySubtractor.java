@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry;
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.OpUtil;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
 
 public class RippleCarrySubtractor {
     public RippleCarrySubtractor(WireVal CarryOut, VectorVal Output, VectorVal Input1, VectorVal Input2) throws Exception{

@@ -1,15 +1,15 @@
-package io.github.h20man13.emulator_ide;
+package io.github.H20man13.emulator_ide;
 
 
-import io.github.h20man13.emulator_ide.common.io.Destination;
-import io.github.h20man13.emulator_ide.common.io.Source;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Lexer;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Parser;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Token;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.Indexer;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.type_checker.TypeChecker;
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.common.io.Destination;
+import io.github.H20man13.emulator_ide.common.io.Source;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Lexer;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Parser;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Token;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.Indexer;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.type_checker.TypeChecker;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import org.junit.Test;
 import java.io.StringReader;
 import java.io.BufferedReader;

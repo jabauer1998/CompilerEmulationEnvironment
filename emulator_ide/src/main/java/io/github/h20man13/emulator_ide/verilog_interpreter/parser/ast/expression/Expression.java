@@ -1,8 +1,8 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression;
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The.expression class is an extention of the AstNode class This class is used as a

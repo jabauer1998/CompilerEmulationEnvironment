@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.gui.gui_machine;
+package io.github.H20man13.emulator_ide.gui.gui_machine;
 
 import java.util.HashMap;
-import io.github.h20man13.emulator_ide._interface.Flags;
+import io.github.H20man13.emulator_ide._interface.Flags;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.HBox;

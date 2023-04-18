@@ -1,13 +1,13 @@
-package io.github.h20man13.emulator_ide.common.debug;
+package io.github.H20man13.emulator_ide.common.debug;
 
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
-import io.github.h20man13.emulator_ide.common.io.Destination;
-import io.github.h20man13.emulator_ide.common.debug.item.ErrorItem;
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.io.Destination;
+import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
+import io.github.H20man13.emulator_ide.common.Position;
 
 import java.io.StringWriter;
 

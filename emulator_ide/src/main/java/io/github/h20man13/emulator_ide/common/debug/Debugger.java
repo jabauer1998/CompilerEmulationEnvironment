@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.common.debug;
+package io.github.H20man13.emulator_ide.common.debug;
 
 
-import io.github.h20man13.emulator_ide.common.io.Destination;
+import io.github.H20man13.emulator_ide.common.io.Destination;
 
 import java.io.PrintStream;
 

@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.gui;
+package io.github.H20man13.emulator_ide.gui;
 
-import io.github.h20man13.emulator_ide._interface.Machine;
-import io.github.h20man13.emulator_ide.gui.gui_job.GuiJobs;
-import io.github.h20man13.emulator_ide.gui.gui_machine.GuiMachine;
-import io.github.h20man13.emulator_ide.gui.gui_machine.GuiRam;
-import io.github.h20man13.emulator_ide.gui.gui_machine.GuiRegister;
+import io.github.H20man13.emulator_ide._interface.Machine;
+import io.github.H20man13.emulator_ide.gui.gui_job.GuiJobs;
+import io.github.H20man13.emulator_ide.gui.gui_machine.GuiMachine;
+import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRam;
+import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRegister;
 import javafx.scene.layout.HBox;
 
 public class GuiEde extends HBox implements Machine{

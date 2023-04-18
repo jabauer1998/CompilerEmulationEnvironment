@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment;
 
 import java.util.List;
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.label.LValue;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.LValue;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
 
 public class NonBlockingAssignment extends Assignment<List<LValue>, List<Expression>> {
 

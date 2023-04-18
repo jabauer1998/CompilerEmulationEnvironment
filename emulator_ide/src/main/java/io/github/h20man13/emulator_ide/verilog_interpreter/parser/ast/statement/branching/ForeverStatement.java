@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
 
 public class ForeverStatement extends AstNode implements Statement {
 

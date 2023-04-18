@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
-import io.github.h20man13.emulator_ide.common.Pointer;
-import io.github.h20man13.emulator_ide.common.SymbolTable;
-import io.github.h20man13.emulator_ide.common.io.FormattedScanner;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.TaskDeclaration;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.process.ProcessBase;
+import io.github.H20man13.emulator_ide.common.Pointer;
+import io.github.H20man13.emulator_ide.common.SymbolTable;
+import io.github.H20man13.emulator_ide.common.io.FormattedScanner;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.ModuleDeclaration;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.TaskDeclaration;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.process.ProcessBase;
 
 /**
  * The environment class is what is supplied to the interpreter in order to Interpret the code

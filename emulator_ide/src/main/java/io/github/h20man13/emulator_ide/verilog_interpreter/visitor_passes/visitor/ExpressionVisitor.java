@@ -1,21 +1,21 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor;
+package io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor;
 
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.FunctionCall;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.SystemFunctionCall;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.BinaryOperation;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.Concatenation;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.TernaryOperation;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.UnaryOperation;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.BinaryNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.DecimalNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.HexadecimalNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.OctalNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.StringNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.label.Element;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.label.Identifier;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.label.Slice;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.FunctionCall;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.SystemFunctionCall;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.BinaryOperation;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.Concatenation;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.TernaryOperation;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation.UnaryOperation;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.BinaryNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.DecimalNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.HexadecimalNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.OctalNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.value_node.StringNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Element;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Identifier;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Slice;
 
 public interface ExpressionVisitor<ExprVisitType> {
 

@@ -1,21 +1,21 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor;
+package io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor;
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.CaseStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.CaseXStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.CaseZStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.item.DefCaseItem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.item.ExprCaseItem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment.BlockingAssignment;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment.NonBlockingAssignment;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.ForStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.ForeverStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.RepeatStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.WhileStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching._if_.IfElseStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching._if_.IfStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.TaskStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.CaseStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.CaseXStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.CaseZStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.item.DefCaseItem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.item.ExprCaseItem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment.BlockingAssignment;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment.NonBlockingAssignment;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.ForStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.ForeverStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.RepeatStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching.WhileStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching._if_.IfElseStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.branching._if_.IfStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.TaskStatement;
 public interface StatementVisitor<StatVisitType> {
 
     /**

@@ -1,11 +1,11 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.Position;
 
-import io.github.h20man13.emulator_ide.common.io.Source;
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
-import io.github.h20man13.emulator_ide.common.debug.item.ErrorItem;
+import io.github.H20man13.emulator_ide.common.io.Source;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
 
 import java.util.LinkedList;
 import java.util.List;

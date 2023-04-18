@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.type_checker;
+package io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.type_checker;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.Position;
 
 public class TypeCheckerVariableData {
 

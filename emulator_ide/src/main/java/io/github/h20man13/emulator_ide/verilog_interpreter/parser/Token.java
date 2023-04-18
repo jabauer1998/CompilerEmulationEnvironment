@@ -1,8 +1,8 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser;
 
 import java.util.HashMap;
 
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.Position;
 
 public class Token {
 

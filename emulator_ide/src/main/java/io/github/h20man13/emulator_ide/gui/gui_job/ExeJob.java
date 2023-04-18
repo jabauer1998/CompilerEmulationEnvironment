@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.gui.gui_job;
+package io.github.H20man13.emulator_ide.gui.gui_job;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,8 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import io.github.h20man13.emulator_ide.gui.GuiEde;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
+import io.github.H20man13.emulator_ide.gui.GuiEde;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
 import javafx.scene.control.TextArea;
 
 public class ExeJob extends GuiJob {

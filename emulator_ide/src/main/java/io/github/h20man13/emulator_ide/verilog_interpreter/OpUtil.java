@@ -1,33 +1,33 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter;
+package io.github.H20man13.emulator_ide.verilog_interpreter;
 
 import java.io.File;
 import javax.management.RuntimeErrorException;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.RealVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.HalfAdder;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.RippleCarryAdder;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.RippleCarrySubtractor;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.AndGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.OrGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.XnorGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.XorGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern.Pattern;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Int;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Reg;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.RealVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.HalfAdder;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.RippleCarryAdder;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.RippleCarrySubtractor;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.AndGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.OrGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.XnorGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.XorGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern.Pattern;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Int;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Reg;
 
 public class OpUtil {
 	/**
@@ -145,7 +145,7 @@ public class OpUtil {
 		throw new Exception(errorParam);
 	}
 
-	public static void errorAndExit(String errorParam, io.github.h20man13.emulator_ide.common.Position position) throws Exception{
+	public static void errorAndExit(String errorParam, io.github.H20man13.emulator_ide.common.Position position) throws Exception{
 		OpUtil.errorAndExit(errorParam + position.toString());
 	}
 

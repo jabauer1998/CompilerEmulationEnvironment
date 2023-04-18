@@ -1,17 +1,17 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser;
 
 
-import io.github.h20man13.emulator_ide.common.io.Destination;
-import io.github.h20man13.emulator_ide.common.io.Source;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Lexer;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Parser;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Token;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.pre_processor.Preprocessor;
-import io.github.h20man13.emulator_ide.common.debug.Debugger;
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.common.io.Destination;
+import io.github.H20man13.emulator_ide.common.io.Source;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Lexer;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Parser;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Token;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.pre_processor.Preprocessor;
+import io.github.H20man13.emulator_ide.common.debug.Debugger;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

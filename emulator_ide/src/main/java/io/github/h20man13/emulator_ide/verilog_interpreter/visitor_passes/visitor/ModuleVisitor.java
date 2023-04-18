@@ -1,16 +1,16 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor;
+package io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor;
 
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.gate_declaration.*;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.instantiation.ModuleInstance;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.instantiation.ModuleInstantiation;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.TaskDeclaration;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.process.AllwaysProcess;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.process.InitialProcess;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.gate_declaration.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.instantiation.ModuleInstance;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.instantiation.ModuleInstantiation;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.FunctionDeclaration;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration.TaskDeclaration;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.process.AllwaysProcess;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.process.InitialProcess;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.*;
 
 public interface ModuleVisitor<ModVisitType> {
 

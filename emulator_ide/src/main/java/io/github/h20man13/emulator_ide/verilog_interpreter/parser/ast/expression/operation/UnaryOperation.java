@@ -1,16 +1,16 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.operation;
 
 
 import java.lang.management.OperatingSystemMXBean;
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
-import io.github.h20man13.emulator_ide.common.debug.item.ErrorItem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.OpUtil;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
 /**
  * The Unary Operation class is used to par.E unary operations unary operations are
  * operations with one operator and an.expression ex: - (1 + 5) the.expression is 1 + 5

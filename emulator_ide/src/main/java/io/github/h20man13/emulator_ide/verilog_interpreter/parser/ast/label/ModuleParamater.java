@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.label;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label;
 
-import io.github.h20man13.emulator_ide.common.Pointer;
-import io.github.h20man13.emulator_ide.common.SymbolTable;
+import io.github.H20man13.emulator_ide.common.Pointer;
+import io.github.H20man13.emulator_ide.common.SymbolTable;
 
 /**
  * The Identifier class is used to define an Identifier An identifier is any set of

@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
 import java.util.List;
 
 /**

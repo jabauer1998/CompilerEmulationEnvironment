@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.common.debug.item;
+package io.github.H20man13.emulator_ide.common.debug.item;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.Position;
 
 import java.lang.String;
 import java.lang.StringBuilder;

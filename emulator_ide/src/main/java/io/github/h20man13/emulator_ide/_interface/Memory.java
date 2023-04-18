@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide._interface;
+package io.github.H20man13.emulator_ide._interface;
 
 public interface Memory {
     public void setMemoryValue(int address, long dataValue);

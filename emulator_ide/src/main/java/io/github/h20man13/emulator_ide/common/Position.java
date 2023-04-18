@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.common;
+package io.github.H20man13.emulator_ide.common;
 
 
 import java.lang.String;

@@ -1,8 +1,8 @@
-package io.github.h20man13.emulator_ide.gui.gui_job;
+package io.github.H20man13.emulator_ide.gui.gui_job;
 
 import java.util.LinkedList;
 import java.util.List;
-import io.github.h20man13.emulator_ide.gui.GuiEde;
+import io.github.H20man13.emulator_ide.gui.GuiEde;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;

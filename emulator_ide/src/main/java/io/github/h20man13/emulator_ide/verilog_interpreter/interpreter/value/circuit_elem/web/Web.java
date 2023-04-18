@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web;
 
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 
 public abstract class Web extends CircuitElem {
     // For now this is just a place holder but this is to provide more specific support for

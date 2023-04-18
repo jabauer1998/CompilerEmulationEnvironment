@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.gui.gui_job;
+package io.github.H20man13.emulator_ide.gui.gui_job;
 
 import javafx.event.Event;
 import javafx.event.EventHandler;

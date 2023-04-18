@@ -1,8 +1,8 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration;
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
 
 public class Unidentified {
     public class Declaration extends AstNode implements ModuleItem{

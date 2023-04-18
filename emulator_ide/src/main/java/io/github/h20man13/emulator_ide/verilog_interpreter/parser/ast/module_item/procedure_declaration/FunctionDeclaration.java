@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.procedure_declaration;
 
 import java.util.List;
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
 
 public class FunctionDeclaration extends ProcedureDeclaration {
 

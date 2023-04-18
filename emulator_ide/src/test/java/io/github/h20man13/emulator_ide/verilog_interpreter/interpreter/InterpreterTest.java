@@ -1,12 +1,12 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 
 
-import io.github.h20man13.emulator_ide.common.io.Destination;
-import io.github.h20man13.emulator_ide.common.io.Source;
+import io.github.H20man13.emulator_ide.common.io.Destination;
+import io.github.H20man13.emulator_ide.common.io.Source;
 
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

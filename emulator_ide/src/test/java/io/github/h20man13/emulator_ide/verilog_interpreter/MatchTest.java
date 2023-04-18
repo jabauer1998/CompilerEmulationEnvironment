@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter;
+package io.github.H20man13.emulator_ide.verilog_interpreter;
 
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern.*;
 
 public class MatchTest {
 

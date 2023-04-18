@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.common.io;
+package io.github.H20man13.emulator_ide.common.io;
 
 
 import org.junit.Test;

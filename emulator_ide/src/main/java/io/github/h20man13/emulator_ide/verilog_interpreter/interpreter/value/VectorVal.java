@@ -1,11 +1,11 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value;
 
 
 import java.lang.StringBuilder;
 import java.util.ArrayList;
 import java.util.List;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
 
 /**
  * The VectorElement class is used to par.E a call to an array cell

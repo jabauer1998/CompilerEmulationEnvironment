@@ -1,13 +1,13 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern;
 
 
 import java.lang.Integer;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 
 /**
  * The VectorElement class is used to par.E a call to an array cell

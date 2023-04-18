@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value;
 
 public class UnsignedIntVal extends IntVal implements Unsigned {
 

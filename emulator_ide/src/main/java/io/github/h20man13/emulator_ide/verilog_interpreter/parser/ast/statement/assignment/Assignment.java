@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
 
 /**
  * The assignment class is used to parse Assignment Statements Basic Assignment

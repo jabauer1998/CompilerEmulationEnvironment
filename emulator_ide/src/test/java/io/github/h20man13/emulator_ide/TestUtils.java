@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide;
+package io.github.H20man13.emulator_ide;
 
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Lexer;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Token;
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Lexer;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Token;
+import io.github.H20man13.emulator_ide.common.Position;
 
 import java.util.ArrayList;
 

@@ -1,10 +1,10 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.item;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement._case_.item;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.Statement;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
 
 public abstract class CaseItem extends AstNode implements Statement {
 

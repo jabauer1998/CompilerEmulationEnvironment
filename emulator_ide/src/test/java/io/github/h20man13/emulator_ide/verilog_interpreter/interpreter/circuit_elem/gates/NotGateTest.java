@@ -1,14 +1,14 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.gates;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.gates;
 
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Primitive;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Primitive;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
 import org.junit.Test;
-import static io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.TestUtils.*;
+import static io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.TestUtils.*;
 import static org.junit.Assert.assertTrue;
 
 public class NotGateTest {

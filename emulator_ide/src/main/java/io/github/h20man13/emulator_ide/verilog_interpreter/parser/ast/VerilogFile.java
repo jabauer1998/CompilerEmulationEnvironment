@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast;
 
 import java.util.Collections;
 import java.util.List;
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;
 
 public class VerilogFile extends AstNode {
     /**

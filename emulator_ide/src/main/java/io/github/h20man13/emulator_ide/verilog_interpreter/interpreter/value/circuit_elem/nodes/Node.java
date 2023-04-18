@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes;
 
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.Web;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.Web;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
 
 public abstract class Node extends CircuitElem {
 

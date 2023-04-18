@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.gui.gui_machine;
+package io.github.H20man13.emulator_ide.gui.gui_machine;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;

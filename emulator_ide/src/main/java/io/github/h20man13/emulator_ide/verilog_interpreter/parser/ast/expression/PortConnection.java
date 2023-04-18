@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ExpressionVisitor;
 
 /**
  * The port connection class is used for module instantiations

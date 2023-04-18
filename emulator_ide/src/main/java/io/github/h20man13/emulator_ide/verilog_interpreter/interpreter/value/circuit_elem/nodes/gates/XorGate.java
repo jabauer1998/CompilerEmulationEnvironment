@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates;
 
 
 import java.util.LinkedList;
 import java.util.List;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.*;
 import java.util.Arrays;
 
 /**

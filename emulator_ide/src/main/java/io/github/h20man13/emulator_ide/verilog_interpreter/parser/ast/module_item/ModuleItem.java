@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item;
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
 
 public interface ModuleItem {
     /**

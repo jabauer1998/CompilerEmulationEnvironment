@@ -1,7 +1,7 @@
-package io.github.h20man13.emulator_ide.common.io;
+package io.github.H20man13.emulator_ide.common.io;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.common.Position;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;

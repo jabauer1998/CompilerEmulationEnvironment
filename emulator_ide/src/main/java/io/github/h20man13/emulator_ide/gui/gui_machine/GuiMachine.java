@@ -1,8 +1,8 @@
-package io.github.h20man13.emulator_ide.gui.gui_machine;
+package io.github.H20man13.emulator_ide.gui.gui_machine;
 
-import io.github.h20man13.emulator_ide._interface.Machine;
-import io.github.h20man13.emulator_ide.gui.gui_machine.GuiRam.AddressFormat;
-import io.github.h20man13.emulator_ide.gui.gui_machine.GuiRam.MemoryFormat;
+import io.github.H20man13.emulator_ide._interface.Machine;
+import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRam.AddressFormat;
+import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRam.MemoryFormat;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;

@@ -1,16 +1,16 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser;
 
 
-import io.github.h20man13.emulator_ide.common.io.Destination;
-import io.github.h20man13.emulator_ide.common.io.Source;
+import io.github.H20man13.emulator_ide.common.io.Destination;
+import io.github.H20man13.emulator_ide.common.io.Source;
 
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Primitive;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Lexer;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.Token;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Primitive;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils.Tuple;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Lexer;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Token;
 import org.junit.Test;
-import static io.github.h20man13.emulator_ide.TestUtils.*;
+import static io.github.H20man13.emulator_ide.TestUtils.*;
 import java.io.StringReader;
 
 public class LexerTest {

@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement;
 
 
-import io.github.h20man13.emulator_ide.common.Position;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
-import io.github.h20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
+import io.github.H20man13.emulator_ide.common.Position;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
+import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.StatementVisitor;
 
 public class EmptyStatement extends AstNode implements Statement {
 

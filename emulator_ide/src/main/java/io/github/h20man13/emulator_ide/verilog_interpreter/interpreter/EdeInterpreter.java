@@ -1,14 +1,14 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 
-import io.github.h20man13.emulator_ide._interface.Machine;
-import io.github.h20man13.emulator_ide.common.debug.ErrorLog;
-import io.github.h20man13.emulator_ide.verilog_interpreter.OpUtil;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.SystemFunctionCall;
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
+import io.github.H20man13.emulator_ide._interface.Machine;
+import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.SystemFunctionCall;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
 
 public class EdeInterpreter extends VerilogInterpreter {
     private Machine guiInstance;

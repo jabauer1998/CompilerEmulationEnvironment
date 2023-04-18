@@ -1,6 +1,6 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration;
+package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration;
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
 
 public interface VectorDeclarationInterface {
     Expression GetIndex1();

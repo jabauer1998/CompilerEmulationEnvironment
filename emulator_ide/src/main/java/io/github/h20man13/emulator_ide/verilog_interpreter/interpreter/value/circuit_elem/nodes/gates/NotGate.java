@@ -1,6 +1,6 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates;
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.*;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.*;
 /**
  * The NorGate class is an instance of the the Gate class that is used to simulate and
  * AndGate. These classes will be usefull when trying to create a graph in the

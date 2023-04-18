@@ -1,6 +1,6 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem;
 
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 /**
  * The generic class for Circuit Objects
  * 

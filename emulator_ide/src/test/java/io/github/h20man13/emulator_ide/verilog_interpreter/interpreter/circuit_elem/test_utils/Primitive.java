@@ -1,4 +1,4 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils;
 
 
 import static org.junit.Assert.*;

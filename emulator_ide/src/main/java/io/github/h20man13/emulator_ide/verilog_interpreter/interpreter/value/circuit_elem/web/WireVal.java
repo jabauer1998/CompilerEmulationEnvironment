@@ -1,9 +1,9 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web;
 
 
 import java.util.HashSet;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.Node;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.Node;
 
 /**
  * The wire class is used to attach all of the CircuitElems together. The wire class

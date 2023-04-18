@@ -1,12 +1,12 @@
-package io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.circuit_elem.test_utils;
 
 
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
-import io.github.h20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
 import java.lang.StringBuilder;
 
 public class TestUtils {
