@@ -1,5 +1,6 @@
 package io.github.H20man13.emulator_ide.gui;
 
+import java.util.concurrent.Callable;
 import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.gui.gui_job.GuiJobs;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiMachine;
@@ -24,6 +25,10 @@ public class GuiEde extends HBox implements Machine{
 
     public void AddExeJob(String jobName, String execString, String inputFile, String outputFile, String errorFile, String errorPane){
         this.Jobs.AddExeJob(jobName, execString, inputFile, outputFile, errorFile, errorPane, this);
+    }
+
+    public void AddJavaJob(String jobName, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane){
+        this.Jobs.AddJavaJob(jobName, functionToRun, inputFile, outputFile, errorPane, this);
     }
 
     public void AddFlag(String Name){

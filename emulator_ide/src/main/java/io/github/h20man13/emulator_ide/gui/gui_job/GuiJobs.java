@@ -2,6 +2,7 @@ package io.github.H20man13.emulator_ide.gui.gui_job;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
@@ -29,9 +30,14 @@ public class GuiJobs extends VBox {
     }
 
     public void AddExeJob(String JobName, String ExecString, String InputFile, String OutputFile, String ErrorFile, String errorTextBox,  GuiEde edeInstance){
-        GuiJob Job = new ExeJob(JobName, JobWidth, JobHeight, ExecString, InputFile, OutputFile, ErrorFile, errorTextBox, Jobs, edeInstance);
+        ExeJob Job = new ExeJob(JobName, JobWidth, JobHeight, ExecString, InputFile, OutputFile, ErrorFile, errorTextBox, Jobs, edeInstance);
         this.getChildren().addAll(Job);
+        Jobs.add(Job.getInputSection());
+    }
 
+    public void AddJavaJob(String JobName, Callable<Void> functionToRun, String InputFile, String OutputFile, String errorPane, GuiEde edeInstance){
+        JavaJob Job = new JavaJob(JobName, JobWidth, JobHeight, functionToRun, InputFile, OutputFile, errorPane, Jobs, edeInstance);
+        this.getChildren().add(Job);
         Jobs.add(Job.getInputSection());
     }
 
