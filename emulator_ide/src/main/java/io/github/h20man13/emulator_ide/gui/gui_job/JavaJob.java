@@ -14,13 +14,16 @@ public class JavaJob extends GuiJob{
     private GuiEde edeInstance;
     private String errorPane;
     private String inputFile;
+    private String outputFile;
     private List<TextArea> guiJobs;
 
     public JavaJob(String buttonText, double width, double height, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane, List<TextArea> guiJobs,  GuiEde edeInstance){
         super(buttonText, width, height);
         this.functionToRun = functionToRun;
         this.edeInstance = edeInstance;
+        this.inputFile = inputFile;
         this.errorPane = errorPane;
+        this.outputFile = outputFile;
         this.guiJobs = guiJobs;
     }
 
@@ -45,11 +48,11 @@ public class JavaJob extends GuiJob{
     private void collectDataFromOutputFile(){
         for(int i = 0; i < guiJobs.size(); i++){
             TextArea localArea = guiJobs.get(i);
-            if(localArea.hashCode() == this.hashCode()){
+            if(localArea.hashCode() == this.getInputSection().hashCode()){
                 TextArea nextTextArea = guiJobs.get(i + 1);
                 nextTextArea.setText("");
                 try{
-                    FileReader reader = new FileReader(inputFile);
+                    FileReader reader = new FileReader(outputFile);
                     //Write all Text to the Next Text Area
                     while(reader.ready()){
                         nextTextArea.setText(nextTextArea.getText() + (char)reader.read());
