@@ -1,5 +1,6 @@
 package io.github.H20man13.emulator_ide.gui.gui_machine;
 
+import java.util.Collection;
 import java.util.HashMap;
 import io.github.H20man13.emulator_ide._interface.RegFile;
 import javafx.scene.control.ScrollPane;
@@ -89,5 +90,12 @@ public class GuiRegisterFile extends VBox implements RegFile {
     public void setRegisterValue(int regNumber, long regValue){
         GuiRegister Reg = intRegFile.get(regNumber);
         Reg.SetRegisterValue(regValue);
+    }
+
+    public void clearRegisters(){
+        Collection<GuiRegister> registers = regFile.values();
+        for(GuiRegister register : registers){
+            register.SetRegisterValue(0);
+        }
     }
 }

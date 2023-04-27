@@ -6,29 +6,71 @@ import io.github.H20man13.emulator_ide.gui.gui_job.GuiJobs;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiMachine;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRam;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRegister;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
-public class GuiEde extends HBox implements Machine{
+public class GuiEde extends VBox implements Machine{
     private GuiJobs Jobs;
     private GuiMachine Machine;
 
     public GuiEde(int NumberOfBytes, int NumberOfBytesInRow, GuiRam.AddressFormat AddrFormat, GuiRam.MemoryFormat MemFormat, double Width, double Height){
-        this.Jobs = new GuiJobs(Width/3, Height);
-        this.Machine = new GuiMachine(NumberOfBytes, NumberOfBytesInRow, AddrFormat, MemFormat, Width * 2 / 3, Height);
+        HBox toolBar = new HBox();
+        Button clearMemory = new Button("Clear Memory");
+        clearMemory.setPrefHeight(Height/12);
+        clearMemory.setPrefWidth(Width/3);
+        clearMemory.setOnMouseClicked(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event){ // TODO Auto-generated method stub
+                Machine.clearMemory();
+            }
+        });
+        
+        Button clearRegisters = new Button("Clear Registers");
+        clearRegisters.setPrefHeight(Height/12);
+        clearRegisters.setPrefWidth(Width/3);
+        clearRegisters.setOnMouseClicked(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event){
+                Machine.clearRegisters();
+            }
+        });
 
-        this.getChildren().addAll(this.Jobs.getJobsPane(), this.Machine);
+        Button clearStatus = new Button("Clear Status");
+        clearStatus.setPrefHeight(Height/12);
+        clearStatus.setPrefWidth(Width/3);
+        clearStatus.setOnMouseClicked(new EventHandler<Event>(){
+            @Override
+            public void handle(Event event){
+                Machine.clearStatusValues();
+            }
+        });
+
+        
+
+        toolBar.getChildren().addAll(clearRegisters, clearMemory, clearStatus);
+
+        HBox mainPane = new HBox();
+        this.Jobs = new GuiJobs(Width/3, Height*11/12);
+        this.Machine = new GuiMachine(NumberOfBytes, NumberOfBytesInRow, AddrFormat, MemFormat, Width * 2 / 3, Height * 11 / 12);
+        
+        mainPane.getChildren().addAll(this.Jobs.getJobsPane(), this.Machine);
+        
+        this.getChildren().addAll(toolBar, mainPane);
     }
 
-    public void AddVerilogJob(String jobName, String verilogFile, String inputFile, String inputPane, String outputPane, String errorPane){
-        this.Jobs.AddVerilogJob(jobName, verilogFile, inputFile, inputPane, outputPane, errorPane, this);
+    public void AddVerilogJob(String jobName, String verilogFile, String inputFile, String inputPane, String outputPane, String errorPane, String... keywords){
+        this.Jobs.AddVerilogJob(jobName, verilogFile, inputFile, inputPane, outputPane, errorPane, keywords, this);
     }
 
-    public void AddExeJob(String jobName, String execString, String inputFile, String outputFile, String errorFile, String errorPane){
-        this.Jobs.AddExeJob(jobName, execString, inputFile, outputFile, errorFile, errorPane, this);
+    public void AddExeJob(String jobName, String execString, String inputFile, String outputFile, String errorFile, String errorPane, String... keywords){
+        this.Jobs.AddExeJob(jobName, execString, inputFile, outputFile, errorFile, errorPane, keywords, this);
     }
 
-    public void AddJavaJob(String jobName, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane){
-        this.Jobs.AddJavaJob(jobName, functionToRun, inputFile, outputFile, errorPane, this);
+    public void AddJavaJob(String jobName, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane, String... keywords){
+        this.Jobs.AddJavaJob(jobName, functionToRun, inputFile, outputFile, errorPane, keywords, this);
     }
 
     public void AddFlag(String Name){

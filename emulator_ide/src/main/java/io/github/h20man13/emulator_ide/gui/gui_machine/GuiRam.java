@@ -163,4 +163,10 @@ public class GuiRam extends VBox implements Memory{
             return Long.parseLong(text, 16);
         }
     }
+
+    public void clearMemory(){
+        for(int i = 0; i < NumberOfBytes; i++){
+            this.setMemoryValue(i, 0);
+        }
+    }
 }

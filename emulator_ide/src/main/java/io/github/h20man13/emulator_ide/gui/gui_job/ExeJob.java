@@ -5,24 +5,22 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
+import org.fxmisc.richtext.InlineCssTextArea;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
-import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
-import javafx.scene.control.TextArea;
 
 public class ExeJob extends GuiJob {
     private String ExeString;
     private String InputFile;
     private String OutputFile;
     private String ErrorFile;
-    private List<TextArea> guiJobs;
+    private List<InlineCssTextArea> guiJobs;
     private String errorTextAreaName;
 
     private GuiEde edeInstance;
 
-    public ExeJob(String ButtonText, double Width, double Height, String ExeString, String InputFile, String OutputFile, String ErrorFile, String errorTextAreaName, List<TextArea> guiJobs, GuiEde edeInstance) { 
-        super(ButtonText, Width, Height);
+    public ExeJob(String ButtonText, double Width, double Height, String ExeString, String InputFile, String OutputFile, String ErrorFile, String errorTextAreaName, String[] keywords, List<InlineCssTextArea> guiJobs, GuiEde edeInstance) { 
+        super(ButtonText, Width, Height, keywords);
         this.ExeString = ExeString;
         this.InputFile = InputFile;
         this.OutputFile = OutputFile;
@@ -81,7 +79,7 @@ public class ExeJob extends GuiJob {
             }
         }
 
-        TextArea OutputTextArea = guiJobs.get(i + 1);
+        InlineCssTextArea OutputTextArea = guiJobs.get(i + 1);
         File OutputFilePtr = new File(OutputFile);
 
         if(OutputFilePtr.exists()){
@@ -94,7 +92,7 @@ public class ExeJob extends GuiJob {
                         break;
                     memText.append((char)outputCharFull);
                 }
-                OutputTextArea.setText(memText.toString());
+                OutputTextArea.replaceText(memText.toString());
                 outputReader.close();
             } catch (FileNotFoundException e) {
                 edeInstance.appendIoText(errorTextAreaName, e.toString());

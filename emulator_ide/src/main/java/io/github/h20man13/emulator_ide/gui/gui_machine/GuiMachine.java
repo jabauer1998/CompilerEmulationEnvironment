@@ -83,4 +83,16 @@ public class GuiMachine extends HBox implements Machine{
     public String readIoText(String Name){
         return this.Io.readIoText(Name);
     }
+
+    public void clearStatusValues(){
+        this.Flags.clearStatusValues();
+    }
+
+    public void clearMemory(){
+        this.Mem.clearMemory();
+    }
+
+    public void clearRegisters(){
+        this.RegFile.clearRegisters();
+    }
 }

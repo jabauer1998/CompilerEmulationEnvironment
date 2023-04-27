@@ -1,5 +1,6 @@
 package io.github.H20man13.emulator_ide.gui.gui_machine;
 
+import java.util.Collection;
 import java.util.HashMap;
 import io.github.H20man13.emulator_ide._interface.Flags;
 import javafx.scene.control.ScrollPane;
@@ -49,5 +50,13 @@ public class GuiFlags extends HBox implements Flags {
     public void setStatusValue(String statusName, long statusValue){
         GuiFlag Flag = flagMap.get(statusName);
         Flag.Set(statusValue != 0);
+    }
+
+    
+    public void clearStatusValues(){
+        Collection<GuiFlag> values = flagMap.values();
+        for(GuiFlag value : values){
+            value.Set(false);
+        }
     }
 }

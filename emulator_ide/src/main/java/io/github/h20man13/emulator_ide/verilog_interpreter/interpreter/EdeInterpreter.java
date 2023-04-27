@@ -100,7 +100,7 @@ public class EdeInterpreter extends VerilogInterpreter {
             guiInstance.setStatusValue(statusNameVal.toString(), statusValueVal.longValue());
         } else if(identifier.equals("setMemory")){
             if(stat.argumentList.size() != 2){
-                OpUtil.errorAndExit("Error: Invalid amount of aruments for setingMemory Address...\nExpected 2 but found " + stat.argumentList.size());
+                OpUtil.errorAndExit("Error: Invalid amount of aruments for settingMemory Address...\nExpected 2 but found " + stat.argumentList.size());
             }
 
             Expression memAddressExp = stat.argumentList.get(0);
