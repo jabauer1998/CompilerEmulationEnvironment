@@ -72,7 +72,7 @@ public abstract class GuiJob extends VBox{
                         InputSection.setStyle(findBeginPositionLeft, findEndPositionLeft, "-fx-fill: black;");
                     }
 
-                    String rightSubString = text.substring(findBeginPositionRight, findEndPositionRight);
+                    String rightSubString = text.substring(findBeginPositionRight, findEndPositionRight + 1);
                     if(keywords.contains(rightSubString)){
                         InputSection.setStyle(findBeginPositionRight, findEndPositionRight, "-fx-fill: blue;");
                     } else {
