@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.List;
 import org.fxmisc.richtext.InlineCssTextArea;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
-import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Output;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
 
