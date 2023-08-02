@@ -56,6 +56,8 @@ public abstract class GuiJob extends VBox{
                     } else {
                         InputSection.setStyle(findBeginPosition, findEndPosition, "-fx-fill: black;");
                     }
+
+                    System.out.println("SubString: " + textSubString);
                 } else {
                     //Otherwise it is a whitespace and we need to change the color word before and after the whitespace
                     int findEndPositionLeft = Search.findNextNonWhitespace(cursorPosition, text, SearchDirection.LEFT);
@@ -74,10 +76,12 @@ public abstract class GuiJob extends VBox{
 
                     String rightSubString = text.substring(findBeginPositionRight, findEndPositionRight + 1);
                     if(keywords.contains(rightSubString)){
-                        InputSection.setStyle(findBeginPositionRight, findEndPositionRight, "-fx-fill: blue;");
+                        InputSection.setStyle(findBeginPositionRight, findEndPositionRight + 1, "-fx-fill: blue;");
                     } else {
-                        InputSection.setStyle(findBeginPositionRight, findEndPositionRight, "-fx-fill: black;");
+                        InputSection.setStyle(findBeginPositionRight, findEndPositionRight + 1, "-fx-fill: black;");
                     }
+
+                    System.out.println("Left: " + leftSubString + " Right: " + rightSubString);
                 }
             };
         });
