@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import org.fxmisc.richtext.InlineCssTextArea;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.Region;
 
 public class JavaJob extends GuiJob{
     private Callable<Void> functionToRun;
@@ -16,10 +17,11 @@ public class JavaJob extends GuiJob{
     private String errorPane;
     private String inputFile;
     private String outputFile;
-    private List<InlineCssTextArea> guiJobs;
+    private List<Region> guiJobs;
+    
 
-    public JavaJob(String buttonText, double width, double height, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane, String[] keywords, List<InlineCssTextArea> guiJobs,  GuiEde edeInstance){
-        super(buttonText, width, height, keywords);
+    public JavaJob(String buttonText, TextAreaType type, double width, double height, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane, String[] keywords, List<Region> guiJobs,  GuiEde edeInstance){
+        super(buttonText, type, width, height, keywords);
         this.functionToRun = functionToRun;
         this.edeInstance = edeInstance;
         this.inputFile = inputFile;
@@ -29,37 +31,81 @@ public class JavaJob extends GuiJob{
     }
 
     private void copyOverDataToInputFile(){
-        String textToCopy = this.getInputSection().getText();
-        File iFile = new File(inputFile);
-        if(!iFile.exists()){
-            iFile.delete();
-        }
+        Region reg = this.getInputSection();
 
-        try {
-            iFile.createNewFile();
-            FileWriter Writer = new FileWriter(iFile);
-            Writer.write(textToCopy);
-            Writer.flush();
-            Writer.close();
-        } catch(Exception exp){
-            edeInstance.appendIoText(errorPane, exp.toString());
+        if(reg instanceof InlineCssTextArea){
+            InlineCssTextArea ta = (InlineCssTextArea)reg;
+            String textToCopy = ta.getText();
+            File iFile = new File(inputFile);
+            if(!iFile.exists()){
+                iFile.delete();
+            }
+
+            try {
+                iFile.createNewFile();
+                FileWriter Writer = new FileWriter(iFile);
+                Writer.write(textToCopy);
+                Writer.flush();
+                Writer.close();
+            } catch(Exception exp){
+                edeInstance.appendIoText(errorPane, exp.toString());
+            }
+        } else {
+            TextArea ta = (TextArea)reg;
+            String textToCopy = ta.getText();
+            File iFile = new File(inputFile);
+            if(!iFile.exists()){
+                iFile.delete();
+            }
+
+            try {
+                iFile.createNewFile();
+                FileWriter Writer = new FileWriter(iFile);
+                Writer.write(textToCopy);
+                Writer.flush();
+                Writer.close();
+            } catch(Exception exp){
+                edeInstance.appendIoText(errorPane, exp.toString());
+            }
         }
     }
 
     private void collectDataFromOutputFile(){
         for(int i = 0; i < guiJobs.size(); i++){
-            InlineCssTextArea localArea = guiJobs.get(i);
+            Region localArea = guiJobs.get(i);
             if(localArea.hashCode() == this.getInputSection().hashCode()){
-                InlineCssTextArea nextTextArea = guiJobs.get(i + 1);
-                nextTextArea.replaceText("");
-                try{
-                    FileReader reader = new FileReader(outputFile);
-                    //Write all Text to the Next Text Area
-                    while(reader.ready()){
-                        nextTextArea.replaceText(nextTextArea.getText() + (char)reader.read());
+                Region nextTextArea = guiJobs.get(i + 1);
+                if(nextTextArea instanceof InlineCssTextArea){
+                    InlineCssTextArea ta = (InlineCssTextArea)nextTextArea;
+                    ta.replaceText("");
+                    try{
+                        FileReader reader = new FileReader(outputFile);
+                        //Write all Text to the Next Text Area
+                        StringBuilder sb = new StringBuilder();
+                        while(reader.ready()){
+                            sb.append(reader.read());
+                        }
+                        ta.replaceText(sb.toString());
+                        reader.close();
+                    } catch(Exception exp){
+                        edeInstance.appendIoText(errorPane, exp.toString());
                     }
-                } catch(Exception exp){
-                    edeInstance.appendIoText(errorPane, exp.toString());
+                } else {
+                    TextArea ta = (TextArea)nextTextArea;
+                    ta.setText("");
+                    try{
+                        FileReader reader = new FileReader(outputFile);
+                        //Write all Text to the Next Text Area
+                        StringBuilder sb = new StringBuilder();
+                        while(reader.ready()){
+                            sb.append(reader.read());
+                        }
+                        ta.setText(sb.toString());
+
+                        reader.close();
+                    } catch(Exception exp){
+                        edeInstance.appendIoText(errorPane, exp.toString());
+                    }
                 }
             }
         }

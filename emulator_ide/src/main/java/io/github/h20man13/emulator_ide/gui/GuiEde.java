@@ -3,6 +3,7 @@ package io.github.H20man13.emulator_ide.gui;
 import java.util.concurrent.Callable;
 import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.gui.gui_job.GuiJobs;
+import io.github.H20man13.emulator_ide.gui.gui_job.GuiJob.TextAreaType;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiMachine;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRam;
 import io.github.H20man13.emulator_ide.gui.gui_machine.GuiRegister;
@@ -61,16 +62,16 @@ public class GuiEde extends VBox implements Machine{
         this.getChildren().addAll(toolBar, mainPane);
     }
 
-    public void AddVerilogJob(String jobName, String verilogFile, String inputFile, String inputPane, String outputPane, String errorPane, String... keywords){
-        this.Jobs.AddVerilogJob(jobName, verilogFile, inputFile, inputPane, outputPane, errorPane, keywords, this);
+    public void AddVerilogJob(String jobName, String verilogFile, String inputFile, String inputPane, String outputPane, String errorPane){
+        this.Jobs.AddVerilogJob(jobName, verilogFile, inputFile, inputPane, outputPane, errorPane, this);
     }
 
-    public void AddExeJob(String jobName, String execString, String inputFile, String outputFile, String errorFile, String errorPane, String... keywords){
-        this.Jobs.AddExeJob(jobName, execString, inputFile, outputFile, errorFile, errorPane, keywords, this);
+    public void AddExeJob(String jobName, TextAreaType type, String execString, String inputFile, String outputFile, String errorFile, String errorPane, String... keywords){
+        this.Jobs.AddExeJob(jobName, type, execString, inputFile, outputFile, errorFile, errorPane, this, keywords);
     }
 
-    public void AddJavaJob(String jobName, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane, String... keywords){
-        this.Jobs.AddJavaJob(jobName, functionToRun, inputFile, outputFile, errorPane, keywords, this);
+    public void AddJavaJob(String jobName, TextAreaType type, Callable<Void> functionToRun, String inputFile, String outputFile, String errorPane, String... keywords){
+        this.Jobs.AddJavaJob(jobName, type, functionToRun, inputFile, outputFile, errorPane, this, keywords);
     }
 
     public void AddFlag(String Name){

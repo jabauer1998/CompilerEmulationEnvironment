@@ -8,19 +8,22 @@ import java.io.IOException;
 import java.util.List;
 import org.fxmisc.richtext.InlineCssTextArea;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Output;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.Region;
 
 public class ExeJob extends GuiJob {
     private String ExeString;
     private String InputFile;
     private String OutputFile;
     private String ErrorFile;
-    private List<InlineCssTextArea> guiJobs;
+    private List<Region> guiJobs;
     private String errorTextAreaName;
 
     private GuiEde edeInstance;
 
-    public ExeJob(String ButtonText, double Width, double Height, String ExeString, String InputFile, String OutputFile, String ErrorFile, String errorTextAreaName, String[] keywords, List<InlineCssTextArea> guiJobs, GuiEde edeInstance) { 
-        super(ButtonText, Width, Height, keywords);
+    public ExeJob(String ButtonText, TextAreaType type, double Width, double Height, String ExeString, String InputFile, String OutputFile, String ErrorFile, String errorTextAreaName, List<Region> guiJobs, GuiEde edeInstance, String... keywords) { 
+        super(ButtonText, type, Width, Height, keywords);
         this.ExeString = ExeString;
         this.InputFile = InputFile;
         this.OutputFile = OutputFile;
@@ -63,7 +66,15 @@ public class ExeJob extends GuiJob {
         try {
             File.createNewFile();
             FileWriter Writer = new FileWriter(InputFile);
-            Writer.write(this.getInputSection().getText());
+            Region inputSection = this.getInputSection();
+            if(inputSection instanceof InlineCssTextArea){
+                InlineCssTextArea ta = (InlineCssTextArea)inputSection;
+                Writer.write(ta.getText());
+            } else {
+                TextArea ta = (TextArea)inputSection;
+                Writer.write(ta.getText());
+            }
+            
             Writer.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -79,7 +90,7 @@ public class ExeJob extends GuiJob {
             }
         }
 
-        InlineCssTextArea OutputTextArea = guiJobs.get(i + 1);
+        Region OutputTextArea = guiJobs.get(i + 1);
         File OutputFilePtr = new File(OutputFile);
 
         if(OutputFilePtr.exists()){
@@ -92,7 +103,15 @@ public class ExeJob extends GuiJob {
                         break;
                     memText.append((char)outputCharFull);
                 }
-                OutputTextArea.replaceText(memText.toString());
+
+                if(OutputTextArea instanceof InlineCssTextArea){
+                    InlineCssTextArea ta = (InlineCssTextArea)OutputTextArea;
+                    ta.replaceText(memText.toString());
+                } else if(OutputTextArea instanceof TextArea){
+                    TextArea ta = (TextArea)OutputTextArea;
+                    ta.setText(memText.toString());
+                }
+
                 outputReader.close();
             } catch (FileNotFoundException e) {
                 edeInstance.appendIoText(errorTextAreaName, e.toString());
