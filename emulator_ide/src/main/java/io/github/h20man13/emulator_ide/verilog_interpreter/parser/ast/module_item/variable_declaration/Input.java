@@ -11,6 +11,7 @@ public class Input {
                 super(exp1, exp2);
             }
             public class Ident extends IdentDeclaration implements VectorDeclarationInterface{
+
                 public Ident(Position start, String label){
                     super(start, label);
                 }
@@ -32,6 +33,7 @@ public class Input {
         }
         public final class Scalar{
             public class Ident extends IdentDeclaration{
+
                 public Ident(Position start, String label){
                     super(start, label);
                 }
@@ -48,8 +50,15 @@ public class Input {
                 super(exp1, exp2);
             }
             public class Ident extends IdentDeclaration implements VectorDeclarationInterface{
+                public final String annotationLexeme;
                 public Ident(Position start, String label){
                     super(start, label);
+                    this.annotationLexeme = null;
+                }
+
+                public Ident(Position start, String annotationLexeme, String label){
+                    super(start, label);
+                    this.annotationLexeme = annotationLexeme;
                 }
 
                 public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
@@ -70,8 +79,16 @@ public class Input {
         }
         public final class Scalar {
             public final class Ident extends IdentDeclaration{
+                public final String annotationLexeme;
+
+                public Ident(Position start, String annotationLexeme, String lexeme){
+                    super(start, lexeme);
+                    this.annotationLexeme = annotationLexeme;
+                }
+
                 public Ident(Position start, String lexeme){
                     super(start, lexeme);
+                    this.annotationLexeme = null;
                 }
         
                 public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){

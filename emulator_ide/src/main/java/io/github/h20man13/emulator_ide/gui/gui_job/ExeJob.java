@@ -97,7 +97,7 @@ public class ExeJob extends GuiJob {
                 StringBuilder memText = new StringBuilder();
                 FileReader outputReader = new FileReader(OutputFilePtr);
                 while(true){
-                    int outputCharFull = (char)outputReader.read();
+                    int outputCharFull = outputReader.read();
                     if(outputCharFull == -1)
                         break;
                     memText.append((char)outputCharFull);

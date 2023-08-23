@@ -23,7 +23,7 @@ public class Lexer {
 		this.position = source.getPosition();
 	}
 
-    private enum STATE{ INIT, REAL, IDENT, OP, STRING, SINGLECOMMENT, MULTICOMMENT, BIN, DEC, OCT, HEX, ERROR, MACRO }
+    private enum STATE{ INIT, REAL, IDENT, ANNOTATION, OP, STRING, SINGLECOMMENT, MULTICOMMENT, BIN, DEC, OCT, HEX, ERROR, MACRO }
 
 	private Token genNextToken(){
 		StringBuilder lexeme = new StringBuilder();
@@ -282,9 +282,22 @@ public class Lexer {
 					if (c == '\n') {
 						state = STATE.INIT;
 						continue;
+					} else if(c == '@') {
+						lexeme.append(c);
+						source.advance();
+						state = STATE.ANNOTATION;
+						continue;
 					} else {
 						source.advance();
 						continue;
+					}
+				case ANNOTATION:
+					if(Character.isLetter(c)){
+						lexeme.append(c);
+						source.advance();
+						continue;
+					} else {
+						return Token.makeAnnotationToken(lexeme.toString(), position);
 					}
 				case MULTICOMMENT:
 					if (c == '*' && source.getNext() == '/') {

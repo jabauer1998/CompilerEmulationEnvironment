@@ -321,12 +321,16 @@ public class Parser {
 
 	// ModItem -> Function | Task | IntegerDeclaration | RealDeclaration | OutputDeclaration
 	// | InitialDeclaration | AllwaysDeclaration | RegDeclaration | ContinuousAssignment |
-	// ModuleInstantiation | GateDeclaration
+	// ModuleInstantiation | GateDeclaration | AnnotationDeclaration
 	public List<ModuleItem> parseModuleItem(){
 
 		LinkedList<ModuleItem> itemsToRet = new LinkedList<ModuleItem>();
 
-		if (willMatch(Token.Type.FUNCTION)) {
+		if(willMatch(Token.Type.ANNOTATION)){
+			ModuleItem item = parseAnnotationDeclaration();
+			itemsToRet.add(item);
+		}
+		else if (willMatch(Token.Type.FUNCTION)) {
 			FunctionDeclaration Decl = parseFunctionDeclaration();
 			itemsToRet.add(Decl);
 		}
@@ -376,16 +380,12 @@ public class Parser {
 				return parseOutputDeclaration();
 			}
 
-		} else if (willMatch(Token.Type.INPUT)) {
-			
-			skip();
-
+		} else if (skipIfYummy(Token.Type.INPUT)){
 			if (willMatch(Token.Type.WIRE)) {
 				return parseInputWireDeclaration();
 			} else {
 				return parseInputDeclaration();
 			}
-
 		} else if (willMatch(Token.Type.ANDGATE, Token.Type.ORGATE, Token.Type.NANDGATE, Token.Type.NORGATE, Token.Type.NOTGATE, Token.Type.XNORGATE, Token.Type.XORGATE)){
 			ModuleItem geteDecl = parseGateDeclaration();
 			itemsToRet.add(geteDecl);
@@ -397,6 +397,124 @@ public class Parser {
 
 		return itemsToRet;
 
+	}
+
+	//AnotationDeclaration -> Annotation RegDeclaration
+	private ModuleItem parseAnnotationDeclaration(){
+		Token annotation = match(Token.Type.ANNOTATION);
+		if(willMatch(Token.Type.INPUT)){
+			skip();
+			match(Token.Type.REG);
+			if (willMatch(Token.Type.LBRACK)) {
+				skip();
+				ConstantExpression exp1 = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression exp2 = parseConstantExpression();
+				match(Token.Type.RBRACK);
+				Input.Reg.Vector vector = new Input().new Reg().new Vector(exp1, exp2);
+				Position localStart = getStart();
+				String ident = parseRawIdentifier();
+				Input.Reg.Vector.Ident decl = vector.new Ident(localStart, annotation.getLexeme(), ident);
+				match(Token.Type.SEMI, STRATEGY.REPAIR);
+				return decl;
+			} else {
+				Position localStart = getStart();
+				Input.Reg.Scalar scalar = new Input().new Reg().new Scalar();
+				String ident = parseRawIdentifier();
+				Input.Reg.Scalar.Ident decl = scalar.new Ident(localStart, annotation.getLexeme(), ident);
+				match(Token.Type.SEMI, STRATEGY.REPAIR);
+				return decl;
+			}
+		} else if(willMatch(Token.Type.OUTPUT)){
+			skip();
+			match(Token.Type.REG);
+			if (willMatch(Token.Type.LBRACK)) {
+				skip();
+				ConstantExpression exp1 = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression exp2 = parseConstantExpression();
+				match(Token.Type.RBRACK);
+				Output.Reg.Vector vector = new Output().new Reg().new Vector(exp1, exp2);
+				Position localStart = getStart();
+				String ident = parseRawIdentifier();
+				if(willMatch(Token.Type.LBRACK)){
+					skip();
+					ConstantExpression arrExp1 = parseConstantExpression();
+					match(Token.Type.COLON);
+					ConstantExpression arrExp2 = parseConstantExpression();
+					match(Token.Type.RBRACK);
+					Output.Reg.Vector.Array array = vector.new Array(localStart, annotation.getLexeme(), ident, arrExp1, arrExp2);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return array;
+				} else {
+					Output.Reg.Vector.Ident decl = vector.new Ident(localStart, annotation.getLexeme(), ident);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return decl;
+				}
+			} else {
+				Position localStart = getStart();
+				Output.Reg.Scalar scalar = new Output().new Reg().new Scalar();
+				String ident = parseRawIdentifier();
+				if(willMatch(Token.Type.LBRACK)){
+					skip();
+					ConstantExpression arrExp1 = parseConstantExpression();
+					match(Token.Type.COLON);
+					ConstantExpression arrExp2 = parseConstantExpression();
+					match(Token.Type.RBRACK);
+					Output.Reg.Scalar.Array array = scalar.new Array(localStart, annotation.getLexeme(), ident, arrExp1, arrExp2);
+					match(Token.Type.SEMI);
+					return array;
+				} else {
+					Output.Reg.Scalar.Ident decl = scalar.new Ident(localStart, annotation.getLexeme(), ident);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return decl;
+				}
+			}
+		} else {
+			match(Token.Type.REG);
+			if (willMatch(Token.Type.LBRACK)) {
+				skip();
+				ConstantExpression exp1 = parseConstantExpression();
+				match(Token.Type.COLON);
+				ConstantExpression exp2 = parseConstantExpression();
+				match(Token.Type.RBRACK);
+				Reg.Vector vector = new Reg().new Vector(exp1, exp2);
+				Position localStart = getStart();
+				String ident = parseRawIdentifier();
+				if(willMatch(Token.Type.LBRACK)){
+					skip();
+					ConstantExpression arrExp1 = parseConstantExpression();
+					match(Token.Type.COLON);
+					ConstantExpression arrExp2 = parseConstantExpression();
+					match(Token.Type.RBRACK);
+					Reg.Vector.Array array = vector.new Array(localStart, annotation.getLexeme(), ident, arrExp1, arrExp2);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return array;
+				} else {
+					Reg.Vector.Ident decl = vector.new Ident(localStart, ident);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return decl;
+				}
+			} else {
+				Position localStart = getStart();
+				Reg.Scalar scalar = new Reg().new Scalar();
+				String ident = parseRawIdentifier();
+				if(willMatch(Token.Type.LBRACK)){
+					skip();
+					ConstantExpression arrExp1 = parseConstantExpression();
+					match(Token.Type.COLON);
+					ConstantExpression arrExp2 = parseConstantExpression();
+					match(Token.Type.RBRACK);
+					Reg.Scalar.Array decl = scalar.new Array(localStart, annotation.getLexeme(), ident, arrExp1, arrExp2);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return decl;
+				} else {
+					Reg.Scalar.Ident decl = scalar.new Ident(localStart, ident);
+					match(Token.Type.SEMI, STRATEGY.REPAIR);
+					return decl;
+				}
+			}
+		}
 	}
 
 	// ModItemList -> ModItem ModItemListRest | NULL

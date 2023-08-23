@@ -12,8 +12,16 @@ public class Reg{
             super(exp1, exp2);
         }
         public class Array extends ArrayDeclaration implements VectorDeclarationInterface{
+            public final String annotationLexeme;
+
+            public Array(Position start, String annotationLexeme, String lexeme, Expression index1, Expression index2){
+                super(start, lexeme, index1, index2);
+                this.annotationLexeme = annotationLexeme;
+            }
+
             public Array(Position start, String lexeme, Expression index1, Expression index2){
                 super(start, lexeme, index1, index2);
+                this.annotationLexeme = null;
             }
     
             public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){
@@ -31,8 +39,16 @@ public class Reg{
             }
         }
         public class Ident extends IdentDeclaration implements VectorDeclarationInterface{
+            public final String annotationLexeme;
+
             public Ident(Position start, String lexeme){
                 super(start, lexeme);
+                this.annotationLexeme = null;
+            }
+
+            public Ident(Position start, String annotationLexeme, String lexeme){
+                super(start, lexeme);
+                this.annotationLexeme = annotationLexeme;
             }
     
             public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){
@@ -51,8 +67,16 @@ public class Reg{
     }
     public class Scalar{
         public class Array extends ArrayDeclaration{
+            public final String annotationLexeme;
+            
             public Array(Position start, String lexeme, Expression index1, Expression index2){
                 super(start, lexeme, index1, index2);
+                this.annotationLexeme = null;
+            }
+
+            public Array(Position start, String annotationLexeme, String lexeme, Expression index1, Expression index2){
+                super(start, lexeme, index1, index2);
+                this.annotationLexeme = annotationLexeme;
             }
     
             public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){
@@ -60,8 +84,16 @@ public class Reg{
             }
         }
         public class Ident extends IdentDeclaration{
+            public final String annotationLexeme;
+
             public Ident(Position start, String lexeme){
                 super(start, lexeme);
+                this.annotationLexeme = null;
+            }
+
+            public Ident(Position start, String annotationLexeme, String lexeme){
+                super(start, lexeme);
+                this.annotationLexeme = annotationLexeme;
             }
     
             public <ModItemVisitType> ModItemVisitType accept(ModuleVisitor<ModItemVisitType> regValueVisitor, Object... argv){

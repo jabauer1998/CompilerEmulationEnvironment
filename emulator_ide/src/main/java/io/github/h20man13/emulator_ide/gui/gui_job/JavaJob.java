@@ -83,7 +83,7 @@ public class JavaJob extends GuiJob{
                         //Write all Text to the Next Text Area
                         StringBuilder sb = new StringBuilder();
                         while(reader.ready()){
-                            sb.append(reader.read());
+                            sb.append((char)reader.read());
                         }
                         ta.replaceText(sb.toString());
                         reader.close();
@@ -98,7 +98,7 @@ public class JavaJob extends GuiJob{
                         //Write all Text to the Next Text Area
                         StringBuilder sb = new StringBuilder();
                         while(reader.ready()){
-                            sb.append(reader.read());
+                            sb.append((char)reader.read());
                         }
                         ta.setText(sb.toString());
 

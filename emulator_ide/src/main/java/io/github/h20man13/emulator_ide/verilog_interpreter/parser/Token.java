@@ -14,6 +14,7 @@ public class Token {
 		HEX,
 		BIN,
 		STRING, // String constants
+		ANNOTATION, //Anotations
 
 		//White Space characters
 		NEWLINE, // /n
@@ -216,6 +217,10 @@ public class Token {
 
 	public static Token makeOctToken(String lexeme, Position position){ return makeToken(lexeme, position, Type.OCT); }
 		
+	public static Token makeAnnotationToken(String lexeme, Position position){
+		return makeToken(lexeme, position, Type.ANNOTATION);
+	}
+	
 	public static Token makeNewLineToken(String lexeme, Position position){
 		if(lexeme == "\\n"){
 			return new Token(lexeme, position, Token.Type.ESCAPEDLINE);
