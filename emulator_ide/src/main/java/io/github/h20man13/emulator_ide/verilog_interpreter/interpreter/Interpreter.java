@@ -1010,8 +1010,6 @@ public abstract class Interpreter {
 		}
 	}
 
-	
-
 	protected IntVal interpretShallowAssignment(Assignment assign) throws Exception{
 		if(assign instanceof BlockingAssignment) return interpretShallowBlockingAssignment((BlockingAssignment)assign);
 		else if (assign instanceof NonBlockingAssignment) return interpretShallowNonBlockingAssignment((NonBlockingAssignment)assign);
@@ -1029,76 +1027,8 @@ public abstract class Interpreter {
 			return OpUtil.errorOccured();
 		}
 	}
-	
-	protected IntVal interpretShallowBlockingAssignment(BlockingAssignment assign) throws Exception {
-		 Expression exp = assign.rightHandSide;
-		 Value expVal = interpretShallowExpression(exp);
-		 
-		 if(assign.leftHandSide instanceof Element){
-			Element leftHandElement = (Element)assign.leftHandSide;
 
-			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandElement.labelIdentifier);
-			Value leftHandDeref = leftHandPtr.deRefrence();
-
-			Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
-			if(leftHandDeref instanceof ArrayVal){
-				ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
-				leftHandArray.SetElemAtIndex(leftHandIndex.intValue(), expVal);
-			} else if(leftHandDeref instanceof VectorVal){
-				VectorVal leftHandVector = (VectorVal)leftHandDeref;
-				CircuitElem elem = leftHandVector.getValue(leftHandIndex.intValue());
-				if(elem instanceof RegVal){
-					RegVal elemReg = (RegVal)elem;
-					elemReg.setSignal(expVal.boolValue());
-				} else {
-					OpUtil.errorAndExit("Error: Invalid Type for soft assignment " + elem.getClass().getName());
-				}
-			} else {
-				OpUtil.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
-			}
-		 } else if(assign.leftHandSide instanceof Slice){
-			Slice leftHandSlice = (Slice)assign.leftHandSide;
-
-			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
-			Value leftHandDeref = leftHandPtr.deRefrence();
-
-			Value leftHandStartIndex = interpretShallowExpression(leftHandSlice.index1);
-			Value leftHandEndIndex = interpretShallowExpression(leftHandSlice.index2);
-
-			if(leftHandDeref instanceof VectorVal){
-				VectorVal leftHandVector = (VectorVal)leftHandDeref;
-
-				OpUtil.shallowAssign(leftHandVector, leftHandStartIndex.intValue(), leftHandEndIndex.intValue(), expVal.longValue());
-			} else {
-				OpUtil.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
-				return OpUtil.errorOccured();
-			}
-		 } else if(assign.leftHandSide instanceof Identifier){
-			Identifier leftHandIdent = (Identifier)assign.leftHandSide;
-			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandIdent.labelIdentifier);
-
-			Value leftHandDeref = leftHandPtr.deRefrence();
-			if(leftHandDeref instanceof VectorVal){
-				//If it is a vector then we need to use the OpUtil.shallowAssign on the Vector
-				VectorVal Vec = (VectorVal)leftHandDeref;
-				OpUtil.shallowAssign(Vec, expVal.longValue());
-			} else {
-				//If it is not a vector then just replace the value with whatever is on the Right Hand Side
-				leftHandPtr.assign(expVal);
-			}
-			
-
-			String currentStackFrameTitle = environment.stackFrameTitle();
-			if(leftHandIdent.labelIdentifier.equals(currentStackFrameTitle)){
-				environment.setFunctionExit(); //Makes it so we are in the Return Part of a Verilog Function
-			}
-		 } else {
-			OpUtil.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
-			return OpUtil.errorOccured();
-		 }
-
-		 return OpUtil.success();
-	}
+	protected abstract IntVal interpretShallowBlockingAssignment(BlockingAssignment assign) throws Exception;
 
 	protected IntVal interpretDeepBlockingAssignment(BlockingAssignment assign) throws Exception{
 		 Expression exp = assign.rightHandSide;
@@ -1172,65 +1102,7 @@ public abstract class Interpreter {
 		 return OpUtil.success();
 	}
 
-	protected IntVal interpretShallowNonBlockingAssignment(NonBlockingAssignment assign) throws Exception{
-		List<Value> resultList = new LinkedList<Value>();
-		for(Expression exp: assign.rightHandSide){
-		 	Value rhsVal = interpretShallowExpression(exp);
-			resultList.add(rhsVal);
-		}
-
-		for(int i = 0; i < assign.leftHandSide.size(); i++){
-			if(assign.leftHandSide.get(i) instanceof Element){
-				Element leftHandElement = (Element)assign.leftHandSide.get(i);
-	
-				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandElement.labelIdentifier);
-				Value leftHandDeref = leftHandPtr.deRefrence();
-	
-				Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
-				if(leftHandDeref instanceof ArrayVal){
-					ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
-					leftHandArray.SetElemAtIndex(leftHandIndex.intValue(), resultList.get(i));
-				} else if(leftHandDeref instanceof VectorVal){
-					VectorVal leftHandVector = (VectorVal)leftHandDeref;
-					CircuitElem elem = leftHandVector.getValue(leftHandIndex.intValue());
-					if(elem instanceof RegVal){
-						RegVal elemReg = (RegVal)elem;
-						elemReg.setSignal(resultList.get(i).boolValue());
-					} else {
-						OpUtil.errorAndExit("Error: Invalid Type for soft assignment " + elem.getClass().getName());
-					}
-				} else {
-					OpUtil.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
-				}
-			 } else if(assign.leftHandSide.get(i) instanceof Slice){
-				Slice leftHandSlice = (Slice)assign.leftHandSide.get(i);
-	
-				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
-				Value leftHandDeref = leftHandPtr.deRefrence();
-	
-				Value leftHandStartIndex = interpretShallowExpression(leftHandSlice.index1);
-				Value leftHandEndIndex = interpretShallowExpression(leftHandSlice.index2);
-	
-				if(leftHandDeref instanceof VectorVal){
-					VectorVal leftHandVector = (VectorVal)leftHandDeref;
-	
-					OpUtil.shallowAssign(leftHandVector, leftHandStartIndex.intValue(), leftHandEndIndex.intValue(), resultList.get(i).longValue());
-				} else {
-					OpUtil.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
-					return OpUtil.errorOccured();
-				}
-			 } else if(assign.leftHandSide.get(i) instanceof Identifier){
-				Identifier leftHandIdent = (Identifier)assign.leftHandSide.get(i);
-				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandIdent.labelIdentifier);
-				leftHandPtr.assign(resultList.get(i));
-			 } else {
-				OpUtil.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
-				return OpUtil.errorOccured();
-			 }
-		}
-
-		return OpUtil.success();
-	}
+	protected abstract IntVal interpretShallowNonBlockingAssignment(NonBlockingAssignment assign) throws Exception;
 
 	protected IntVal interpretDeepNonBlockingAssignment(NonBlockingAssignment assign) throws Exception{
 		List<Value> resultList = new LinkedList<Value>();

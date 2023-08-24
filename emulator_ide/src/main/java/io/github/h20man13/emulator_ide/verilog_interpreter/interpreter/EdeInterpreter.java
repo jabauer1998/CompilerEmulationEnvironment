@@ -1,13 +1,21 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 
 import io.github.H20man13.emulator_ide._interface.Machine;
+import io.github.H20man13.emulator_ide.common.Pointer;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ede.EdeMemVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ede.EdeRegVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ede.EdeStatVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.Expression;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression.function_call.SystemFunctionCall;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Element;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Identifier;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Slice;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment.BlockingAssignment;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
 
 public class EdeInterpreter extends VerilogInterpreter {
@@ -116,5 +124,56 @@ public class EdeInterpreter extends VerilogInterpreter {
         }
 
         return OpUtil.success();
+    }
+
+    protected IntVal interpretShallowBlockingAssingment(BlockingAssignment assign) throws Exception{
+
+        if(assign.leftHandSide instanceof Element){
+            Element leftHandSide = (Element)assign.leftHandSide;
+            Pointer<Value> val = environment.lookupVariable(leftHandSide.labelIdentifier);
+            Value deref = val.deRefrence();
+            if(deref instanceof EdeMemVal){
+                EdeMemVal memory = (EdeMemVal)deref;
+                Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
+                Value indexValue = interpretShallowExpression(leftHandSide.index1);
+                memory.setElemAtIndex(indexValue.intValue(), rightHandSideValue.intValue());
+                return OpUtil.success();
+            } else if(deref instanceof EdeRegVal){
+                EdeRegVal register = (EdeRegVal)deref;
+                Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
+                Value indexValue = interpretShallowExpression(leftHandSide.index1);
+                register.setBitAtIndex(indexValue.intValue(), rightHandSideValue.intValue());
+                return OpUtil.success();
+            }
+        } else if(assign.leftHandSide instanceof Slice){
+            Slice leftHandSide = (Slice)assign.leftHandSide;
+            Pointer<Value> val = environment.lookupVariable(leftHandSide.labelIdentifier);
+            Value deref = val.deRefrence();
+            if(deref instanceof EdeRegVal){
+                EdeRegVal register = (EdeRegVal)deref;
+                Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
+                Value index1Value = interpretShallowExpression(leftHandSide.index1);
+                Value index2Value = interpretShallowExpression(leftHandSide.index2);
+                register.setBitsAtIndex(index1Value.intValue(), index2Value.intValue(), rightHandSideValue.intValue());
+                return OpUtil.success();
+            }
+        } else if(assign.leftHandSide instanceof Identifier){
+            Identifier leftHandSide = (Identifier)assign.leftHandSide;
+            Pointer<Value> val = environment.lookupVariable(leftHandSide.labelIdentifier);
+            Value deref = val.deRefrence();
+            if(deref instanceof EdeStatVal){
+                EdeStatVal status = (EdeStatVal)deref;
+                Value rightHandSide = interpretShallowExpression(assign.rightHandSide);
+                status.setStatusValue(rightHandSide.intValue());
+                return OpUtil.success();
+            } else if(deref instanceof EdeRegVal){
+                EdeRegVal reg = (EdeRegVal)deref;
+                Value rightHandSide = interpretShallowExpression(assign.rightHandSide);
+                reg.setAllBits(rightHandSide.intValue());
+                return OpUtil.success();
+            }
+        }
+
+        return super.interpretShallowBlockingAssignment(assign);
     }
 }

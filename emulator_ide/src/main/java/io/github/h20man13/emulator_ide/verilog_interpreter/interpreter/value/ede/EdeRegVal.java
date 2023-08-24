@@ -1,15 +1,66 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ede;
 
+import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 
 public class EdeRegVal implements Value{
     private String regString;
-    private GuiEde gui;
+    private Machine gui;
 
-    public EdeRegVal(String regValueString, GuiEde edeInstance){
+    public EdeRegVal(String regValueString, Machine edeInstance){
         this.gui = edeInstance;
         this.regString = regValueString;
+    }
+
+    public void setAllBits(int value){
+        gui.setRegisterValue(regString, value);
+    }
+
+    public void setBitAtIndex(int index, int value){
+        long regValue = gui.getRegisterValue(regString);
+        boolean bitSet = value != 0;
+        if(!bitSet){
+            regValue &= ~(1 << index);
+        } else {
+            regValue |= (1 << index);
+        }
+        gui.setRegisterValue(regString, regValue);
+    }
+
+    public void setBitsAtIndex(int maxIndex, int minIndex, int value){
+        long regValue = gui.getRegisterValue(regString);
+        if(minIndex < maxIndex){
+            int index = minIndex;
+            int size = maxIndex - minIndex;
+            int numIndex = 0;
+            while(index <= maxIndex && numIndex < size){
+                boolean isSet = ((value >> numIndex) & 1) != 0;
+                if(isSet){
+                    regValue |= (1 << index);
+                } else {
+                    regValue &= ~(1 << index);
+                }
+                index++;
+                numIndex++;
+            }
+            gui.setRegisterValue(regString, regValue);
+        } else {
+            int index = minIndex;
+            int size = minIndex - maxIndex;
+            int numIndex = 0;
+            while(index >= maxIndex && numIndex < size){
+                boolean isSet = ((value >> numIndex) & 1) != 0;
+                if(isSet){
+                    regValue |= (1 << index);
+                } else {
+                    regValue &= ~(1 << index);
+                }
+                index--;
+                numIndex++;
+            }
+            gui.setRegisterValue(regString, regValue);
+        }
     }
 
     @Override

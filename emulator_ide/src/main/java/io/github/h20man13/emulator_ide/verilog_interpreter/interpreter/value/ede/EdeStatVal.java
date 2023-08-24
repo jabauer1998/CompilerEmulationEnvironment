@@ -1,15 +1,19 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ede;
 
-import io.github.H20man13.emulator_ide.gui.GuiEde;
+import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 
 public class EdeStatVal implements Value{
     private String statString;
-    private GuiEde gui;
+    private Machine gui;
 
-    public EdeStatVal(String regValueString, GuiEde edeInstance){
+    public EdeStatVal(String regValueString, Machine edeInstance){
         this.gui = edeInstance;
         this.statString = regValueString;
+    }
+
+    public void setStatusValue(int value){
+        gui.setStatusValue(statString, value);
     }
 
     @Override

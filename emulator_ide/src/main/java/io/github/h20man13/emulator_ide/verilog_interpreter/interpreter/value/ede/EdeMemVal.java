@@ -1,12 +1,13 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ede;
 
+import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 
 public class EdeMemVal implements Value{
-    private GuiEde gui;
+    private Machine gui;
 
-    public EdeMemVal(GuiEde edeInstance){
+    public EdeMemVal(Machine edeInstance){
         this.gui = edeInstance;
     }
 
