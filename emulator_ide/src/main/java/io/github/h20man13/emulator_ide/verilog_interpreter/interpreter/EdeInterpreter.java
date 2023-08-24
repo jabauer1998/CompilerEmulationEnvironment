@@ -3,6 +3,7 @@ package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.common.Pointer;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
+import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
 import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
@@ -15,6 +16,9 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expression
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Element;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Identifier;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.label.Slice;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Input;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Output;
+import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Reg;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.assignment.BlockingAssignment;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.task.SystemTaskStatement;
 
@@ -28,6 +32,73 @@ public class EdeInterpreter extends VerilogInterpreter {
         this.guiInstance = guiInstance;
         this.standardOutputPane = standardOutputPane;
         this.standardInputPane = standardInputPane;
+    }
+
+    protected IntVal interpretDeclaration(Reg.Vector.Array decl) throws Exception{
+        String annotationLexeme = decl.annotationLexeme;
+        if(annotationLexeme != null){
+            if(annotationLexeme.toLowerCase().equals("@memory")){
+                Value index1Val = interpretShallowExpression(decl.GetIndex1());
+                int intIndex1 = index1Val.intValue();
+                Value index2Val = interpretShallowExpression(decl.GetIndex2());
+                int intIndex2 = index2Val.intValue();
+                
+                int size = (intIndex2 > intIndex1) ? intIndex2 - intIndex1 : intIndex1 - intIndex2;
+                if(size != 8){
+                    errorLog.addItem(new ErrorItem("Expected vector of size 8 for @Memory annotation but found reg ["+intIndex1+':'+intIndex2+']', decl.position));
+                    return OpUtil.errorOccured();
+                } else if(environment.localVariableExists(decl.declarationIdentifier)) {
+                    errorLog.addItem(new ErrorItem("Error variable " + decl.declarationIdentifier + " allready exists inside the scope", decl.position));
+                    return OpUtil.errorOccured();
+                } else {
+                    Value varVal = new EdeMemVal(guiInstance);
+                    environment.addVariable(decl.declarationIdentifier, varVal);
+                    return OpUtil.success();
+                }
+            } else {
+                errorLog.addItem(new ErrorItem("Invalid annotation type for reg [] expected @Memory but found " + annotationLexeme, decl.position));
+                return OpUtil.errorOccured();
+            }
+        }
+        return super.interpretDeclaration(decl);
+    }
+
+    protected IntVal interpretDeclaration(Reg.Scalar.Ident decl) throws Exception{
+        String annotationLexeme = decl.annotationLexeme;
+        if(annotationLexeme != null){
+            if(annotationLexeme.toLowerCase().equals("@status")){
+                if(environment.localVariableExists(decl.declarationIdentifier)){
+                    errorLog.addItem(new ErrorItem("Variable allready exists in scope with the name " + decl.declarationIdentifier, decl.position));
+                    return OpUtil.errorOccured();
+                } else {
+                    environment.addVariable(decl.declarationIdentifier, new EdeStatVal(decl.declarationIdentifier, guiInstance));
+                    return OpUtil.success();
+                }
+            } else {
+                errorLog.addItem(new ErrorItem("Error expected annotation to be @Status but found " + annotationLexeme, decl.position));
+                return OpUtil.errorOccured();
+            }
+        }
+        return super.interpretDeclaration(decl);
+    }
+
+    protected IntVal interpretDeclaration(Reg.Vector.Ident decl) throws Exception{
+        String annotationLexeme = decl.annotationLexeme;
+        if(annotationLexeme != null){
+            if(annotationLexeme.toLowerCase().equals("@register")){
+                if(environment.localVariableExists(decl.declarationIdentifier)){
+                    errorLog.addItem(new ErrorItem("Definition of " + decl.declarationIdentifier + " allready occured", decl.position));
+                    return OpUtil.errorOccured();
+                } else {
+                    environment.addVariable(decl.declarationIdentifier, new EdeRegVal(decl.declarationIdentifier, guiInstance));
+                    return OpUtil.success();
+                }
+            } else {
+                errorLog.addItem(new ErrorItem("Error expected annotation to be @Register but found " + annotationLexeme, decl.position));
+                return OpUtil.errorOccured();
+            }
+        }
+        return super.interpretDeclaration(decl);
     }
 
     protected Value interpretSystemFunctionCall(SystemFunctionCall call) throws Exception{

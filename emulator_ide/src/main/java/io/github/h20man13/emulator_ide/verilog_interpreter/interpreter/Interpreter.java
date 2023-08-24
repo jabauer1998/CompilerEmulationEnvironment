@@ -625,57 +625,8 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	protected IntVal interpretDeclaration(Reg.Scalar.Array decl) throws Exception{
-		Expression RegIndex1 = decl.arrayIndex1;
-		Expression RegIndex2 = decl.arrayIndex2;
-
-		Value RegVal1 = interpretShallowExpression(RegIndex1);
-		Value RegVal2 = interpretShallowExpression(RegIndex2);
-
-		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
-
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			ArrayVal<RegVal> arrayDec = new ArrayVal<RegVal>(ArraySize);
-			for(int i = 0; i < ArraySize; i++){
-				arrayDec.AddElem(new RegVal(false));
-			}
-			environment.addVariable(decl.declarationIdentifier, arrayDec);
-		} else {
-			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-
-		return OpUtil.success();
-	}
-
-	protected IntVal interpretDeclaration(Reg.Vector.Array decl) throws Exception{
-		Expression RegIndex1 = decl.arrayIndex1;
-		Expression RegIndex2 = decl.arrayIndex2;
-
-		Value RegVal1 = interpretShallowExpression(RegIndex1);
-		Value RegVal2 = interpretShallowExpression(RegIndex2);
-
-		Expression vecIndex1 = decl.GetIndex1();
-		Expression vecIndex2 = decl.GetIndex2();
-
-		Value vecVal1 = interpretShallowExpression(vecIndex1);
-		Value vecVal2 = interpretShallowExpression(vecIndex2);
-
-		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
-
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			ArrayVal<VectorVal> arrVal = new ArrayVal<VectorVal>(ArraySize);
-			for(int i = 0; i < ArraySize; i++){
-				arrVal.AddElem(new VectorVal(vecVal1.intValue(), vecVal2.intValue()));
-			}
-			environment.addVariable(decl.declarationIdentifier, arrVal);
-		} else {
-			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-
-		return OpUtil.success();
-	}
+	protected abstract IntVal interpretDeclaration(Reg.Scalar.Array decl) throws Exception;
+	protected abstract IntVal interpretDeclaration(Reg.Vector.Array decl) throws Exception;
 
 	protected IntVal interpretDeclaration(Int.Array decl) throws Exception{
 		Expression RegIndex1 = decl.arrayIndex1;
@@ -696,30 +647,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	/**
-	 * This is used to visit any input scalar declaration in verilog. 
-	 * Ex. input a, b, c ...;
-	 * 
-	 * @param decl
-	 * @throws Exception
-	 */
-
-	protected IntVal interpretDeclaration(Input.Reg.Vector.Ident decl) throws Exception{
-		Expression exp1 = decl.GetIndex1();
-		Expression exp2 = decl.GetIndex2();
-
-		Value exp1Val = interpretShallowExpression(exp1);
-		Value exp2Val = interpretShallowExpression(exp2);
-
-		if (!environment.localVariableExists(decl.declarationIdentifier)) {
-			environment.addVariable(decl.declarationIdentifier, new VectorVal(exp1Val.intValue(), exp2Val.intValue()));
-		} else {
-			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-
-		return OpUtil.success();
-	}
+	protected abstract IntVal interpretDeclaration(Input.Reg.Vector.Ident decl) throws Exception;
 
 	/**
 	 * This is used to visit any input VectorVal declaration in verilog. Ex. input [31:0] a, b,
@@ -740,23 +668,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	/**
-	 * This is used to visit any input VectorVal declaration in verilog. Ex. input [31:0] a, b,
-	 * c ... ;
-	 * 
-	 * @param decl
-	 * @throws Exception
-	 */
-
-	protected IntVal interpretDeclaration(Input.Reg.Scalar.Ident decl) throws Exception{
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
-		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-		return OpUtil.success();
-	}
+	protected abstract IntVal interpretDeclaration(Input.Reg.Scalar.Ident decl) throws Exception;
 
 	/**
 	 * This is used to visit any wire scalar wire declaration in verilog. Ex. wire a, b, c
@@ -802,47 +714,8 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	/**
-	 * This is used to visit any reg scalar declaration in verilog. Ex. reg a, b, c ... ;
-	 * 
-	 * @param decl
-	 * @throws Exception
-	 */
-
-	protected IntVal interpretDeclaration(Reg.Scalar.Ident decl) throws Exception{
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
-		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-		return OpUtil.success();
-	}
-
-	/**
-	 * This is used to visit any reg scalar declaration in verilog. Ex. reg [2:0] a, b, c
-	 * ... ;
-	 * 
-	 * @param decl
-	 * @throws Exception
-	 */
-
-	protected IntVal interpretDeclaration(Reg.Vector.Ident decl) throws Exception{
-		Expression index1 = decl.GetIndex1();
-		Expression index2 = decl.GetIndex2();
-
-		Value index1Value = interpretShallowExpression(index1);
-		Value index2Value = interpretShallowExpression(index2);
-
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
-		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-
-		return null;
-	}
+	protected abstract IntVal interpretDeclaration(Reg.Scalar.Ident decl) throws Exception;
+	protected abstract IntVal interpretDeclaration(Reg.Vector.Ident decl) throws Exception;
 
 	/**
 	 * This is used to visit any output scalar declaration in Verilog. Ex. output a, b, c
@@ -862,22 +735,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	/**
-	 * This is where I will declare the output Register Scalar declaration
-	 * 
-	 * @param Jacob Bauer
-	 * @throws Exception
-	 */
-
-	protected IntVal interpretDeclaration(Output.Reg.Scalar.Ident decl) throws Exception{
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
-		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-		return OpUtil.success();
-	}
+	protected abstract IntVal interpretDeclaration(Output.Reg.Scalar.Ident decl) throws Exception;
 
 	protected IntVal interpretDeclaration(Output.Wire.Vector.Ident decl) throws Exception{
 		Expression index1 = decl.GetIndex1();
@@ -896,30 +754,7 @@ public abstract class Interpreter {
 		return OpUtil.success();
 	}
 
-	/**
-	 * This is used to visit any reg scalar declaration in verilog. Ex. reg [2:0] a, b, c
-	 * ... ;
-	 * 
-	 * @param decl
-	 * @throws Exception
-	 */
-
-	protected IntVal interpretDeclaration(Output.Reg.Vector.Ident decl, Object... argv) throws Exception{
-		Expression index1 = decl.GetIndex1();
-		Expression index2 = decl.GetIndex2();
-
-		Value index1Value = interpretShallowExpression(index1);
-		Value index2Value = interpretShallowExpression(index2);
-
-		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
-		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
-		}
-
-		return OpUtil.success();
-	}
+	protected abstract IntVal interpretDeclaration(Output.Reg.Vector.Ident  decl) throws Exception;
 
 	/**
 	 * This is used to visit any integer declaration in verilog. Ex. integer a, b, c ... ;
