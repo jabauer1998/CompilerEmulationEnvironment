@@ -693,4 +693,80 @@ public class VerilogInterpreter extends Interpreter {
 
 		return OpUtil.errorOccured();
     }
+
+	/**
+	 * This is the code for visiting an Identifier
+	 * 
+	 * @param ident
+	 * @throws Exception
+	 */
+
+	 protected Value interpretShallowIdentifier(Identifier ident) throws Exception{
+		if (environment.variableExists(ident.labelIdentifier)) {
+			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
+			return data.deRefrence();
+		} else {
+			OpUtil.errorAndExit("Variable Entry " + ident.labelIdentifier + " Doesnt Exist", ident.position);
+			return OpUtil.errorOccured();
+		}
+	}
+
+
+	protected Value interpretShallowSlice(Slice vector) throws Exception{
+		String ident = vector.labelIdentifier;
+		Value startIndex = interpretShallowExpression(vector.index1);
+		Value endIndex = interpretShallowExpression(vector.index2);
+
+		if (environment.variableExists(ident)) {
+			Pointer<Value> data = environment.lookupVariable(ident);
+			Value dataObject = data.deRefrence();
+
+			if (dataObject instanceof VectorVal) {
+				VectorVal toRet = ((VectorVal)dataObject).getShallowSlice(startIndex.intValue(), endIndex.intValue());
+				return toRet;
+			} else {
+				OpUtil.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
+				return OpUtil.errorOccured();
+			}
+
+		} else {
+			OpUtil.errorAndExit("Array or VectorVal " + ident + " not found");
+			return OpUtil.errorOccured();
+		}
+	}
+
+	/**
+	 * This is the code for visiting a VectorVal in verilog
+	 * 
+	 * @param string
+	 * @throws Exception
+	 */
+
+	protected Value interpretShallowElement(Element Elem) throws Exception{
+		String ident = Elem.labelIdentifier;
+		Value expr = interpretShallowExpression(Elem.index1);
+
+		if (environment.variableExists(ident)) {
+			Pointer<Value> data = environment.lookupVariable(ident);
+			Value dataObject = data.deRefrence();
+
+			if (dataObject instanceof ArrayVal) {
+				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
+				VectorVal vec = arr.ElemAtIndex(expr.intValue());
+				return vec;
+			} else if (dataObject instanceof VectorVal) {
+				return ((VectorVal)dataObject).getValue(expr.intValue());
+			} else if (dataObject instanceof ArrayVal) {
+				return ((ArrayVal<IntVal>)dataObject).ElemAtIndex(expr.intValue());
+			} else {
+				OpUtil.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]",
+					Elem.position);
+				return OpUtil.errorOccured();
+			}
+
+		} else {
+			OpUtil.errorAndExit("Array or VectorVal " + ident + " not found", Elem.position);
+			return OpUtil.errorOccured();
+		}
+	}
 }
