@@ -28,6 +28,11 @@ public class EdeRegVal implements Value{
         gui.setRegisterValue(regString, regValue);
     }
 
+    public long getBitAtIndex(int index){
+        long regValue = gui.getRegisterValue(regString);
+        return (regValue >> index) & 1;
+    }
+
     public void setBitsAtIndex(int maxIndex, int minIndex, int value){
         long regValue = gui.getRegisterValue(regString);
         if(minIndex < maxIndex){
@@ -60,6 +65,19 @@ public class EdeRegVal implements Value{
                 numIndex++;
             }
             gui.setRegisterValue(regString, regValue);
+        }
+    }
+
+    public long getBitsInRange(int begin, int end){
+        long val = this.longValue();
+        if(begin < end){
+            long mask = (1 << (end + 1)) - 1;
+            mask ^= (1 << begin) - 1;
+            return (val & mask) >> begin;
+        } else {
+            long mask = (1 << (begin + 1)) - 1;
+            mask ^= (1 << end) - 1;
+            return (val & mask) >> begin;
         }
     }
 

@@ -1,9 +1,11 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 
+import javax.swing.tree.ExpandVetoException;
 import io.github.H20man13.emulator_ide._interface.Machine;
 import io.github.H20man13.emulator_ide.common.Pointer;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
+import io.github.H20man13.emulator_ide.gui.GuiEde;
 import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
@@ -246,5 +248,51 @@ public class EdeInterpreter extends VerilogInterpreter {
         }
 
         return super.interpretShallowBlockingAssignment(assign);
+    }
+
+    public Value interpretShallowIdentifier(Identifier ident) throws Exception{
+        if (environment.variableExists(ident.labelIdentifier)) {
+			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
+			Value typeData = data.deRefrence();
+            if(typeData instanceof EdeStatVal){
+                EdeStatVal stat = (EdeStatVal)typeData;
+                return new LongVal(stat.intValue());
+            } else if(typeData instanceof EdeRegVal){
+                EdeRegVal reg = (EdeRegVal)typeData;
+                return new LongVal(reg.longValue());
+            }
+		}
+        return super.interpretShallowIdentifier(ident);
+    }
+
+    public Value interpretShallowElement(Element elem) throws Exception{
+        if(environment.variableExists(elem.labelIdentifier)){
+            Pointer<Value> data = environment.lookupVariable(elem.labelIdentifier);
+			Value typeData = data.deRefrence();
+            if(typeData instanceof EdeMemVal){
+                EdeMemVal edeMemVal = (EdeMemVal)typeData;
+                Value result = interpretShallowExpression(elem.index1);
+                return new LongVal(edeMemVal.elemAtIndex(result.intValue()));
+            } else if(typeData instanceof EdeRegVal){
+                EdeRegVal edeRegVal = (EdeRegVal)typeData;
+                Value result = interpretShallowExpression(elem.index1);
+                return new LongVal(edeRegVal.getBitAtIndex(result.intValue()));
+            }
+        }
+        return super.interpretShallowElement(elem);
+    }
+
+    public Value interpretShallowSlice(Slice elem) throws Exception{
+        if(environment.variableExists(elem.labelIdentifier)){
+            Pointer<Value> data = environment.lookupVariable(elem.labelIdentifier);
+			Value typeData = data.deRefrence();
+            if(typeData instanceof EdeRegVal){
+                EdeRegVal edeRegVal = (EdeRegVal)typeData;
+                Value result1 = interpretShallowExpression(elem.index1);
+                Value result2 = interpretShallowExpression(elem.index2);    
+                return new LongVal(edeRegVal.getBitsInRange(result1.intValue(), result2.intValue()));
+            }
+        }
+        return super.interpretShallowSlice(elem);
     }
 }

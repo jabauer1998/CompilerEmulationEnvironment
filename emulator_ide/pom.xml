@@ -70,6 +70,16 @@
       <version>2.3.0-jaxb-1.0.6</version>
     </dependency>
     <dependency>
+     <groupId>org.antlr</groupId>
+     <artifactId>antlr4-runtime</artifactId>
+     <version>4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.H20man13.DeClan</groupId>
+      <artifactId>DeClan</artifactId>
+      <version>1.6-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.fxmisc.richtext</groupId> 	
       <artifactId>richtextfx</artifactId> 	
       <version>0.11.0</version>

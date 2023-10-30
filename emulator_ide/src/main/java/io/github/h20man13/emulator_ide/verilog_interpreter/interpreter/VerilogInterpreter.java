@@ -3,6 +3,8 @@ package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.Scanner;
 import io.github.H20man13.emulator_ide.common.Pointer;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
+import io.github.H20man13.emulator_ide.common.io.Destination;
 import io.github.H20man13.emulator_ide.common.io.FormattedScanner;
 import io.github.H20man13.emulator_ide.common.io.Source;
 import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
@@ -42,10 +45,17 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.pre_processor.Preprocessor;
 
 public class VerilogInterpreter extends Interpreter {
+	private Destination standardOutput;
 
-    public VerilogInterpreter(ErrorLog errLog){
+    public VerilogInterpreter(ErrorLog errLog, Destination standardOutput){
         super(errLog);
+		this.standardOutput = standardOutput;
     }
+
+	public VerilogInterpreter(ErrorLog errorLog){
+		super(errorLog);
+		this.standardOutput = new Destination(new OutputStreamWriter(System.out));
+	}
     /**
      * Brlow are the private methods that an interpreter can call
      * 
@@ -488,12 +498,19 @@ public class VerilogInterpreter extends Interpreter {
 				return OpUtil.errorOccured();
 			}
 		} else if (taskName.equals("display")) {
-			if (task.argumentList.size() == 2) {
-			 	Value fString = interpretShallowExpression(task.argumentList.get(0));
-				Value  fData = interpretShallowExpression(task.argumentList.get(1));
+			if(task.argumentList.size() >= 1){
+				Value fString = interpretShallowExpression(task.argumentList.get(0));
 
-			} else if (task.argumentList.size() == 1) {
-				Value data = interpretShallowExpression(task.argumentList.get(0));				
+				Object[] Params = new Object[task.argumentList.size() - 1];
+				for(int paramIndex = 0, i = 1; i < task.argumentList.size(); i++, paramIndex++){
+					 Value  fData = interpretShallowExpression(task.argumentList.get(i));
+					 Object rawValue = OpUtil.getRawValue(fData);
+					 Params[paramIndex] = rawValue;
+				}
+				
+				String formattedString = String.format(fString.toString(), Params);
+
+				standardOutput.println(formattedString);
 			} else {
 				OpUtil.errorAndExit("Unknown number of print arguments in " + task.taskName, task.position);
 			}
@@ -669,7 +686,6 @@ public class VerilogInterpreter extends Interpreter {
 			Value location = interpretShallowExpression(call.argumentList.get(2));
 			
 			FormattedScanner fScanner = environment.getFileReader(fileDescriptor.intValue());
-
 			List<Object> result = fScanner.scanf(fString.toString());
 			
 			if(result.size() == 0){
