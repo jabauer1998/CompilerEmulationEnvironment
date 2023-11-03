@@ -8,6 +8,10 @@ public class ShortVal implements Value{
         this.value = value;
     }
 
+    public ShortVal(int value){
+        this.value = (short)value;
+    }
+
     public double realValue(){
         return (double)value;
     }

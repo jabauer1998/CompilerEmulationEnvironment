@@ -4,7 +4,7 @@ package io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.expressio
 import io.github.H20man13.emulator_ide.common.Position;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
-import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.Environment;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;

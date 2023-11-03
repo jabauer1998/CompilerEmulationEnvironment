@@ -4,7 +4,7 @@ import java.util.concurrent.Semaphore;
 import io.github.H20man13.emulator_ide.common.Position;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
-import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.Interpreter;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.AstNode;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.ModuleItem;

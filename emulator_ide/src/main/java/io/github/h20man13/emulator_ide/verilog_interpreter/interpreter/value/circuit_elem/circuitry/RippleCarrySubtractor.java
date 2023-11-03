@@ -1,6 +1,6 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry;
 
-import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.gates.NotGate;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.web.WireVal;
@@ -56,7 +56,7 @@ public class RippleCarrySubtractor {
 
         CarryOut.assignInput(CarryOutInner);
         } else {
-            OpUtil.errorAndExit("Error: Cannot create a ripple caryy adder with Vectors of Two different size!!!");
+            Utils.errorAndExit("Error: Cannot create a ripple caryy adder with Vectors of Two different size!!!");
         }
     }
 }

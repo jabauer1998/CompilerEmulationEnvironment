@@ -255,7 +255,8 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
    task execute;
       input [31:0] code;
       reg [31:0]   op1;
-      reg [31:0]   op2;
+	  reg [31:0]   op2;
+      reg [31:0]   cc;
       reg [31:0]   copy;
       reg [31:0]   dest;
       reg [31:0]   offset;
@@ -265,7 +266,9 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
       reg [31:0]   totalholder;
       reg [15:0]   regList;
       integer 	   i;
-      if(checkCC(INSTR[31:28])) begin
+	  begin
+	  cc = checkCC(INSTR[31:28]);
+      if(cc) begin
 		case(code)
 	  		0: R15 = getRegister(INSTR[3:0]); //BX or BE
 	  		1: begin //BL | B
@@ -328,16 +331,20 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	       			16: solution32 = op1 & ~op2;
 	       			17: solution32 = ~op2;
 	     		endcase // case (code)
-	     
+
 	     		if(INSTR[20]) begin //set the status bits if necessary
 					C = solution32[32];
 					Z = !solution32;
 					N = solution32[31];
             		V = (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]);
+					$display("C is %d", C);
+					$display("Z is %d", Z);
+					$display("N is %d", N);
+					$display("V is %d", V);
 	     		end
 
 				//If the instruction wants a result return it
-	     		if(code >= 2 && code <= 9 || code >= 10 && code <= 17) begin
+	     		if(code >= 2 && code <= 9 || code >= 14 && code <= 17) begin
 	       			setRegister(INSTR[15:12], solution32[31:0]);
 				end
 	  		end
@@ -624,17 +631,22 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	     		case(INSTR[23:0])
 				//0: R[0] = $input;
 				1: begin 
-					$display("%d\n", R0);
+					$display("%d", R0);
 				end //displays value in RO
+				2: begin
+					$display("%f", R0);
+				end
+				4: begin
+					$display("\n");
+				end
 				default: begin
-					$display("Error: invalid interupt vector number");
+					$display("Error: invalid interupt vector number %d", INSTR[23:0]);
 					$finish;
 				end
 				endcase // case (INSTR[])
 			end // case: 27
 
 			28: begin //stop
-				$display("Program executed succesfully!!!");
 				$finish;
 			end // case: 28
 
@@ -644,6 +656,7 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 			end
 		endcase // case (code)
 	   end
+	end
    endtask // execute
 
    initial begin

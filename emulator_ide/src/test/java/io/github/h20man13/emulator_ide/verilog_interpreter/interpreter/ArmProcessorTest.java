@@ -32,62 +32,6 @@ import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.io.Destination;
 
 public class ArmProcessorTest {
-    public void runDeclanAndInterpreterOnProcessor(String sourcefile, String expectedResult){
-        edu.depauw.declan.common.ErrorLog errLog = new edu.depauw.declan.common.ErrorLog();
-
-        try {
-            FileReader reader = new FileReader(sourcefile);
-            ReaderSource source = new ReaderSource(reader);
-            MyDeClanLexer lexer = new MyDeClanLexer(source, errLog);
-            MyDeClanParser parser = new MyDeClanParser(lexer, errLog);
-
-            MyStandardLibrary lib = new MyStandardLibrary(errLog);
-            Program prog = parser.parseProgram();
-
-            for(LogItem item : errLog){
-                assertTrue(item.toString(), false);
-            }
-            
-            IrRegisterGenerator gen = new IrRegisterGenerator();
-            MyICodeGenerator iGen = new MyICodeGenerator(errLog, gen);
-
-            lib.ioLibrary().accept(iGen);
-            lib.mathLibrary().accept(iGen);
-
-            for(LogItem item : errLog){
-                assertTrue(item.toString(), false);
-            }
-
-            prog.accept(iGen);
-
-            for(LogItem item : errLog){
-                assertTrue(item.toString(), false);
-            }
-
-            MyOptimizer optimizer = new MyOptimizer(iGen.getICode(), gen);
-            optimizer.runDataFlowAnalysis();
-            optimizer.performDeadCodeElimination();
-
-            for(LogItem item : errLog){
-                assertTrue(item.toString(), false);
-            }
-
-            List<ICode> resultICode = optimizer.getICode();
-
-            MyCodeGenerator codeGen = new MyCodeGenerator(optimizer.getLiveVariableAnalysis(), resultICode, gen, errLog);
-
-            StringWriter assemblyOutput = new StringWriter();
-            codeGen.codeGen(assemblyOutput);
-
-            for(LogItem item : errLog){
-                assertTrue(item.toString(), false);
-            }
-
-            runAssemblerAndInterpreterOnProcessor(assemblyOutput.toString(), expectedResult);
-        } catch (IOException e) {
-            assertTrue(e.toString(), false);
-        }
-    }
 
     public void runAssemblerAndInterpreterOnProcessor(String inputAssembly, String expectedResult){
         StringReader reader = new StringReader(inputAssembly);
@@ -139,7 +83,7 @@ public class ArmProcessorTest {
         String assembly = "MOV R0, #255\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "255\\n\n";
+        String expectedOutput = "255\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -150,7 +94,7 @@ public class ArmProcessorTest {
                         + "SUB R0, R0, R1\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "251\\n\n";
+        String expectedOutput = "251\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -161,7 +105,7 @@ public class ArmProcessorTest {
                         + "MOV R0, R1\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "508\\n\n";
+        String expectedOutput = "508\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -172,7 +116,7 @@ public class ArmProcessorTest {
                         + "begin: LDR R0, a\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "530\\n\n";
+        String expectedOutput = "530\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -186,7 +130,7 @@ public class ArmProcessorTest {
                         + "ADD R0, R1, R2\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "40575\\n\n";
+        String expectedOutput = "40575\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -203,7 +147,7 @@ public class ArmProcessorTest {
                         + "LDR R0, b\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "530\\n\n";
+        String expectedOutput = "530\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -215,7 +159,7 @@ public class ArmProcessorTest {
                         + "LDR R0, [R1,#4]\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "2\\n\n";
+        String expectedOutput = "2\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -231,7 +175,7 @@ public class ArmProcessorTest {
                         + "LDR R0, [R2, +R1]\r\n"
                         + "SWI 1\r\n"
                         + "STP\r\n";
-        String expectedOutput = "1040\\n\n";
+        String expectedOutput = "1040\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
@@ -292,14 +236,126 @@ public class ArmProcessorTest {
                 "STR R3, [R13,-R2]\r\n" + //
                 "BL WriteInt\r\n" + //
                 "STP\r\n";
-        String expectedOutput = "10\\n\n20\\n\n";
+        String expectedOutput = "10\n20\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedOutput);
     }
 
     @Test
     public void testForLoopBasic(){
-        String inputFile = "test_source/ForLoopBasic.dcl";
-        String expectedResult = "10\\n\n";
-        runDeclanAndInterpreterOnProcessor(inputFile, expectedResult);
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                "        B begin_0\r\n" + //
+                "        h: .WORD 0\r\n" + //
+                "        l8: .WORD 1\r\n" + //
+                "        l7: .WORD 0\r\n" + //
+                "        l9: .WORD 10\r\n" + //
+                "        c: .WORD 4\r\n" + //
+                "        m0: .WORD 1\r\n" + //
+                "        m1: .WORD 0\r\n" + //
+                "        l7: .WORD 0\r\n" + //
+                "        l8: .WORD 1\r\n" + //
+                "        totalBytes: .WORD 3668\r\n" + //
+                "        begin_0: B begin_1\r\n" + //
+                "        WriteLn: SWI 4\r\n" + //
+                "        MOV R15, R14\r\n" + //
+                "        WriteInt: LDR R2, c\r\n" + //
+                "        LDR R2, [R13, -R2]\r\n" + //
+                "        STR R2, h\r\n" + //
+                "        LDR R0, h\r\n" + //
+                "        SWI 1\r\n" + //
+                "        LDR R3, [R13]\r\n" + //
+                "        SUB R13, R13, #2\r\n" + //
+                "        MOV R15, R14\r\n" + //
+                "        begin_1: B begin_2\r\n" + //
+                "        begin_2: B begin_3\r\n" + //
+                "        begin_3: LDR R3, l8\r\n" + //
+                "        STR R3, l7\r\n" + //
+                "        FORBEG_0_LEVEL_0: LDR R2, l7\r\n" + //
+                "        LDR R3, l9\r\n" + //
+                "        TEQ R2, R3\r\n" + //
+                "        BNE FORLOOP_0_LEVEL_0\r\n" + //
+                "        BEQ FOREND_0_LEVEL_0\r\n" + //
+                "        FORLOOP_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "        STR R14, [R13, #-8]\r\n" + //
+                "        LDR R4, c\r\n" + //
+                "        LDR R2, l7\r\n" + //
+                "        STR R2, [R13,-R4]\r\n" + //
+                "        BL WriteInt\r\n" + //
+                "        LDR R14, [R13, #-8]\r\n" + //
+                "        SUB R13, R13, #8\r\n" + //
+                "        LDR R2, l7\r\n" + //
+                "        LDR R4, m0\r\n" + //
+                "        ADD R5, R2, R4\r\n" + //
+                "        STR R5, m1\r\n" + //
+                "        LDR R2, m1\r\n" + //
+                "        STR R2, l7\r\n" + //
+                "        B FORBEG_0_LEVEL_0\r\n" + //
+                "        FOREND_0_LEVEL_0: ADD R13, R13, #4\r\n" + //
+                "        STR R14, [R13, #-4]\r\n" + //
+                "        BL WriteLn\r\n" + //
+                "        LDR R14, [R13, #-4]\r\n" + //
+                "        SUB R13, R13, #4\r\n" + //
+                "        STP\r\n";
+
+                String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n";
+                runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
+
+    @Test
+    public void testForLoopBasic2(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                          "B begin_0\r\n" + //
+                        "h: .WORD 0\r\n" + //
+                        "l8: .WORD 1\r\n" + //
+                        "l7: .WORD 0\r\n" + //
+                        "l9: .WORD 10\r\n" + //
+                        "c: .WORD 4\r\n" + //
+                        "m0: .WORD 1\r\n" + //
+                        "m1: .WORD 0\r\n" + //
+                        "totalBytes: .WORD 3668\r\n" + //
+                        "begin_0: B begin_1\r\n" + //
+                        "WriteLn: SWI 4\r\n" + //
+                        "LDR R2, [R13]\r\n" + //
+                        "SUB R13, R13, #2\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "WriteInt: LDR R2, c\r\n" + //
+                        "LDR R2, [R13, -R2]\r\n" + //
+                        "STR R2, h\r\n" + //
+                        "LDR R0, h\r\n" + //
+                        "SWI 1\r\n" + //
+                        "LDR R3, [R13]\r\n" + //
+                        "SUB R13, R13, #2\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "begin_1: B begin_2\r\n" + //
+                        "begin_2: B begin_3\r\n" + //
+                        "begin_3: LDR R3, l8\r\n" + //
+                        "STR R3, l7\r\n" + //
+                        "FORBEG_0_LEVEL_0: LDR R2, l7\r\n" + //
+                        "LDR R3, l9\r\n" + //
+                        "CMP R2, R3\r\n" + //
+                        "BLT FORLOOP_0_LEVEL_0\r\n" + //
+                        "BGE FOREND_0_LEVEL_0\r\n" + //
+                        "FORLOOP_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R4, c\r\n" + //
+                        "LDR R2, l7\r\n" + //
+                        "STR R2, [R13,-R4]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "LDR R2, l7\r\n" + //
+                        "LDR R4, m0\r\n" + //
+                        "ADD R5, R2, R4\r\n" + //
+                        "STR R5, m1\r\n" + //
+                        "LDR R2, m1\r\n" + //
+                        "STR R2, l7\r\n" + //
+                        "B FORBEG_0_LEVEL_0\r\n" + //
+                        "FOREND_0_LEVEL_0: ADD R13, R13, #4\r\n" + //
+                        "STR R14, [R13, #-4]\r\n" + //
+                        "BL WriteLn\r\n" + //
+                        "LDR R14, [R13, #-4]\r\n" + //
+                        "SUB R13, R13, #4\r\n" + //
+                        "STP\r\n";
+        String expectedResult = "10/n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }

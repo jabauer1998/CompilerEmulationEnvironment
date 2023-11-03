@@ -15,7 +15,7 @@ import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
 import io.github.H20man13.emulator_ide.common.io.Destination;
 import io.github.H20man13.emulator_ide.common.io.FormattedScanner;
 import io.github.H20man13.emulator_ide.common.io.Source;
-import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
@@ -71,7 +71,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
         
@@ -79,14 +79,14 @@ public class VerilogInterpreter extends Interpreter {
 		tokens = preProc.executePass();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 		
         Parser parse = new Parser(tokens, errorLog);
         Expression exp = parse.parseExpression();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		try{
@@ -94,7 +94,7 @@ public class VerilogInterpreter extends Interpreter {
 		} catch(Exception exception){
 			errorLog.addItem(new ErrorItem(exception.toString()));
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
     }
 
@@ -104,14 +104,14 @@ public class VerilogInterpreter extends Interpreter {
         List<Token> tokens = lex.tokenize();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		Preprocessor preProc = new Preprocessor(errorLog, tokens);
 		tokens = preProc.executePass();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
         Parser parse = new Parser(tokens, errorLog);
@@ -119,7 +119,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		try{
@@ -127,10 +127,10 @@ public class VerilogInterpreter extends Interpreter {
 		} catch(Exception exp) {
 			errorLog.addItem(new ErrorItem(exp.toString()));
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
-		return OpUtil.success();
+		return Utils.success();
     }
 
 	public IntVal interpretModuleItem(String moduleItem){
@@ -140,7 +140,7 @@ public class VerilogInterpreter extends Interpreter {
 		List<Token> tokens = lex.tokenize();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 
@@ -148,7 +148,7 @@ public class VerilogInterpreter extends Interpreter {
 		tokens = preProc.executePass();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		Parser parse = new Parser(tokens, errorLog);
@@ -156,16 +156,16 @@ public class VerilogInterpreter extends Interpreter {
 		for(ModuleItem item : items){
 			try{
 				Value Result = interpretModuleItem(item);
-				if(Result == OpUtil.errorOccured()){
+				if(Result == Utils.errorOccured()){
 					errorLog.printLog();
-					return OpUtil.errorOccured();
+					return Utils.errorOccured();
 				}
 			} catch(Exception exp){
 				errorLog.addItem(new ErrorItem(exp.toString()));
-				return OpUtil.errorOccured();
+				return Utils.errorOccured();
 			}
 		}
-		return OpUtil.success();
+		return Utils.success();
 	}
 
     public IntVal interpretModule(String Module){
@@ -177,14 +177,14 @@ public class VerilogInterpreter extends Interpreter {
 		tokens = preProc.executePass();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
         Parser parse = new Parser(tokens, errorLog);
         ModuleDeclaration Decl = parse.parseModuleDeclaration();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 
@@ -194,15 +194,15 @@ public class VerilogInterpreter extends Interpreter {
 			errorLog.addItem(new ErrorItem(exp.toString()));
 			if(errorLog.size() > 0){
 				errorLog.printLog();
-				return OpUtil.errorOccured();
+				return Utils.errorOccured();
 			}
 		}
 
         if(errorLog.size() > 0){
             errorLog.printLog();
-            return OpUtil.errorOccured();
+            return Utils.errorOccured();
         } else {
-            return OpUtil.success();
+            return Utils.success();
         }
     }
 
@@ -216,7 +216,7 @@ public class VerilogInterpreter extends Interpreter {
 			errorLog.addItem(new ErrorItem("Exception occured when interpreting file " + exp.toString()));
 		}
 
-		return OpUtil.errorOccured();
+		return Utils.errorOccured();
     }
 
 	public IntVal interpretFile(FileReader Reader){
@@ -232,7 +232,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
         
 		Preprocessor Prepros = new Preprocessor(errorLog, tokens);
@@ -240,7 +240,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		/**
@@ -253,7 +253,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		try{
@@ -261,7 +261,7 @@ public class VerilogInterpreter extends Interpreter {
 		} catch(Exception exp){
 			errorLog.addItem(new ErrorItem(exp.toString()));
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 	}
 
@@ -271,7 +271,7 @@ public class VerilogInterpreter extends Interpreter {
 		List<Token> tokens = lex.tokenize();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		
@@ -279,7 +279,7 @@ public class VerilogInterpreter extends Interpreter {
 		tokens = Prepros.executePass();
 		if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		/**
@@ -291,7 +291,7 @@ public class VerilogInterpreter extends Interpreter {
 		 VerilogFile File = P.parseVerilogFile();
 		 if(errorLog.size() > 0){
 			errorLog.printLog();
-			return OpUtil.errorOccured();
+			return Utils.errorOccured();
 		}
 
 		try{
@@ -302,7 +302,7 @@ public class VerilogInterpreter extends Interpreter {
 			errorLog.printLog();
 		}
 		
-		return OpUtil.errorOccured();
+		return Utils.errorOccured();
 	}
 
 	protected IntVal interpretDeclaration(Reg.Scalar.Array decl) throws Exception{
@@ -321,11 +321,11 @@ public class VerilogInterpreter extends Interpreter {
 			}
 			environment.addVariable(decl.declarationIdentifier, arrayDec);
 		} else {
-			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
 
-		return OpUtil.success();
+		return Utils.success();
 	}
 
 	protected IntVal interpretDeclaration(Reg.Vector.Array decl) throws Exception{
@@ -350,11 +350,11 @@ public class VerilogInterpreter extends Interpreter {
 			}
 			environment.addVariable(decl.declarationIdentifier, arrVal);
 		} else {
-			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
 
-		return OpUtil.success();
+		return Utils.success();
 	}
 
 	/**
@@ -375,11 +375,11 @@ public class VerilogInterpreter extends Interpreter {
 		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(exp1Val.intValue(), exp2Val.intValue()));
 		} else {
-			OpUtil.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
 
-		return OpUtil.success();
+		return Utils.success();
 	}
 
 	/**
@@ -394,10 +394,10 @@ public class VerilogInterpreter extends Interpreter {
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
-		return OpUtil.success();
+		return Utils.success();
 	}
 
 	/**
@@ -411,10 +411,10 @@ public class VerilogInterpreter extends Interpreter {
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
-		return OpUtil.success();
+		return Utils.success();
 	}
 
 	/**
@@ -435,8 +435,8 @@ public class VerilogInterpreter extends Interpreter {
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
 		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
 
 		return null;
@@ -460,11 +460,11 @@ public class VerilogInterpreter extends Interpreter {
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
 		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
 
-		return OpUtil.success();
+		return Utils.success();
 	}
 
 	/**
@@ -478,10 +478,10 @@ public class VerilogInterpreter extends Interpreter {
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new RegVal(false));
 		} else {
-			OpUtil.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Error Register allready exists with the name " + decl.declarationIdentifier);
+			return Utils.errorOccured();
 		}
-		return OpUtil.success();
+		return Utils.success();
 	}
 
     protected IntVal interpretSystemTaskCall(SystemTaskStatement task) throws Exception{
@@ -494,8 +494,8 @@ public class VerilogInterpreter extends Interpreter {
 				Scanner.close();
 				environment.clearFileReader(fileDescriptor.intValue());
 			} catch (Exception exp){
-				OpUtil.errorAndExit(exp.toString());
-				return OpUtil.errorOccured();
+				Utils.errorAndExit(exp.toString());
+				return Utils.errorOccured();
 			}
 		} else if (taskName.equals("display")) {
 			if(task.argumentList.size() >= 1){
@@ -504,7 +504,7 @@ public class VerilogInterpreter extends Interpreter {
 				Object[] Params = new Object[task.argumentList.size() - 1];
 				for(int paramIndex = 0, i = 1; i < task.argumentList.size(); i++, paramIndex++){
 					 Value  fData = interpretShallowExpression(task.argumentList.get(i));
-					 Object rawValue = OpUtil.getRawValue(fData);
+					 Object rawValue = Utils.getRawValue(fData);
 					 Params[paramIndex] = rawValue;
 				}
 				
@@ -512,15 +512,15 @@ public class VerilogInterpreter extends Interpreter {
 
 				standardOutput.println(formattedString);
 			} else {
-				OpUtil.errorAndExit("Unknown number of print arguments in " + task.taskName, task.position);
+				Utils.errorAndExit("Unknown number of print arguments in " + task.taskName, task.position);
 			}
 		} else if (taskName.equals("finish")) {
-			OpUtil.errorAndExit("Program is finished!!! Program exited successfully!!!");
+			Utils.errorAndExit("Program is finished!!! Program exited successfully!!!");
 		} else {
-			OpUtil.errorAndExit("Unknown system task declaration " + taskName, task.position);
+			Utils.errorAndExit("Unknown system task declaration " + taskName, task.position);
 		}
 
-		return OpUtil.success();
+		return Utils.success();
     }
 
 	protected IntVal interpretShallowBlockingAssignment(BlockingAssignment assign) throws Exception {
@@ -544,10 +544,10 @@ public class VerilogInterpreter extends Interpreter {
 					RegVal elemReg = (RegVal)elem;
 					elemReg.setSignal(expVal.boolValue());
 				} else {
-					OpUtil.errorAndExit("Error: Invalid Type for soft assignment " + elem.getClass().getName());
+					Utils.errorAndExit("Error: Invalid Type for soft assignment " + elem.getClass().getName());
 				}
 			} else {
-				OpUtil.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
+				Utils.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
 			}
 		 } else if(assign.leftHandSide instanceof Slice){
 			Slice leftHandSlice = (Slice)assign.leftHandSide;
@@ -561,10 +561,10 @@ public class VerilogInterpreter extends Interpreter {
 			if(leftHandDeref instanceof VectorVal){
 				VectorVal leftHandVector = (VectorVal)leftHandDeref;
 
-				OpUtil.shallowAssign(leftHandVector, leftHandStartIndex.intValue(), leftHandEndIndex.intValue(), expVal.longValue());
+				Utils.shallowAssign(leftHandVector, leftHandStartIndex.intValue(), leftHandEndIndex.intValue(), expVal.longValue());
 			} else {
-				OpUtil.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
-				return OpUtil.errorOccured();
+				Utils.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
+				return Utils.errorOccured();
 			}
 		 } else if(assign.leftHandSide instanceof Identifier){
 			Identifier leftHandIdent = (Identifier)assign.leftHandSide;
@@ -574,7 +574,10 @@ public class VerilogInterpreter extends Interpreter {
 			if(leftHandDeref instanceof VectorVal){
 				//If it is a vector then we need to use the OpUtil.shallowAssign on the Vector
 				VectorVal Vec = (VectorVal)leftHandDeref;
-				OpUtil.shallowAssign(Vec, expVal.longValue());
+				Utils.shallowAssign(Vec, expVal.longValue());
+			} else if(leftHandDeref instanceof RegVal){
+				RegVal reg = (RegVal)leftHandDeref;
+				Utils.shallowAssign(reg, expVal.boolValue());
 			} else {
 				//If it is not a vector then just replace the value with whatever is on the Right Hand Side
 				leftHandPtr.assign(expVal);
@@ -586,11 +589,11 @@ public class VerilogInterpreter extends Interpreter {
 				environment.setFunctionExit(); //Makes it so we are in the Return Part of a Verilog Function
 			}
 		 } else {
-			OpUtil.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
+			return Utils.errorOccured();
 		 }
 
-		 return OpUtil.success();
+		 return Utils.success();
 	}
 
 	protected IntVal interpretShallowNonBlockingAssignment(NonBlockingAssignment assign) throws Exception{
@@ -618,10 +621,10 @@ public class VerilogInterpreter extends Interpreter {
 						RegVal elemReg = (RegVal)elem;
 						elemReg.setSignal(resultList.get(i).boolValue());
 					} else {
-						OpUtil.errorAndExit("Error: Invalid Type for soft assignment " + elem.getClass().getName());
+						Utils.errorAndExit("Error: Invalid Type for soft assignment " + elem.getClass().getName());
 					}
 				} else {
-					OpUtil.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
+					Utils.errorAndExit("Error: Invalid Type for left hand side of the assignment " + leftHandDeref.getClass().getName());
 				}
 			 } else if(assign.leftHandSide.get(i) instanceof Slice){
 				Slice leftHandSlice = (Slice)assign.leftHandSide.get(i);
@@ -635,22 +638,22 @@ public class VerilogInterpreter extends Interpreter {
 				if(leftHandDeref instanceof VectorVal){
 					VectorVal leftHandVector = (VectorVal)leftHandDeref;
 	
-					OpUtil.shallowAssign(leftHandVector, leftHandStartIndex.intValue(), leftHandEndIndex.intValue(), resultList.get(i).longValue());
+					Utils.shallowAssign(leftHandVector, leftHandStartIndex.intValue(), leftHandEndIndex.intValue(), resultList.get(i).longValue());
 				} else {
-					OpUtil.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
-					return OpUtil.errorOccured();
+					Utils.errorAndExit("Invalid Type for the left hand side of the slice assingment " + leftHandDeref.getClass().getName());
+					return Utils.errorOccured();
 				}
 			 } else if(assign.leftHandSide.get(i) instanceof Identifier){
 				Identifier leftHandIdent = (Identifier)assign.leftHandSide.get(i);
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandIdent.labelIdentifier);
 				leftHandPtr.assign(resultList.get(i));
 			 } else {
-				OpUtil.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
-				return OpUtil.errorOccured();
+				Utils.errorAndExit("Invalid Left Hand side of the expression " + assign.leftHandSide.getClass().getName());
+				return Utils.errorOccured();
 			 }
 		}
 
-		return OpUtil.success();
+		return Utils.success();
 	}
 
     protected Value interpretSystemFunctionCall(SystemFunctionCall call) throws Exception{
@@ -658,7 +661,7 @@ public class VerilogInterpreter extends Interpreter {
 
 		if (functionName.equals("fopen")) {
 			StrVal fname = (StrVal)interpretShallowExpression(call.argumentList.get(0));
-			String basePath = OpUtil.GetRuntimeDir();
+			String basePath = Utils.GetRuntimeDir();
 			StrVal access = (StrVal)interpretShallowExpression(call.argumentList.get(1));
 			String fullPath = basePath + '/' + fname;
 
@@ -669,7 +672,7 @@ public class VerilogInterpreter extends Interpreter {
 				int fileDescriptor = environment.createWritableFileDescriptor(fullPath);
 				return new IntVal(fileDescriptor);
 			} else {
-				OpUtil.errorAndExit("Unexpected Access type " + access + " for file " + basePath + '/' + fname, call.position);
+				Utils.errorAndExit("Unexpected Access type " + access + " for file " + basePath + '/' + fname, call.position);
 			} 
 		} else if (functionName.equals("feof")) {
 			Value fileDescriptor = interpretShallowExpression(call.argumentList.get(0));
@@ -678,7 +681,7 @@ public class VerilogInterpreter extends Interpreter {
 				return new BoolVal(reader.atEof());
 			} catch(Exception exp){
 				errorLog.addItem(new ErrorItem("Error: FileStream ready failed with exception" + exp.toString()));
-				return OpUtil.errorOccured();
+				return Utils.errorOccured();
 			}
 		} else if (functionName.equals("fscanf")) {
 			Value fileDescriptor = interpretShallowExpression(call.argumentList.get(0));
@@ -689,25 +692,25 @@ public class VerilogInterpreter extends Interpreter {
 			List<Object> result = fScanner.scanf(fString.toString());
 			
 			if(result.size() == 0){
-				OpUtil.errorAndExit("Result in Scanf returned no Objects");
-				return OpUtil.errorOccured();
+				Utils.errorAndExit("Result in Scanf returned no Objects");
+				return Utils.errorOccured();
 			} else {
-				Value scanfResult = OpUtil.convertToRawValue(result.get(0));
+				Value scanfResult = Utils.convertToRawValue(result.get(0));
 
 				if(location.isVector()){
 					VectorVal vecVal = (VectorVal)location;
-					OpUtil.shallowAssign(vecVal, scanfResult.longValue());
-					return OpUtil.success();					
+					Utils.shallowAssign(vecVal, scanfResult.longValue());
+					return Utils.success();					
 				} else {
-					OpUtil.errorAndExit("Invalid location type of " + location.getClass().getName());
-					return OpUtil.errorOccured();
+					Utils.errorAndExit("Invalid location type of " + location.getClass().getName());
+					return Utils.errorOccured();
 				}
 			}
 		} else {
-			OpUtil.errorAndExit("Could not find a systemcall with the name " + functionName, call.position);
+			Utils.errorAndExit("Could not find a systemcall with the name " + functionName, call.position);
 		}
 
-		return OpUtil.errorOccured();
+		return Utils.errorOccured();
     }
 
 	/**
@@ -722,8 +725,8 @@ public class VerilogInterpreter extends Interpreter {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			return data.deRefrence();
 		} else {
-			OpUtil.errorAndExit("Variable Entry " + ident.labelIdentifier + " Doesnt Exist", ident.position);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Variable Entry " + ident.labelIdentifier + " Doesnt Exist", ident.position);
+			return Utils.errorOccured();
 		}
 	}
 
@@ -741,13 +744,13 @@ public class VerilogInterpreter extends Interpreter {
 				VectorVal toRet = ((VectorVal)dataObject).getShallowSlice(startIndex.intValue(), endIndex.intValue());
 				return toRet;
 			} else {
-				OpUtil.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
-				return OpUtil.errorOccured();
+				Utils.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
+				return Utils.errorOccured();
 			}
 
 		} else {
-			OpUtil.errorAndExit("Array or VectorVal " + ident + " not found");
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Array or VectorVal " + ident + " not found");
+			return Utils.errorOccured();
 		}
 	}
 
@@ -775,14 +778,14 @@ public class VerilogInterpreter extends Interpreter {
 			} else if (dataObject instanceof ArrayVal) {
 				return ((ArrayVal<IntVal>)dataObject).ElemAtIndex(expr.intValue());
 			} else {
-				OpUtil.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]",
+				Utils.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]",
 					Elem.position);
-				return OpUtil.errorOccured();
+				return Utils.errorOccured();
 			}
 
 		} else {
-			OpUtil.errorAndExit("Array or VectorVal " + ident + " not found", Elem.position);
-			return OpUtil.errorOccured();
+			Utils.errorAndExit("Array or VectorVal " + ident + " not found", Elem.position);
+			return Utils.errorOccured();
 		}
 	}
 }

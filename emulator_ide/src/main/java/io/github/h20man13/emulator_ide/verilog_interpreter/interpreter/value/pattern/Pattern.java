@@ -1,6 +1,6 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.pattern;
 
-import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
@@ -42,7 +42,7 @@ public abstract class Pattern implements Value{
         else if(value.isVector()) return match((VectorVal)value);
         else if(value instanceof CircuitElem) return match((CircuitElem)value);
         else {
-            OpUtil.errorAndExit("Error invalid Type for pattern match " + value.getClass().getName());
+            Utils.errorAndExit("Error invalid Type for pattern match " + value.getClass().getName());
             return false;
         }
     }

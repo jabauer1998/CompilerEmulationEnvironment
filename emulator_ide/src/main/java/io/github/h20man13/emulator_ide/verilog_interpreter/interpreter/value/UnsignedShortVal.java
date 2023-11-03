@@ -6,6 +6,10 @@ public class UnsignedShortVal extends ShortVal implements Unsigned{
         super(value);
     }
 
+    public UnsignedShortVal(int value){
+        super(value);
+    }
+
     public String toString(){
         short value = super.shortValue();
         return Integer.toUnsignedString(value);

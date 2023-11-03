@@ -6,7 +6,7 @@ import io.github.H20man13.emulator_ide.common.Pointer;
 import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
 import io.github.H20man13.emulator_ide.gui.GuiEde;
-import io.github.H20man13.emulator_ide.verilog_interpreter.OpUtil;
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
@@ -48,18 +48,18 @@ public class EdeInterpreter extends VerilogInterpreter {
                 int size = (intIndex2 > intIndex1) ? intIndex2 - intIndex1 : intIndex1 - intIndex2;
                 if(size != 8){
                     errorLog.addItem(new ErrorItem("Expected vector of size 8 for @Memory annotation but found reg ["+intIndex1+':'+intIndex2+']', decl.position));
-                    return OpUtil.errorOccured();
+                    return Utils.errorOccured();
                 } else if(environment.localVariableExists(decl.declarationIdentifier)) {
                     errorLog.addItem(new ErrorItem("Error variable " + decl.declarationIdentifier + " allready exists inside the scope", decl.position));
-                    return OpUtil.errorOccured();
+                    return Utils.errorOccured();
                 } else {
                     Value varVal = new EdeMemVal(guiInstance);
                     environment.addVariable(decl.declarationIdentifier, varVal);
-                    return OpUtil.success();
+                    return Utils.success();
                 }
             } else {
                 errorLog.addItem(new ErrorItem("Invalid annotation type for reg [] expected @Memory but found " + annotationLexeme, decl.position));
-                return OpUtil.errorOccured();
+                return Utils.errorOccured();
             }
         }
         return super.interpretDeclaration(decl);
@@ -71,14 +71,14 @@ public class EdeInterpreter extends VerilogInterpreter {
             if(annotationLexeme.toLowerCase().equals("@status")){
                 if(environment.localVariableExists(decl.declarationIdentifier)){
                     errorLog.addItem(new ErrorItem("Variable allready exists in scope with the name " + decl.declarationIdentifier, decl.position));
-                    return OpUtil.errorOccured();
+                    return Utils.errorOccured();
                 } else {
                     environment.addVariable(decl.declarationIdentifier, new EdeStatVal(decl.declarationIdentifier, guiInstance));
-                    return OpUtil.success();
+                    return Utils.success();
                 }
             } else {
                 errorLog.addItem(new ErrorItem("Error expected annotation to be @Status but found " + annotationLexeme, decl.position));
-                return OpUtil.errorOccured();
+                return Utils.errorOccured();
             }
         }
         return super.interpretDeclaration(decl);
@@ -90,14 +90,14 @@ public class EdeInterpreter extends VerilogInterpreter {
             if(annotationLexeme.toLowerCase().equals("@register")){
                 if(environment.localVariableExists(decl.declarationIdentifier)){
                     errorLog.addItem(new ErrorItem("Definition of " + decl.declarationIdentifier + " allready occured", decl.position));
-                    return OpUtil.errorOccured();
+                    return Utils.errorOccured();
                 } else {
                     environment.addVariable(decl.declarationIdentifier, new EdeRegVal(decl.declarationIdentifier, guiInstance));
-                    return OpUtil.success();
+                    return Utils.success();
                 }
             } else {
                 errorLog.addItem(new ErrorItem("Error expected annotation to be @Register but found " + annotationLexeme, decl.position));
-                return OpUtil.errorOccured();
+                return Utils.errorOccured();
             }
         }
         return super.interpretDeclaration(decl);
@@ -138,7 +138,7 @@ public class EdeInterpreter extends VerilogInterpreter {
                Object[] Params = new Object[stat.argumentList.size() - 1];
                for(int paramIndex = 0, i = 1; i < stat.argumentList.size(); i++, paramIndex++){
                     Value  fData = interpretShallowExpression(stat.argumentList.get(i));
-                    Object rawValue = OpUtil.getRawValue(fData);
+                    Object rawValue = Utils.getRawValue(fData);
                     Params[paramIndex] = rawValue;
                }
                
@@ -149,11 +149,11 @@ public class EdeInterpreter extends VerilogInterpreter {
                Value data = interpretShallowExpression(stat.argumentList.get(0));
                guiInstance.appendIoText(standardOutputPane, data.toString() + "\r\n");
            } else {
-               OpUtil.errorAndExit("Unknown number of print arguments in " + stat.taskName, stat.position);
+               Utils.errorAndExit("Unknown number of print arguments in " + stat.taskName, stat.position);
            }
         } else if(identifier.equals("setRegister")){
             if(stat.argumentList.size() != 2){
-               OpUtil.errorAndExit("Error: Invalid amount of Arguments for Set Register...\nExpected 2 but found " + stat.argumentList.size()); 
+               Utils.errorAndExit("Error: Invalid amount of Arguments for Set Register...\nExpected 2 but found " + stat.argumentList.size()); 
             } else {
                 Expression registerNameExp = stat.argumentList.get(0);
                 Expression registerValueExp = stat.argumentList.get(1);
@@ -169,7 +169,7 @@ public class EdeInterpreter extends VerilogInterpreter {
             }
         } else if(identifier.equals("setStatus")){
             if(stat.argumentList.size() != 2){
-                OpUtil.errorAndExit("Error: Invalid amount of arguments for Status...\nExpected 2 but found " + stat.argumentList.size());
+                Utils.errorAndExit("Error: Invalid amount of arguments for Status...\nExpected 2 but found " + stat.argumentList.size());
             }
 
             Expression statusNameExp = stat.argumentList.get(0);
@@ -181,7 +181,7 @@ public class EdeInterpreter extends VerilogInterpreter {
             guiInstance.setStatusValue(statusNameVal.toString(), statusValueVal.longValue());
         } else if(identifier.equals("setMemory")){
             if(stat.argumentList.size() != 2){
-                OpUtil.errorAndExit("Error: Invalid amount of aruments for settingMemory Address...\nExpected 2 but found " + stat.argumentList.size());
+                Utils.errorAndExit("Error: Invalid amount of aruments for settingMemory Address...\nExpected 2 but found " + stat.argumentList.size());
             }
 
             Expression memAddressExp = stat.argumentList.get(0);
@@ -196,7 +196,7 @@ public class EdeInterpreter extends VerilogInterpreter {
             return super.interpretSystemTaskCall(stat);
         }
 
-        return OpUtil.success();
+        return Utils.success();
     }
 
     protected IntVal interpretShallowBlockingAssingment(BlockingAssignment assign) throws Exception{
@@ -210,13 +210,13 @@ public class EdeInterpreter extends VerilogInterpreter {
                 Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
                 Value indexValue = interpretShallowExpression(leftHandSide.index1);
                 memory.setElemAtIndex(indexValue.intValue(), rightHandSideValue.intValue());
-                return OpUtil.success();
+                return Utils.success();
             } else if(deref instanceof EdeRegVal){
                 EdeRegVal register = (EdeRegVal)deref;
                 Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
                 Value indexValue = interpretShallowExpression(leftHandSide.index1);
                 register.setBitAtIndex(indexValue.intValue(), rightHandSideValue.intValue());
-                return OpUtil.success();
+                return Utils.success();
             }
         } else if(assign.leftHandSide instanceof Slice){
             Slice leftHandSide = (Slice)assign.leftHandSide;
@@ -228,7 +228,7 @@ public class EdeInterpreter extends VerilogInterpreter {
                 Value index1Value = interpretShallowExpression(leftHandSide.index1);
                 Value index2Value = interpretShallowExpression(leftHandSide.index2);
                 register.setBitsAtIndex(index1Value.intValue(), index2Value.intValue(), rightHandSideValue.intValue());
-                return OpUtil.success();
+                return Utils.success();
             }
         } else if(assign.leftHandSide instanceof Identifier){
             Identifier leftHandSide = (Identifier)assign.leftHandSide;
@@ -238,12 +238,12 @@ public class EdeInterpreter extends VerilogInterpreter {
                 EdeStatVal status = (EdeStatVal)deref;
                 Value rightHandSide = interpretShallowExpression(assign.rightHandSide);
                 status.setStatusValue(rightHandSide.intValue());
-                return OpUtil.success();
+                return Utils.success();
             } else if(deref instanceof EdeRegVal){
                 EdeRegVal reg = (EdeRegVal)deref;
                 Value rightHandSide = interpretShallowExpression(assign.rightHandSide);
                 reg.setAllBits(rightHandSide.intValue());
-                return OpUtil.success();
+                return Utils.success();
             }
         }
 

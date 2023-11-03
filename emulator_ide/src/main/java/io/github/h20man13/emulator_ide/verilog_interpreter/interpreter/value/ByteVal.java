@@ -8,6 +8,10 @@ public class ByteVal implements Value{
         this.value = value;
     }
 
+    public ByteVal(int value){
+        this.value = (byte)value;
+    }
+
     public double realValue(){
         return (double)value;
     }
