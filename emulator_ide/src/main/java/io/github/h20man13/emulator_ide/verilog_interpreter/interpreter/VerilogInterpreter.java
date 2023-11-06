@@ -723,7 +723,12 @@ public class VerilogInterpreter extends Interpreter {
 	 protected Value interpretShallowIdentifier(Identifier ident) throws Exception{
 		if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
-			return data.deRefrence();
+			Value dataDeref = data.deRefrence();
+			if(dataDeref.isVector()){
+				return Utils.getOptimalForm((VectorVal)dataDeref);
+			} else {
+				return dataDeref;
+			}
 		} else {
 			Utils.errorAndExit("Variable Entry " + ident.labelIdentifier + " Doesnt Exist", ident.position);
 			return Utils.errorOccured();
@@ -742,7 +747,7 @@ public class VerilogInterpreter extends Interpreter {
 
 			if (dataObject instanceof VectorVal) {
 				VectorVal toRet = ((VectorVal)dataObject).getShallowSlice(startIndex.intValue(), endIndex.intValue());
-				return toRet;
+				return Utils.getOptimalForm(toRet);
 			} else {
 				Utils.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
 				return Utils.errorOccured();
@@ -772,11 +777,9 @@ public class VerilogInterpreter extends Interpreter {
 			if (dataObject instanceof ArrayVal) {
 				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
 				VectorVal vec = arr.ElemAtIndex(expr.intValue());
-				return vec;
+				return Utils.getOptimalForm(vec);
 			} else if (dataObject instanceof VectorVal) {
 				return ((VectorVal)dataObject).getValue(expr.intValue());
-			} else if (dataObject instanceof ArrayVal) {
-				return ((ArrayVal<IntVal>)dataObject).ElemAtIndex(expr.intValue());
 			} else {
 				Utils.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]",
 					Elem.position);

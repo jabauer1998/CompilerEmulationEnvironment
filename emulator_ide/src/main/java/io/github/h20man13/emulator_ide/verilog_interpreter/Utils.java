@@ -4351,8 +4351,8 @@ public class Utils {
     public static Value bitwiseNegation(Value right) throws Exception{
 		if(right.isVector()) return bitwiseNegation((VectorVal)right);
 		else if(right.isRegister()) return bitwiseNegation((RegVal)right);
-		else if(right.isUnsignedShortValue()) return new UnsignedShortVal(~right.shortValue());
 		else if(right.isUnsignedByteValue()) return new UnsignedByteVal(~right.byteValue());
+		else if(right.isUnsignedShortValue()) return new UnsignedShortVal(~right.shortValue());
 		else if(right.isUnsignedIntValue()) return new UnsignedIntVal(~right.intValue());
 		else if(right.isUnsignedLongValue()) return new UnsignedLongVal(~right.longValue());
 		else if(right.isByteValue()) return new ByteVal(~right.byteValue());
@@ -5029,5 +5029,14 @@ public class Utils {
 		else if(obj instanceof Short) return new ShortVal((short)obj);
 		else if(obj instanceof Byte) return new ByteVal((byte)obj);
 		else return new StrVal((String)obj);
+	}
+
+	public static Value getOptimalForm(VectorVal vec){
+		if(vec.getSize() == 1) return new RegVal(vec.getValue(vec.getStart()).getStateSignal());
+		else if(vec.getSize() == 8) return new UnsignedByteVal(vec.byteValue());
+		else if(vec.getSize() == 16) return new UnsignedShortVal(vec.shortValue());
+		else if(vec.getSize() == 32) return new UnsignedIntVal(vec.intValue());
+		else if(vec.getSize() == 64) return new UnsignedLongVal(vec.longValue());
+		else return vec;
 	}
 }
