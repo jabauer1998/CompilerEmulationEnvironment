@@ -2230,7 +2230,7 @@ public class Utils {
 		}
 		else if(left.isVector() && right.isVector()) {
 			return new BoolVal(left.longValue() <= right.longValue());
-		else {
+		} else {
 			errorAndExit("Inavlid Addition operation between " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
 			return null;
 		}
@@ -2347,7 +2347,7 @@ public class Utils {
 		}
 		else if(left.isVector() && right.isVector()) {
 			return new BoolVal(left.longValue() < right.longValue());
-		else {
+		} else {
 			errorAndExit("Inavlid Addition operation between " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
 			return null;
 		}
@@ -2464,7 +2464,7 @@ public class Utils {
 		}
 		else if(left.isVector() && right.isVector()) {
 			return new BoolVal(left.longValue() >= right.longValue());
-		else {
+		} else {
 			errorAndExit("Inavlid Addition operation between " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
 			return null;
 		}
@@ -2580,7 +2580,7 @@ public class Utils {
 		}
 		else if(left.isVector() && right.isVector()) {
 			return new BoolVal(left.longValue() > right.longValue());
-		else {
+		} else {
 			errorAndExit("Inavlid Addition operation between " + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName());
 			return null;
 		}
@@ -3901,21 +3901,21 @@ public class Utils {
 
     public static Value negation(Value right) throws Exception{
         if (right.isRealValue()) return new RealVal(-right.realValue());
-        else if(right.isUnsignedByteValue()) return new UnsignedByteVal(-right.byteValue());
+        else if(right.isUnsignedByteValue()) return new ShortVal(-right.byteValue());
 		else if(right.isUnsignedShortValue()) return new UnsignedShortVal(-right.shortValue());
-		else if(right.isUnsignedIntValue()) return new UnsignedIntVal(-right.intValue());
-		else if(right.isUnsignedLongValue()) return new UnsignedLongVal(-right.longValue());
-		else if(right.isByteValue()) return new ByteVal(-right.byteValue());
-		else if(right.isShortValue()) return new ShortVal(-right.shortValue());
-		else if(right.isIntValue()) return new IntVal(-right.intValue());
+		else if(right.isUnsignedIntValue()) return new LongVal(-right.intValue());
+		else if(right.isUnsignedLongValue()) return new LongVal(-right.longValue());
+		else if(right.isByteValue()) return new ShortVal(-right.byteValue());
+		else if(right.isShortValue()) return new IntVal(-right.shortValue());
+		else if(right.isIntValue()) return new LongVal(-right.intValue());
 		else if(right.isLongValue()) return new LongVal(-right.longValue());
 		else if(right.isVector()){
 			VectorVal vec = (VectorVal)right;
 			int size = vec.getSize();
-			if(size <= 8) return new UnsignedByteVal(-vec.byteValue());
-			else if(size <= 16) return new UnsignedShortVal(-vec.shortValue());
-			else if(size <= 32) return new UnsignedIntVal(-vec.intValue());
-			else return new UnsignedLongVal(-vec.longValue());
+			if(size <= 8) return new ShortVal(-vec.byteValue());
+			else if(size <= 16) return new IntVal(-vec.shortValue());
+			else if(size <= 32) return new LongVal(-vec.intValue());
+			else return new LongVal(-vec.longValue());
 		} else {
 			errorAndExit("Error invalid paramater type for negation operation of type " + right.getClass().getSimpleName());
 			return null;
