@@ -1,7 +1,8 @@
-package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value;
+package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array;
 
 import java.util.ArrayList;
 import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 
 public class ArrayVal<ArrayType extends Value> implements Value {
     private final ArrayList<ArrayType> ArrList;

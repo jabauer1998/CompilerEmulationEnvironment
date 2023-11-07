@@ -2,7 +2,6 @@ package io.github.H20man13.emulator_ide.verilog_interpreter;
 
 import java.io.File;
 import javax.management.RuntimeErrorException;
-import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
@@ -16,6 +15,7 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Uns
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedShortVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.HalfAdder;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.RippleCarryAdder;

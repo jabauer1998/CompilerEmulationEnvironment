@@ -8,13 +8,16 @@ import io.github.H20man13.emulator_ide.common.debug.ErrorLog;
 import io.github.H20man13.emulator_ide.common.debug.item.ErrorItem;
 import io.github.H20man13.emulator_ide.common.io.Destination;
 import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
-import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ArrayVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.RealVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedByteVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedIntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedLongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedShortVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.Multiplexer;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
@@ -1859,8 +1862,11 @@ public abstract class Interpreter {
 				//Then it is a pattern and we need to return the Pattern
 				return new BinaryPattern(afterIndex);
 			} else {
-				//Otherwise it is a typical Binary Number and we need to return the number
-				return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 2));
+				long value = Long.parseUnsignedLong(afterIndex, 2);
+				if(value <= 255) return new UnsignedByteVal((byte)value);
+				else if(value <= 65535) return new UnsignedShortVal((short)value);
+				else if(value <= 16777215) return new UnsignedIntVal((int)value);
+				else return new UnsignedLongVal(value);
 			}
 		}
 	}
@@ -1878,7 +1884,11 @@ public abstract class Interpreter {
 			if(Utils.numberIsPattern(afterIndex)){
 				return new HexadecimalPattern(afterIndex);
 			} else {
-				return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 16));
+				long value = Long.parseUnsignedLong(afterIndex, 16);
+				if(value <= 255) return new UnsignedByteVal((byte)value);
+				else if(value <= 65535) return new UnsignedShortVal((short)value);
+				else if(value <= 16777215) return new UnsignedIntVal((int)value);
+				else return new UnsignedLongVal(value);
 			}
 		}
 	}
@@ -1887,11 +1897,20 @@ public abstract class Interpreter {
 		int indexOfColon = Dec.lexeme.indexOf('\'');
 
 		if(indexOfColon == -1){
-			return new UnsignedIntVal(Integer.parseInt(Dec.lexeme));
+			long value = Long.parseUnsignedLong(Dec.lexeme, 10);
+			if(value <= 255) return new UnsignedByteVal((byte)value);
+			else if(value <= 65535) return new UnsignedShortVal((short)value);
+			else if(value <= 16777215) return new UnsignedIntVal((int)value);
+			else return new UnsignedLongVal(value);
 		} else {
 			String beforeIndex = Dec.lexeme.substring(0, indexOfColon);
 			String afterIndex = Dec.lexeme.substring(indexOfColon + 2, Dec.lexeme.length());
-			return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 16));
+			long value = Long.parseUnsignedLong(afterIndex, 10);
+			if(value <= 255) return new UnsignedByteVal((byte)value);
+			else if(value <= 65535) return new UnsignedShortVal((short)value);
+			else if(value <= 16777215) return new UnsignedIntVal((int)value);
+			else return new UnsignedLongVal(value);
+
 		}
 	}
 
@@ -1908,7 +1927,11 @@ public abstract class Interpreter {
 			if(Utils.numberIsPattern(afterIndex)){
 				return new OctalPattern(afterIndex);
 			} else {
-				return new UnsignedIntVal(Integer.parseUnsignedInt(afterIndex, 8));
+				long value = Long.parseUnsignedLong(afterIndex, 8);
+				if(value <= 255) return new UnsignedByteVal((byte)value);
+				else if(value <= 65535) return new UnsignedShortVal((short)value);
+				else if(value <= 16777215) return new UnsignedIntVal((int)value);
+				else return new UnsignedLongVal(value);
 			}
 		}
 	}
