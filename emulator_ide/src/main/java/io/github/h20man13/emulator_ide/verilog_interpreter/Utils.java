@@ -5039,4 +5039,11 @@ public class Utils {
 		else if(vec.getSize() == 64) return new UnsignedLongVal(vec.longValue());
 		else return vec;
 	}
+
+	public static Value getOptimalUnsignedForm(long value){
+		if(value <= 255) return new UnsignedByteVal((byte)value);
+		else if(value <= 65535) return new UnsignedShortVal((short)value);
+		else if(value <= 16777215) return new UnsignedIntVal((int)value);
+		else return new UnsignedLongVal(value);
+	}
 }

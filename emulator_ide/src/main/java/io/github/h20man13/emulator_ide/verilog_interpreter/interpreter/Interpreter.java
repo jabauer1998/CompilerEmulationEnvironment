@@ -1863,10 +1863,7 @@ public abstract class Interpreter {
 				return new BinaryPattern(afterIndex);
 			} else {
 				long value = Long.parseUnsignedLong(afterIndex, 2);
-				if(value <= 255) return new UnsignedByteVal((byte)value);
-				else if(value <= 65535) return new UnsignedShortVal((short)value);
-				else if(value <= 16777215) return new UnsignedIntVal((int)value);
-				else return new UnsignedLongVal(value);
+				return Utils.getOptimalUnsignedForm(value);
 			}
 		}
 	}
@@ -1885,10 +1882,7 @@ public abstract class Interpreter {
 				return new HexadecimalPattern(afterIndex);
 			} else {
 				long value = Long.parseUnsignedLong(afterIndex, 16);
-				if(value <= 255) return new UnsignedByteVal((byte)value);
-				else if(value <= 65535) return new UnsignedShortVal((short)value);
-				else if(value <= 16777215) return new UnsignedIntVal((int)value);
-				else return new UnsignedLongVal(value);
+				return Utils.getOptimalUnsignedForm(value);
 			}
 		}
 	}
@@ -1898,19 +1892,12 @@ public abstract class Interpreter {
 
 		if(indexOfColon == -1){
 			long value = Long.parseUnsignedLong(Dec.lexeme, 10);
-			if(value <= 255) return new UnsignedByteVal((byte)value);
-			else if(value <= 65535) return new UnsignedShortVal((short)value);
-			else if(value <= 16777215) return new UnsignedIntVal((int)value);
-			else return new UnsignedLongVal(value);
+			return Utils.getOptimalUnsignedForm(value);
 		} else {
 			String beforeIndex = Dec.lexeme.substring(0, indexOfColon);
 			String afterIndex = Dec.lexeme.substring(indexOfColon + 2, Dec.lexeme.length());
 			long value = Long.parseUnsignedLong(afterIndex, 10);
-			if(value <= 255) return new UnsignedByteVal((byte)value);
-			else if(value <= 65535) return new UnsignedShortVal((short)value);
-			else if(value <= 16777215) return new UnsignedIntVal((int)value);
-			else return new UnsignedLongVal(value);
-
+			return Utils.getOptimalUnsignedForm(value);
 		}
 	}
 
@@ -1928,10 +1915,7 @@ public abstract class Interpreter {
 				return new OctalPattern(afterIndex);
 			} else {
 				long value = Long.parseUnsignedLong(afterIndex, 8);
-				if(value <= 255) return new UnsignedByteVal((byte)value);
-				else if(value <= 65535) return new UnsignedShortVal((short)value);
-				else if(value <= 16777215) return new UnsignedIntVal((int)value);
-				else return new UnsignedLongVal(value);
+				return Utils.getOptimalUnsignedForm(value);
 			}
 		}
 	}
