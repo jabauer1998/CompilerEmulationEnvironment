@@ -1,17 +1,18 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value;
 
-public class UnsignedShortVal extends ShortVal implements Unsigned{
+public class UnsignedShortVal implements Value, Unsigned{
+    private short value;
 
     public UnsignedShortVal(short value){
-        super(value);
+        this.value = value;
     }
 
     public UnsignedShortVal(int value){
-        super(value);
+        this.value = (short)value;
     }
 
     public String toString(){
-        short value = super.shortValue();
+        short value = shortValue();
         return Integer.toUnsignedString(value);
     }
     
@@ -23,5 +24,95 @@ public class UnsignedShortVal extends ShortVal implements Unsigned{
     @Override
     public boolean isUnsignedShortValue(){
         return true;
+    }
+
+    @Override
+    public double realValue(){ // TODO Auto-generated method stub
+        return (double)value;
+    }
+
+    @Override
+    public long longValue(){ // TODO Auto-generated method stub
+        return Short.toUnsignedLong(value);
+    }
+
+    @Override
+    public int intValue(){ // TODO Auto-generated method stub
+        return Short.toUnsignedInt(value);
+    }
+
+    @Override
+    public short shortValue(){ // TODO Auto-generated method stub
+        return value;
+    }
+
+    @Override
+    public byte byteValue(){ // TODO Auto-generated method stub
+        return (byte)value; 
+    }
+
+    @Override
+    public boolean boolValue(){ // TODO Auto-generated method stub
+        return value != 0;
+    }
+
+    @Override
+    public boolean isBoolValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isByteValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isUnsignedByteValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isIntValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isUnsignedIntValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isLongValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isUnsignedLongValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isRealValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isStringValue(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isVector(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isRegister(){ // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean isWire(){ // TODO Auto-generated method stub
+        return false;
     }
 }

@@ -4629,10 +4629,11 @@ public class Utils {
 		if(val.isBoolValue()) return val.intValue();
 		else if(val.isRealValue()) return val.realValue();
 		else if(val.isStringValue()) return val.toString();
-		else if(val.isByteValue()) return val.byteValue();
 		else if(val.isUnsignedByteValue()) return val.shortValue();
-		else if(val.isShortValue()) return val.shortValue();
+		else if(val.isByteValue()) return val.byteValue();
 		else if(val.isUnsignedShortValue()) return val.intValue();
+		else if(val.isShortValue()) return val.shortValue();
+		else if(val.isUnsignedIntValue()) return val.longValue();
 		else if(val.isIntValue()) return val.intValue();
 		else return val.longValue();
 	}

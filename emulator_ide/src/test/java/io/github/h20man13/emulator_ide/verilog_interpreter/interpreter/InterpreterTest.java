@@ -29,7 +29,7 @@ public class InterpreterTest {
 		ErrorLog errorLog = new ErrorLog(dest);
 		VerilogInterpreter interpreter = new VerilogInterpreter(errorLog);
 		Value Result = interpreter.interpretExpression(input);
-		assertTrue("The result isnt of type Unsigned Byte", Result.isUnsignedByteValue());
+		assertTrue("The result isnt of type Unsigned Byte", Result.isUnsignedIntValue());
 		assertTrue("The result is not equal to 11", Result.byteValue() == 11);
 	}
 
