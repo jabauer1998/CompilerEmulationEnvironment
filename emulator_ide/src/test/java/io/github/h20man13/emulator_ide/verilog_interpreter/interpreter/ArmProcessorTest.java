@@ -37,7 +37,9 @@ public class ArmProcessorTest {
         StringReader reader = new StringReader(inputAssembly);
         try {
             ANTLRInputStream stream = new ANTLRInputStream(reader);
-            ErrorLog errorLog = new ErrorLog();
+            StringWriter errorOutputWriter = new StringWriter();
+            Destination errorOutputDestination = new Destination(errorOutputWriter);
+            ErrorLog errorLog = new ErrorLog(errorOutputDestination);
             ArmAssemblerLexer lexer = new ArmAssemblerLexer(stream);
             CommonTokenStream tokStream = new CommonTokenStream(lexer);
             ArmAssemblerParser parser = new ArmAssemblerParser(tokStream);
@@ -71,6 +73,8 @@ public class ArmProcessorTest {
 
             VerilogInterpreter interpreter = new VerilogInterpreter(errorLog, stdOutDest);
             interpreter.interpretFile(processorReader);
+
+            assertTrue(errorOutputWriter.toString(), errorOutputWriter.toString().length() == 0);
 
             assertTrue("Expected -\n\n" + expectedResult + "\n\n but found -\n\n" + stdOutputWriter.toString() + "\n\n", stdOutputWriter.toString().equals(expectedResult));
         } catch (Exception exp){

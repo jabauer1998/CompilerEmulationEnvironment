@@ -98,16 +98,24 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
       reg [31:0]   binaryLine;
       begin
 	  R15 = address; // initialize stack pointer to address 0
+	  $display("R15 is %d", R15);
 	  handler = $fopen("default", "r");
 	  while(!$feof(handler)) begin
 	    status = $fscanf(handler,"%b\n",binaryLine); //scan next line as binary
+		$display("Loading binary line at address %d", R15);
+		$display("Binary line is equal to %d", binaryLine);
 		MEM[R15] = binaryLine[31:24];
+		$display("Memory at %d is equal to %d", R15, binaryLine[31:24]);
 		MEM[R15 + 1] = binaryLine[23:16];
+		$display("Memory at %d is equal to %d", R15 + 1, binaryLine[23:16]);
 		MEM[R15 + 2] = binaryLine[15:8];
+		$display("Memory at %d is equal to %d", R15 + 2, binaryLine[15:8]);
 		MEM[R15 + 3] = binaryLine[7:0];
+		$display("Memory at %d is equal to %d", R15 + 3, binaryLine[7:0]);
 		R15 = R15 + 4; //incriment program counter
 	  end
 	  $fclose(handler); //close handler
+	  $display("File at eof");
 	  R15 = address; //set the program counter back to the beginning
       end
    endtask //loadProgram
@@ -660,11 +668,15 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
    endtask // execute
 
    initial begin
+	  $display("Loading Program");
       loadProgram(0); //load program at memory location 0 and set the stack pointer to the top of the program after loading
       while(InstructionCode != 28 && R15 < `MEMSIZE) begin
 	 	INSTR = fetch(R15); //old Fetch
+		$display("INSTR is %d", INSTR);
 	 	InstructionCode = decode(INSTR);
+		$display("Instruction Code is %d", InstructionCode);
 	 	incriment; //increment the program counter by a word or 4 bytes
+		$display("R15 is %d", R15);
 	 	execute(InstructionCode);
       end
    end

@@ -90,7 +90,7 @@ public class VerilogInterpreter extends Interpreter {
 		}
 
 		try{
-        	return interpretShallowExpression(exp);
+        	return interpretShallowOptimizedExpression(exp);
 		} catch(Exception exception){
 			errorLog.addItem(new ErrorItem(exception.toString()));
 			errorLog.printLog();
@@ -309,8 +309,8 @@ public class VerilogInterpreter extends Interpreter {
 		Expression RegIndex1 = decl.arrayIndex1;
 		Expression RegIndex2 = decl.arrayIndex2;
 
-		Value RegVal1 = interpretShallowExpression(RegIndex1);
-		Value RegVal2 = interpretShallowExpression(RegIndex2);
+		Value RegVal1 = interpretShallowOptimizedExpression(RegIndex1);
+		Value RegVal2 = interpretShallowOptimizedExpression(RegIndex2);
 
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
@@ -332,14 +332,14 @@ public class VerilogInterpreter extends Interpreter {
 		Expression RegIndex1 = decl.arrayIndex1;
 		Expression RegIndex2 = decl.arrayIndex2;
 
-		Value RegVal1 = interpretShallowExpression(RegIndex1);
-		Value RegVal2 = interpretShallowExpression(RegIndex2);
+		Value RegVal1 = interpretShallowOptimizedExpression(RegIndex1);
+		Value RegVal2 = interpretShallowOptimizedExpression(RegIndex2);
 
 		Expression vecIndex1 = decl.GetIndex1();
 		Expression vecIndex2 = decl.GetIndex2();
 
-		Value vecVal1 = interpretShallowExpression(vecIndex1);
-		Value vecVal2 = interpretShallowExpression(vecIndex2);
+		Value vecVal1 = interpretShallowOptimizedExpression(vecIndex1);
+		Value vecVal2 = interpretShallowOptimizedExpression(vecIndex2);
 
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
@@ -369,8 +369,8 @@ public class VerilogInterpreter extends Interpreter {
 		Expression exp1 = decl.GetIndex1();
 		Expression exp2 = decl.GetIndex2();
 
-		Value exp1Val = interpretShallowExpression(exp1);
-		Value exp2Val = interpretShallowExpression(exp2);
+		Value exp1Val = interpretShallowOptimizedExpression(exp1);
+		Value exp2Val = interpretShallowOptimizedExpression(exp2);
 
 		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(exp1Val.intValue(), exp2Val.intValue()));
@@ -429,8 +429,8 @@ public class VerilogInterpreter extends Interpreter {
 		Expression index1 = decl.GetIndex1();
 		Expression index2 = decl.GetIndex2();
 
-		Value index1Value = interpretShallowExpression(index1);
-		Value index2Value = interpretShallowExpression(index2);
+		Value index1Value = interpretShallowOptimizedExpression(index1);
+		Value index2Value = interpretShallowOptimizedExpression(index2);
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
@@ -454,8 +454,8 @@ public class VerilogInterpreter extends Interpreter {
 		Expression index1 = decl.GetIndex1();
 		Expression index2 = decl.GetIndex2();
 
-		Value index1Value = interpretShallowExpression(index1);
-		Value index2Value = interpretShallowExpression(index2);
+		Value index1Value = interpretShallowOptimizedExpression(index1);
+		Value index2Value = interpretShallowOptimizedExpression(index2);
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
@@ -488,7 +488,7 @@ public class VerilogInterpreter extends Interpreter {
 		String taskName = task.taskName;
 
 		if (taskName.equals("fclose")) {
-			Value fileDescriptor = interpretShallowExpression(task.argumentList.get(0));
+			Value fileDescriptor = interpretShallowOptimizedExpression(task.argumentList.get(0));
 			FormattedScanner Scanner = environment.getFileReader(fileDescriptor.intValue());
 			try{
 				Scanner.close();
@@ -499,11 +499,11 @@ public class VerilogInterpreter extends Interpreter {
 			}
 		} else if (taskName.equals("display")) {
 			if(task.argumentList.size() >= 1){
-				Value fString = interpretShallowExpression(task.argumentList.get(0));
+				Value fString = interpretShallowOptimizedExpression(task.argumentList.get(0));
 
 				Object[] Params = new Object[task.argumentList.size() - 1];
 				for(int paramIndex = 0, i = 1; i < task.argumentList.size(); i++, paramIndex++){
-					 Value  fData = interpretShallowExpression(task.argumentList.get(i));
+					 Value  fData = interpretShallowOptimizedExpression(task.argumentList.get(i));
 					 Object rawValue = Utils.getRawValue(fData);
 					 Params[paramIndex] = rawValue;
 				}
@@ -525,7 +525,7 @@ public class VerilogInterpreter extends Interpreter {
 
 	protected IntVal interpretShallowBlockingAssignment(BlockingAssignment assign) throws Exception {
 		 Expression exp = assign.rightHandSide;
-		 Value expVal = interpretShallowExpression(exp);
+		 Value expVal = interpretShallowOptimizedExpression(exp);
 		 
 		 if(assign.leftHandSide instanceof Element){
 			Element leftHandElement = (Element)assign.leftHandSide;
@@ -533,7 +533,7 @@ public class VerilogInterpreter extends Interpreter {
 			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandElement.labelIdentifier);
 			Value leftHandDeref = leftHandPtr.deRefrence();
 
-			Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
+			Value leftHandIndex = interpretShallowOptimizedExpression(leftHandElement.index1);
 			if(leftHandDeref instanceof ArrayVal){
 				ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
 				leftHandArray.SetElemAtIndex(leftHandIndex.intValue(), expVal);
@@ -555,8 +555,8 @@ public class VerilogInterpreter extends Interpreter {
 			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
 			Value leftHandDeref = leftHandPtr.deRefrence();
 
-			Value leftHandStartIndex = interpretShallowExpression(leftHandSlice.index1);
-			Value leftHandEndIndex = interpretShallowExpression(leftHandSlice.index2);
+			Value leftHandStartIndex = interpretShallowOptimizedExpression(leftHandSlice.index1);
+			Value leftHandEndIndex = interpretShallowOptimizedExpression(leftHandSlice.index2);
 
 			if(leftHandDeref instanceof VectorVal){
 				VectorVal leftHandVector = (VectorVal)leftHandDeref;
@@ -599,7 +599,7 @@ public class VerilogInterpreter extends Interpreter {
 	protected IntVal interpretShallowNonBlockingAssignment(NonBlockingAssignment assign) throws Exception{
 		List<Value> resultList = new LinkedList<Value>();
 		for(Expression exp: assign.rightHandSide){
-		 	Value rhsVal = interpretShallowExpression(exp);
+		 	Value rhsVal = interpretShallowOptimizedExpression(exp);
 			resultList.add(rhsVal);
 		}
 
@@ -610,7 +610,7 @@ public class VerilogInterpreter extends Interpreter {
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandElement.labelIdentifier);
 				Value leftHandDeref = leftHandPtr.deRefrence();
 	
-				Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
+				Value leftHandIndex = interpretShallowOptimizedExpression(leftHandElement.index1);
 				if(leftHandDeref instanceof ArrayVal){
 					ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
 					leftHandArray.SetElemAtIndex(leftHandIndex.intValue(), resultList.get(i));
@@ -632,8 +632,8 @@ public class VerilogInterpreter extends Interpreter {
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
 				Value leftHandDeref = leftHandPtr.deRefrence();
 	
-				Value leftHandStartIndex = interpretShallowExpression(leftHandSlice.index1);
-				Value leftHandEndIndex = interpretShallowExpression(leftHandSlice.index2);
+				Value leftHandStartIndex = interpretShallowOptimizedExpression(leftHandSlice.index1);
+				Value leftHandEndIndex = interpretShallowOptimizedExpression(leftHandSlice.index2);
 	
 				if(leftHandDeref instanceof VectorVal){
 					VectorVal leftHandVector = (VectorVal)leftHandDeref;
@@ -660,9 +660,9 @@ public class VerilogInterpreter extends Interpreter {
 		String functionName = call.functionName;
 
 		if (functionName.equals("fopen")) {
-			StrVal fname = (StrVal)interpretShallowExpression(call.argumentList.get(0));
+			StrVal fname = (StrVal)interpretShallowOptimizedExpression(call.argumentList.get(0));
 			String basePath = Utils.GetRuntimeDir();
-			StrVal access = (StrVal)interpretShallowExpression(call.argumentList.get(1));
+			StrVal access = (StrVal)interpretShallowOptimizedExpression(call.argumentList.get(1));
 			String fullPath = basePath + '/' + fname;
 
 			if (access.toString().equals("r")) {
@@ -675,7 +675,7 @@ public class VerilogInterpreter extends Interpreter {
 				Utils.errorAndExit("Unexpected Access type " + access + " for file " + basePath + '/' + fname, call.position);
 			} 
 		} else if (functionName.equals("feof")) {
-			Value fileDescriptor = interpretShallowExpression(call.argumentList.get(0));
+			Value fileDescriptor = interpretShallowOptimizedExpression(call.argumentList.get(0));
 			FormattedScanner reader = environment.getFileReader(fileDescriptor.intValue());
 			try{
 				return new BoolVal(reader.atEof());
@@ -684,9 +684,9 @@ public class VerilogInterpreter extends Interpreter {
 				return Utils.errorOccured();
 			}
 		} else if (functionName.equals("fscanf")) {
-			Value fileDescriptor = interpretShallowExpression(call.argumentList.get(0));
-			Value fString = interpretShallowExpression(call.argumentList.get(1));
-			Value location = interpretShallowExpression(call.argumentList.get(2));
+			Value fileDescriptor = interpretShallowOptimizedExpression(call.argumentList.get(0));
+			Value fString = interpretShallowOptimizedExpression(call.argumentList.get(1));
+			Value location = interpretShallowRawExpression(call.argumentList.get(2));
 			
 			FormattedScanner fScanner = environment.getFileReader(fileDescriptor.intValue());
 			List<Object> result = fScanner.scanf(fString.toString());
@@ -720,7 +720,7 @@ public class VerilogInterpreter extends Interpreter {
 	 * @throws Exception
 	 */
 
-	 protected Value interpretShallowIdentifier(Identifier ident) throws Exception{
+	 protected Value interpretShallowOptimizedIdentifier(Identifier ident) throws Exception{
 		if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			Value dataDeref = data.deRefrence();
@@ -735,11 +735,22 @@ public class VerilogInterpreter extends Interpreter {
 		}
 	}
 
+	protected Value interpretShallowRawIdentifier(Identifier ident) throws Exception{
+		if (environment.variableExists(ident.labelIdentifier)) {
+			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
+			Value dataDeref = data.deRefrence();
+			return dataDeref;
+		} else {
+			Utils.errorAndExit("Variable Entry " + ident.labelIdentifier + " Doesnt Exist", ident.position);
+			return Utils.errorOccured();
+		}
+	}
 
-	protected Value interpretShallowSlice(Slice vector) throws Exception{
+
+	protected Value interpretShallowOptimizedSlice(Slice vector) throws Exception{
 		String ident = vector.labelIdentifier;
-		Value startIndex = interpretShallowExpression(vector.index1);
-		Value endIndex = interpretShallowExpression(vector.index2);
+		Value startIndex = interpretShallowOptimizedExpression(vector.index1);
+		Value endIndex = interpretShallowOptimizedExpression(vector.index2);
 
 		if (environment.variableExists(ident)) {
 			Pointer<Value> data = environment.lookupVariable(ident);
@@ -759,6 +770,29 @@ public class VerilogInterpreter extends Interpreter {
 		}
 	}
 
+	protected Value interpretShallowRawSlice(Slice vector) throws Exception{
+		String ident = vector.labelIdentifier;
+		Value startIndex = interpretShallowOptimizedExpression(vector.index1);
+		Value endIndex = interpretShallowOptimizedExpression(vector.index2);
+
+		if (environment.variableExists(ident)) {
+			Pointer<Value> data = environment.lookupVariable(ident);
+			Value dataObject = data.deRefrence();
+
+			if (dataObject instanceof VectorVal) {
+				VectorVal toRet = ((VectorVal)dataObject).getShallowSlice(startIndex.intValue(), endIndex.intValue());
+				return toRet;
+			} else {
+				Utils.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
+				return Utils.errorOccured();
+			}
+
+		} else {
+			Utils.errorAndExit("Array or VectorVal " + ident + " not found");
+			return Utils.errorOccured();
+		}
+	}
+
 	/**
 	 * This is the code for visiting a VectorVal in verilog
 	 * 
@@ -766,9 +800,9 @@ public class VerilogInterpreter extends Interpreter {
 	 * @throws Exception
 	 */
 
-	protected Value interpretShallowElement(Element Elem) throws Exception{
+	protected Value interpretShallowOptimizedElement(Element Elem) throws Exception{
 		String ident = Elem.labelIdentifier;
-		Value expr = interpretShallowExpression(Elem.index1);
+		Value expr = interpretShallowOptimizedExpression(Elem.index1);
 
 		if (environment.variableExists(ident)) {
 			Pointer<Value> data = environment.lookupVariable(ident);
@@ -778,6 +812,39 @@ public class VerilogInterpreter extends Interpreter {
 				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
 				VectorVal vec = arr.ElemAtIndex(expr.intValue());
 				return Utils.getOptimalForm(vec);
+			} else if (dataObject instanceof VectorVal) {
+				return ((VectorVal)dataObject).getValue(expr.intValue());
+			} else {
+				Utils.errorAndExit("Unkown array type for " + ident + " [ Type -> " + dataObject.getClass() + " ]",
+					Elem.position);
+				return Utils.errorOccured();
+			}
+
+		} else {
+			Utils.errorAndExit("Array or VectorVal " + ident + " not found", Elem.position);
+			return Utils.errorOccured();
+		}
+	}
+
+	/**
+	 * This is the code for visiting a VectorVal in verilog
+	 * 
+	 * @param string
+	 * @throws Exception
+	 */
+
+	protected Value interpretShallowRawElement(Element Elem) throws Exception{
+		String ident = Elem.labelIdentifier;
+		Value expr = interpretShallowOptimizedExpression(Elem.index1);
+
+		if (environment.variableExists(ident)) {
+			Pointer<Value> data = environment.lookupVariable(ident);
+			Value dataObject = data.deRefrence();
+
+			if (dataObject instanceof ArrayVal) {
+				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
+				VectorVal vec = arr.ElemAtIndex(expr.intValue());
+				return vec;
 			} else if (dataObject instanceof VectorVal) {
 				return ((VectorVal)dataObject).getValue(expr.intValue());
 			} else {

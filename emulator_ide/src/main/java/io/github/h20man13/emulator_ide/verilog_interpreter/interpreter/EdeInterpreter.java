@@ -40,9 +40,9 @@ public class EdeInterpreter extends VerilogInterpreter {
         String annotationLexeme = decl.annotationLexeme;
         if(annotationLexeme != null){
             if(annotationLexeme.toLowerCase().equals("@memory")){
-                Value index1Val = interpretShallowExpression(decl.GetIndex1());
+                Value index1Val = interpretShallowOptimizedExpression(decl.GetIndex1());
                 int intIndex1 = index1Val.intValue();
-                Value index2Val = interpretShallowExpression(decl.GetIndex2());
+                Value index2Val = interpretShallowOptimizedExpression(decl.GetIndex2());
                 int intIndex2 = index2Val.intValue();
                 
                 int size = (intIndex2 > intIndex1) ? intIndex2 - intIndex1 : intIndex1 - intIndex2;
@@ -107,7 +107,7 @@ public class EdeInterpreter extends VerilogInterpreter {
         String identifier = call.functionName;
         if(identifier.equals("getRegister")){
             Expression regExp = call.argumentList.get(0);
-            Value regName = interpretShallowExpression(regExp);
+            Value regName = interpretShallowOptimizedExpression(regExp);
 
             if(regName.isStringValue()){
                 return new LongVal(this.guiInstance.getRegisterValue(regName.toString()));
@@ -116,12 +116,12 @@ public class EdeInterpreter extends VerilogInterpreter {
             }
         } else if(identifier.equals("getStatus")){
             Expression statusNameExp = call.argumentList.get(0);
-            Value statusName = interpretShallowExpression(statusNameExp);
+            Value statusName = interpretShallowOptimizedExpression(statusNameExp);
 
             return new LongVal(this.guiInstance.getStatusValue(statusName.toString()));
         } else if(identifier.equals("getMemory")){
             Expression memoryAddressExp = call.argumentList.get(0);
-            Value memAddressVal = interpretShallowExpression(memoryAddressExp);
+            Value memAddressVal = interpretShallowOptimizedExpression(memoryAddressExp);
             return new LongVal(this.guiInstance.getMemoryValue(memAddressVal.intValue()));
         } else {
             return super.interpretSystemFunctionCall(call);
@@ -133,11 +133,11 @@ public class EdeInterpreter extends VerilogInterpreter {
 
         if(identifier.equals("display")){
            if (stat.argumentList.size() >= 2) {
-               Value fString = interpretShallowExpression(stat.argumentList.get(0));
+               Value fString = interpretShallowOptimizedExpression(stat.argumentList.get(0));
 
                Object[] Params = new Object[stat.argumentList.size() - 1];
                for(int paramIndex = 0, i = 1; i < stat.argumentList.size(); i++, paramIndex++){
-                    Value  fData = interpretShallowExpression(stat.argumentList.get(i));
+                    Value  fData = interpretShallowOptimizedExpression(stat.argumentList.get(i));
                     Object rawValue = Utils.getRawValue(fData);
                     Params[paramIndex] = rawValue;
                }
@@ -146,7 +146,7 @@ public class EdeInterpreter extends VerilogInterpreter {
                String formattedString = String.format(fString.toString(), Params);
                guiInstance.appendIoText(standardOutputPane, formattedString + "\r\n");
            } else if (stat.argumentList.size() == 1) {
-               Value data = interpretShallowExpression(stat.argumentList.get(0));
+               Value data = interpretShallowOptimizedExpression(stat.argumentList.get(0));
                guiInstance.appendIoText(standardOutputPane, data.toString() + "\r\n");
            } else {
                Utils.errorAndExit("Unknown number of print arguments in " + stat.taskName, stat.position);
@@ -158,8 +158,8 @@ public class EdeInterpreter extends VerilogInterpreter {
                 Expression registerNameExp = stat.argumentList.get(0);
                 Expression registerValueExp = stat.argumentList.get(1);
 
-                Value registerNameVal = interpretShallowExpression(registerNameExp);
-                Value registerValueVal = interpretShallowExpression(registerValueExp);
+                Value registerNameVal = interpretShallowOptimizedExpression(registerNameExp);
+                Value registerValueVal = interpretShallowOptimizedExpression(registerValueExp);
 
                 if(registerNameVal.isStringValue()){
                     guiInstance.setRegisterValue(registerNameVal.toString(), registerValueVal.longValue());
@@ -175,8 +175,8 @@ public class EdeInterpreter extends VerilogInterpreter {
             Expression statusNameExp = stat.argumentList.get(0);
             Expression statusValueExp = stat.argumentList.get(1);
 
-            Value statusNameVal = interpretShallowExpression(statusNameExp);
-            Value statusValueVal = interpretShallowExpression(statusValueExp);
+            Value statusNameVal = interpretShallowOptimizedExpression(statusNameExp);
+            Value statusValueVal = interpretShallowOptimizedExpression(statusValueExp);
 
             guiInstance.setStatusValue(statusNameVal.toString(), statusValueVal.longValue());
         } else if(identifier.equals("setMemory")){
@@ -187,8 +187,8 @@ public class EdeInterpreter extends VerilogInterpreter {
             Expression memAddressExp = stat.argumentList.get(0);
             Expression memValExp = stat.argumentList.get(1);
 
-            Value memAddressVal = interpretShallowExpression(memAddressExp);
-            Value memValVal = interpretShallowExpression(memValExp);
+            Value memAddressVal = interpretShallowOptimizedExpression(memAddressExp);
+            Value memValVal = interpretShallowOptimizedExpression(memValExp);
 
             
             guiInstance.setMemoryValue(memAddressVal.intValue(), memValVal.longValue());
@@ -207,14 +207,14 @@ public class EdeInterpreter extends VerilogInterpreter {
             Value deref = val.deRefrence();
             if(deref instanceof EdeMemVal){
                 EdeMemVal memory = (EdeMemVal)deref;
-                Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
-                Value indexValue = interpretShallowExpression(leftHandSide.index1);
+                Value rightHandSideValue = interpretShallowOptimizedExpression(assign.rightHandSide);
+                Value indexValue = interpretShallowOptimizedExpression(leftHandSide.index1);
                 memory.setElemAtIndex(indexValue.intValue(), rightHandSideValue.intValue());
                 return Utils.success();
             } else if(deref instanceof EdeRegVal){
                 EdeRegVal register = (EdeRegVal)deref;
-                Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
-                Value indexValue = interpretShallowExpression(leftHandSide.index1);
+                Value rightHandSideValue = interpretShallowOptimizedExpression(assign.rightHandSide);
+                Value indexValue = interpretShallowOptimizedExpression(leftHandSide.index1);
                 register.setBitAtIndex(indexValue.intValue(), rightHandSideValue.intValue());
                 return Utils.success();
             }
@@ -224,9 +224,9 @@ public class EdeInterpreter extends VerilogInterpreter {
             Value deref = val.deRefrence();
             if(deref instanceof EdeRegVal){
                 EdeRegVal register = (EdeRegVal)deref;
-                Value rightHandSideValue = interpretShallowExpression(assign.rightHandSide);
-                Value index1Value = interpretShallowExpression(leftHandSide.index1);
-                Value index2Value = interpretShallowExpression(leftHandSide.index2);
+                Value rightHandSideValue = interpretShallowOptimizedExpression(assign.rightHandSide);
+                Value index1Value = interpretShallowOptimizedExpression(leftHandSide.index1);
+                Value index2Value = interpretShallowOptimizedExpression(leftHandSide.index2);
                 register.setBitsAtIndex(index1Value.intValue(), index2Value.intValue(), rightHandSideValue.intValue());
                 return Utils.success();
             }
@@ -236,12 +236,12 @@ public class EdeInterpreter extends VerilogInterpreter {
             Value deref = val.deRefrence();
             if(deref instanceof EdeStatVal){
                 EdeStatVal status = (EdeStatVal)deref;
-                Value rightHandSide = interpretShallowExpression(assign.rightHandSide);
+                Value rightHandSide = interpretShallowOptimizedExpression(assign.rightHandSide);
                 status.setStatusValue(rightHandSide.intValue());
                 return Utils.success();
             } else if(deref instanceof EdeRegVal){
                 EdeRegVal reg = (EdeRegVal)deref;
-                Value rightHandSide = interpretShallowExpression(assign.rightHandSide);
+                Value rightHandSide = interpretShallowOptimizedExpression(assign.rightHandSide);
                 reg.setAllBits(rightHandSide.intValue());
                 return Utils.success();
             }
@@ -250,7 +250,7 @@ public class EdeInterpreter extends VerilogInterpreter {
         return super.interpretShallowBlockingAssignment(assign);
     }
 
-    public Value interpretShallowIdentifier(Identifier ident) throws Exception{
+    public Value interpretShallowOptimizedIdentifier(Identifier ident) throws Exception{
         if (environment.variableExists(ident.labelIdentifier)) {
 			Pointer<Value> data = environment.lookupVariable(ident.labelIdentifier);
 			Value typeData = data.deRefrence();
@@ -262,37 +262,37 @@ public class EdeInterpreter extends VerilogInterpreter {
                 return new LongVal(reg.longValue());
             }
 		}
-        return super.interpretShallowIdentifier(ident);
+        return super.interpretShallowOptimizedIdentifier(ident);
     }
 
-    public Value interpretShallowElement(Element elem) throws Exception{
+    public Value interpretShallowOptimizedElement(Element elem) throws Exception{
         if(environment.variableExists(elem.labelIdentifier)){
             Pointer<Value> data = environment.lookupVariable(elem.labelIdentifier);
 			Value typeData = data.deRefrence();
             if(typeData instanceof EdeMemVal){
                 EdeMemVal edeMemVal = (EdeMemVal)typeData;
-                Value result = interpretShallowExpression(elem.index1);
+                Value result = interpretShallowOptimizedExpression(elem.index1);
                 return new LongVal(edeMemVal.elemAtIndex(result.intValue()));
             } else if(typeData instanceof EdeRegVal){
                 EdeRegVal edeRegVal = (EdeRegVal)typeData;
-                Value result = interpretShallowExpression(elem.index1);
+                Value result = interpretShallowOptimizedExpression(elem.index1);
                 return new LongVal(edeRegVal.getBitAtIndex(result.intValue()));
             }
         }
-        return super.interpretShallowElement(elem);
+        return super.interpretShallowOptimizedElement(elem);
     }
 
-    public Value interpretShallowSlice(Slice elem) throws Exception{
+    public Value interpretShallowOptimizedSlice(Slice elem) throws Exception{
         if(environment.variableExists(elem.labelIdentifier)){
             Pointer<Value> data = environment.lookupVariable(elem.labelIdentifier);
 			Value typeData = data.deRefrence();
             if(typeData instanceof EdeRegVal){
                 EdeRegVal edeRegVal = (EdeRegVal)typeData;
-                Value result1 = interpretShallowExpression(elem.index1);
-                Value result2 = interpretShallowExpression(elem.index2);    
+                Value result1 = interpretShallowOptimizedExpression(elem.index1);
+                Value result2 = interpretShallowOptimizedExpression(elem.index2);    
                 return new LongVal(edeRegVal.getBitsInRange(result1.intValue(), result2.intValue()));
             }
         }
-        return super.interpretShallowSlice(elem);
+        return super.interpretShallowOptimizedSlice(elem);
     }
 }

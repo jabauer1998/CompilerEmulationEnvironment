@@ -525,7 +525,7 @@ public abstract class Interpreter {
 
 		if(Assignment.leftHandSide instanceof Element){
 			Element leftHandElement = (Element)Assignment.leftHandSide;
-			Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
+			Value leftHandIndex = interpretShallowOptimizedExpression(leftHandElement.index1);
 
 			Pointer<Value> Ptr = environment.lookupVariable(leftHandElement.labelIdentifier);
 			if(Ptr.deRefrence() instanceof VectorVal){
@@ -539,8 +539,8 @@ public abstract class Interpreter {
 			Slice Ident = (Slice)Assignment.leftHandSide;
 			String Name = Ident.labelIdentifier;
 
-			Value Begin = interpretShallowExpression(Ident.index1.expression);
-			Value End = interpretShallowExpression(Ident.index2.expression);
+			Value Begin = interpretShallowOptimizedExpression(Ident.index1.expression);
+			Value End = interpretShallowOptimizedExpression(Ident.index2.expression);
 
 			Pointer<Value> Ptr = environment.lookupVariable(Name);
 			Value Vector = Ptr.deRefrence();
@@ -617,8 +617,8 @@ public abstract class Interpreter {
 		Expression exp1 = decl.GetIndex1();
 		Expression exp2 = decl.GetIndex2();
 
-		Value val1 = interpretShallowExpression(exp1);
-		Value val2 = interpretShallowExpression(exp2);
+		Value val1 = interpretShallowOptimizedExpression(exp1);
+		Value val2 = interpretShallowOptimizedExpression(exp2);
 
 		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(val1.intValue(), val2.intValue()));
@@ -636,8 +636,8 @@ public abstract class Interpreter {
 		Expression RegIndex1 = decl.arrayIndex1;
 		Expression RegIndex2 = decl.arrayIndex2;
 
-		Value RegVal1 = interpretShallowExpression(RegIndex1);
-		Value RegVal2 = interpretShallowExpression(RegIndex2);
+		Value RegVal1 = interpretShallowOptimizedExpression(RegIndex1);
+		Value RegVal2 = interpretShallowOptimizedExpression(RegIndex2);
 
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
@@ -705,8 +705,8 @@ public abstract class Interpreter {
 		 // check whether the expressions return ints
 		Expression index2 = decl.GetIndex2();
 
-		Value index1Value = interpretShallowExpression(index1);
-		Value index2Value = interpretShallowExpression(index2);
+		Value index1Value = interpretShallowOptimizedExpression(index1);
+		Value index2Value = interpretShallowOptimizedExpression(index2);
 
 		if (!environment.localVariableExists(decl.declarationIdentifier)) {
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
@@ -745,8 +745,8 @@ public abstract class Interpreter {
 		Expression index1 = decl.GetIndex1();
 		Expression index2 = decl.GetIndex2();
 
-		Value index1Value = interpretShallowExpression(index1);
-		Value index2Value = interpretShallowExpression(index2);
+		Value index1Value = interpretShallowOptimizedExpression(index1);
+		Value index2Value = interpretShallowOptimizedExpression(index2);
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
 			environment.addVariable(decl.declarationIdentifier, new VectorVal(index1Value.intValue(), index2Value.intValue()));
@@ -879,7 +879,7 @@ public abstract class Interpreter {
 			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandElement.labelIdentifier);
 			Value leftHandDeref = leftHandPtr.deRefrence();
 
-			Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
+			Value leftHandIndex = interpretShallowOptimizedExpression(leftHandElement.index1);
 			if(leftHandDeref instanceof ArrayVal){
 				ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
 				Utils.deepAssign(leftHandArray, leftHandIndex.intValue(), expVal);
@@ -895,8 +895,8 @@ public abstract class Interpreter {
 			Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
 			Value leftHandDeref = leftHandPtr.deRefrence();
 
-			Value leftHandStartIndex = interpretShallowExpression(leftHandSlice.index1);
-			Value leftHandEndIndex = interpretShallowExpression(leftHandSlice.index2);
+			Value leftHandStartIndex = interpretShallowOptimizedExpression(leftHandSlice.index1);
+			Value leftHandEndIndex = interpretShallowOptimizedExpression(leftHandSlice.index2);
 
 			if(leftHandDeref instanceof VectorVal){
 				VectorVal leftHandVector = (VectorVal)leftHandDeref;
@@ -957,7 +957,7 @@ public abstract class Interpreter {
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandElement.labelIdentifier);
 				Value leftHandDeref = leftHandPtr.deRefrence();
 	
-				Value leftHandIndex = interpretShallowExpression(leftHandElement.index1);
+				Value leftHandIndex = interpretShallowOptimizedExpression(leftHandElement.index1);
 				if(leftHandDeref instanceof ArrayVal){
 					ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
 					Utils.deepAssign(leftHandArray, leftHandIndex.intValue(), resultList.get(i));
@@ -973,8 +973,8 @@ public abstract class Interpreter {
 				Pointer<Value> leftHandPtr = environment.lookupVariable(leftHandSlice.labelIdentifier);
 				Value leftHandDeref = leftHandPtr.deRefrence();
 	
-				Value leftHandStartIndex = interpretShallowExpression(leftHandSlice.index1);
-				Value leftHandEndIndex = interpretShallowExpression(leftHandSlice.index2);
+				Value leftHandStartIndex = interpretShallowOptimizedExpression(leftHandSlice.index1);
+				Value leftHandEndIndex = interpretShallowOptimizedExpression(leftHandSlice.index2);
 	
 				if(leftHandDeref instanceof VectorVal){
 					VectorVal leftHandVector = (VectorVal)leftHandDeref;
@@ -1032,12 +1032,12 @@ public abstract class Interpreter {
 		else if (stat instanceof CaseZStatement) return interpretCaseZStatement((CaseZStatement) stat);
 		else {
 			loop: for (CaseItem item : stat.itemList){
-				Value switchExpVal = interpretShallowExpression(stat.exp);
+				Value switchExpVal = interpretShallowOptimizedExpression(stat.exp);
 				if (item instanceof ExprCaseItem) {
 					ExprCaseItem exprItem = (ExprCaseItem)item;
 					
 					for (Expression CaseExp : exprItem.expList) {
-						Value exprValue = interpretShallowExpression(CaseExp);
+						Value exprValue = interpretShallowOptimizedExpression(CaseExp);
 						if (Utils.caseBoolean(switchExpVal, exprValue)) {
 							interpretShallowStatement(exprItem.statement);
 							break loop;
@@ -1063,11 +1063,11 @@ public abstract class Interpreter {
 
 	protected IntVal interpretCaseXStatement(CaseXStatement stat) throws Exception{
 		loop: for (CaseItem item : stat.itemList){
-			Value switchExp = interpretShallowExpression(stat.exp);
+			Value switchExp = interpretShallowOptimizedExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
 				ExprCaseItem exprItem = (ExprCaseItem)item;
 				for (Expression CaseExp : exprItem.expList) {
-					Value exprValue = interpretShallowExpression(CaseExp);
+					Value exprValue = interpretShallowOptimizedExpression(CaseExp);
 
 					if (Utils.caseBoolean(switchExp, exprValue)) {
 						interpretShallowStatement(exprItem.statement);
@@ -1088,12 +1088,12 @@ public abstract class Interpreter {
 		
 
 		loop: for (CaseItem item : stat.itemList){
-			Value switchExp = interpretShallowExpression(stat.exp);
+			Value switchExp = interpretShallowOptimizedExpression(stat.exp);
 			if (item instanceof ExprCaseItem) {
 				ExprCaseItem exprItem = (ExprCaseItem)item;
 
 				for (Expression CaseExp : exprItem.expList) {
-					Value exprValue = interpretShallowExpression(CaseExp);
+					Value exprValue = interpretShallowOptimizedExpression(CaseExp);
 
 					if (Utils.caseBoolean(switchExp, exprValue)) {
 						interpretShallowStatement(exprItem.statement);
@@ -1119,7 +1119,7 @@ public abstract class Interpreter {
 
 	protected IntVal interpretForLoop(ForStatement forLoop) throws Exception{
 		for (interpretShallowBlockingAssignment(forLoop.init); 
-			interpretShallowExpression(forLoop.exp).boolValue() && !environment.stackFrameInExit(); 
+			interpretShallowOptimizedExpression(forLoop.exp).boolValue() && !environment.stackFrameInExit(); 
 			interpretShallowStatement(forLoop.change)) {
 			
 			interpretShallowStatement(forLoop.stat);
@@ -1153,7 +1153,7 @@ public abstract class Interpreter {
 	 */
 
 	protected IntVal interpretIfElseStatement(IfElseStatement ifElseStatement) throws Exception{
-		Value expr = interpretShallowExpression(ifElseStatement.condition);
+		Value expr = interpretShallowOptimizedExpression(ifElseStatement.condition);
 		if (expr.boolValue()) {
 			return interpretShallowStatement(ifElseStatement.trueStatement);
 		} else {
@@ -1171,7 +1171,7 @@ public abstract class Interpreter {
 	protected IntVal interpretIfStatement(IfStatement ifStatement) throws Exception{
 		if(ifStatement instanceof IfElseStatement) return interpretIfElseStatement((IfElseStatement)ifStatement);
 		else {
-			Value expr = interpretShallowExpression(ifStatement.condition);
+			Value expr = interpretShallowOptimizedExpression(ifStatement.condition);
 
 			if (expr.boolValue()) { 
 				return interpretShallowStatement(ifStatement.trueStatement); 
@@ -1189,7 +1189,7 @@ public abstract class Interpreter {
 	 */
 
 	protected IntVal interpretRepeatLoop(RepeatStatement stat) throws Exception{
-		Value expr = interpretShallowExpression(stat.exp);
+		Value expr = interpretShallowOptimizedExpression(stat.exp);
 
 		if (expr.isWire() || expr.isRegister() || expr.isBoolValue()) {
 			if (expr.boolValue()) {
@@ -1257,7 +1257,7 @@ public abstract class Interpreter {
 				
 				List<Value> argumentValues = new LinkedList<Value>();
 				for(Expression exp : task.argumentList){
-					Value result = interpretShallowExpression(exp);
+					Value result = interpretShallowOptimizedExpression(exp);
 					argumentValues.add(result);
 				}
 
@@ -1310,7 +1310,7 @@ public abstract class Interpreter {
 
 	protected IntVal interpretWaitStatement(WaitStatement wait) throws Exception{
 		Expression expr = wait.exp;
-		while(interpretShallowExpression(expr).boolValue());
+		while(interpretShallowOptimizedExpression(expr).boolValue());
 		return interpretShallowStatement(wait.stat);
 	}
 
@@ -1323,7 +1323,7 @@ public abstract class Interpreter {
 
 	protected IntVal interpretWhileLoop(WhileStatement whileLoop) throws Exception{
 
-		while(interpretShallowExpression(whileLoop.exp).boolValue()) {
+		while(interpretShallowOptimizedExpression(whileLoop.exp).boolValue()) {
 			interpretShallowStatement(whileLoop.stat);
 		}
 
@@ -1348,7 +1348,7 @@ public abstract class Interpreter {
 	 * @param op
 	 */
 
-	protected Value interpretShallowExpression(Expression exp) throws Exception{
+	protected Value interpretShallowOptimizedExpression(Expression exp) throws Exception{
 		if(exp instanceof BinaryOperation) return interpretShallowBinaryOperation((BinaryOperation)exp);
 		else if (exp instanceof UnaryOperation) return interpretShallowUnaryOperation((UnaryOperation)exp);
 		else if (exp instanceof Concatenation) return interpretShallowConcatenation((Concatenation)exp);
@@ -1360,9 +1360,18 @@ public abstract class Interpreter {
 		else if (exp instanceof OctalNode) return interpretOctalNode((OctalNode)exp);
 		else if (exp instanceof StringNode) return interpretStringNode((StringNode)exp);
 		else if (exp instanceof ConstantExpression) return interpretConstantExpression((ConstantExpression)exp);
-		else if (exp instanceof Slice) return interpretShallowSlice((Slice)exp);
-		else if (exp instanceof Element) return interpretShallowElement((Element)exp);
-		else if (exp instanceof Identifier) return interpretShallowIdentifier((Identifier)exp);
+		else if (exp instanceof Slice) return interpretShallowOptimizedSlice((Slice)exp);
+		else if (exp instanceof Element) return interpretShallowOptimizedElement((Element)exp);
+		else if (exp instanceof Identifier) return interpretShallowOptimizedIdentifier((Identifier)exp);
+		else {
+			Utils.errorAndExit("Error: Could not find an expression of type" + exp.getClass().getName());
+			return Utils.errorOccured();
+		}
+	}
+	protected Value interpretShallowRawExpression(Expression exp) throws Exception{
+		if (exp instanceof Slice) return interpretShallowRawSlice((Slice)exp);
+		else if (exp instanceof Element) return interpretShallowRawElement((Element)exp);
+		else if (exp instanceof Identifier) return interpretShallowRawIdentifier((Identifier)exp);
 		else {
 			Utils.errorAndExit("Error: Could not find an expression of type" + exp.getClass().getName());
 			return Utils.errorOccured();
@@ -1403,8 +1412,8 @@ public abstract class Interpreter {
 	}
 
 	protected Value interpretShallowBinaryOperation(BinaryOperation op) throws Exception{
-		Value left = interpretShallowExpression(op.left);
-		Value right = interpretShallowExpression(op.right);
+		Value left = interpretShallowOptimizedExpression(op.left);
+		Value right = interpretShallowOptimizedExpression(op.right);
 
 		switch(op.Op){
 			case PLUS: return Utils.add(left, right);
@@ -1443,7 +1452,7 @@ public abstract class Interpreter {
 	 */
 
 	protected Value interpretShallowUnaryOperation(UnaryOperation op) throws Exception{
-		Value right = interpretShallowExpression(op.rightHandSideExpression);
+		Value right = interpretShallowOptimizedExpression(op.rightHandSideExpression);
 
 		switch(op.Op){
 			case PLUS: return right;
@@ -1551,7 +1560,7 @@ public abstract class Interpreter {
 		int total = size - 1;
 
 		for(Expression exp : concat.circuitElementExpressionList){
-			Value valExp = interpretShallowExpression(exp);
+			Value valExp = interpretShallowOptimizedExpression(exp);
 
 			if (valExp.isVector()) {
 				VectorVal vec = (VectorVal)valExp;
@@ -1587,7 +1596,7 @@ public abstract class Interpreter {
 	 */
 
 	protected Value interpretConstantExpression(ConstantExpression expr) throws Exception{ 
-		return interpretShallowExpression(expr.expression);
+		return interpretShallowOptimizedExpression(expr.expression);
 	}
 
 	/**
@@ -1625,7 +1634,7 @@ public abstract class Interpreter {
 
 			List<Value> paramaterValues = new LinkedList<Value>();
 			for(Expression paramExp : call.argumentList){
-				Value argVal = interpretShallowExpression(paramExp);
+				Value argVal = interpretShallowOptimizedExpression(paramExp);
 				paramaterValues.add(argVal);
 			}
 
@@ -1721,7 +1730,8 @@ public abstract class Interpreter {
 	 */
 	protected abstract Value interpretSystemFunctionCall(SystemFunctionCall call) throws Exception;
 
-	protected abstract Value interpretShallowIdentifier(Identifier ident) throws Exception;
+	protected abstract Value interpretShallowOptimizedIdentifier(Identifier ident) throws Exception;
+	protected abstract Value interpretShallowRawIdentifier(Identifier ident) throws Exception;
 	
 	protected Value interpretDeepIdentifier(Identifier ident) throws Exception{
 		if (environment.variableExists(ident.labelIdentifier)) {
@@ -1776,10 +1786,10 @@ public abstract class Interpreter {
 	 */
 
 	protected Value interpretShallowTernaryOperation(TernaryOperation expr) throws Exception{
-		if (interpretShallowExpression(expr.condition).boolValue()) {
-			return interpretShallowExpression(expr.ifTrue);
+		if (interpretShallowOptimizedExpression(expr.condition).boolValue()) {
+			return interpretShallowOptimizedExpression(expr.ifTrue);
 		} else {
-			return interpretShallowExpression(expr.ifFalse);
+			return interpretShallowOptimizedExpression(expr.ifFalse);
 		}
 	}
 
@@ -1845,8 +1855,11 @@ public abstract class Interpreter {
 		}
 	}
 
-	protected abstract Value interpretShallowElement(Element elem) throws Exception;
-	protected abstract Value interpretShallowSlice(Slice vector) throws Exception;
+	protected abstract Value interpretShallowOptimizedElement(Element elem) throws Exception;
+	protected abstract Value interpretShallowRawElement(Element elem) throws Exception;
+
+	protected abstract Value interpretShallowOptimizedSlice(Slice vector) throws Exception;
+	protected abstract Value interpretShallowRawSlice(Slice vector) throws Exception;
 
 	protected Value interpretBinaryNode(BinaryNode Bin) throws Exception{
 		int indexOfColon = Bin.lexeme.indexOf('\'');
