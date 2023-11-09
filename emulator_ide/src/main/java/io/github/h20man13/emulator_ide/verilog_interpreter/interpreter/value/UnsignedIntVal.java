@@ -1,5 +1,7 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value;
 
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
+
 public class UnsignedIntVal implements Value, Unsigned {
 
     private int value;
@@ -111,5 +113,26 @@ public class UnsignedIntVal implements Value, Unsigned {
     @Override
     public boolean isWire(){ // TODO Auto-generated method stub
         return false;
+    }
+
+    @Override
+    public Value getShallowSlice(int startIndex, int endIndex) throws Exception{ // TODO Auto-generated method stub
+        if(startIndex > 32 || startIndex < 0){
+            throw new UnsupportedOperationException("Error startIndex is out of bounds at " +startIndex);
+        }
+
+        if(endIndex > 32 || endIndex < 0){
+            throw new UnsupportedOperationException("Error endIndex is outof bounds at " + endIndex);
+        }
+
+        int start = (startIndex <= endIndex) ? startIndex : endIndex;
+        int end = (startIndex >= endIndex) ? startIndex : endIndex;
+
+        int size = end - start + 1;
+
+        long val = (value >> startIndex);
+        long toKeepMask = ((1 << size) - 1);
+
+        return Utils.getOptimalUnsignedForm(val & toKeepMask);
     }
 }

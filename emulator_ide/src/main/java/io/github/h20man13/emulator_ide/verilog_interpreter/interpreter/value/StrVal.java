@@ -1,5 +1,7 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value;
 
+import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
+
 public class StrVal implements Value{
     
     private String value;
@@ -104,5 +106,10 @@ public class StrVal implements Value{
     @Override
     public boolean isWire(){ 
         return false; 
+    }
+
+    @Override
+    public Value getShallowSlice(int startIndex, int endIndex) throws Exception{
+        throw new UnsupportedOperationException("Cant perform a shallow slice operation on a String operand");
     }
 }

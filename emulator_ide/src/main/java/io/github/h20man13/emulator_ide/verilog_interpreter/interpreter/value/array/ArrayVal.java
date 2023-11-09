@@ -127,5 +127,9 @@ public class ArrayVal<ArrayType extends Value> implements Value {
     public boolean isWire(){ // TODO Auto-generated method stub
         return false;
     }
-    
+
+    @Override
+    public Value getShallowSlice(int startIndex, int endIndex){ // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getShallowSlice'"); 
+    }
 }

@@ -100,4 +100,8 @@ public class EdeStatVal implements Value{
     public boolean isWire(){ // TODO Auto-generated method stub
         return false;
     }
+
+    @Override
+    public Value getShallowSlice(int startIndex, int endIndex) throws Exception{ // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getShallowSlice'"); }
 }

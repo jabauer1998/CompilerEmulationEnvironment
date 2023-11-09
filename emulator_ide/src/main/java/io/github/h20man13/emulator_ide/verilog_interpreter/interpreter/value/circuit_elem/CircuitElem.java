@@ -1,5 +1,6 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem;
 
+import javax.naming.OperationNotSupportedException;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 /**
  * The generic class for Circuit Objects
@@ -51,6 +52,10 @@ public abstract class CircuitElem implements Value{
 
     public boolean boolValue(){
         return getStateSignal();
+    }
+
+    public Value getShallowSlice(int index1, int index2){
+        throw new UnsupportedOperationException("Error no slice operation found for CirsuitElem");
     }
 
 }
