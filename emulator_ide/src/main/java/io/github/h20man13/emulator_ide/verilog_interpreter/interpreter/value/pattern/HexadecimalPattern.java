@@ -6,6 +6,10 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Byt
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedByteVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedIntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedLongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedShortVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 
@@ -49,8 +53,72 @@ public class HexadecimalPattern extends Pattern{
         return true;
     }
 
+    public boolean match(UnsignedLongVal value){
+        String pattern = super.getPattern();
+        long val = value.longValue();
+
+        int patternLength = pattern.length();
+
+        if(patternLength * 4 < Long.toBinaryString(val).length()){
+            long shiftedValue = val >> (patternLength * 4);
+            if(shiftedValue != 0){
+                return false;
+            }
+        }
+
+        for (int i = 0; i < patternLength; i++) {
+            char current = pattern.charAt((int)i);
+            if (current == 'x' || current == 'z')
+                continue;
+            
+            long patternPieceAsLong = Long.parseLong("" + current, 16);
+            long shiftedValLong = val >> 4*(patternLength - i) - 4;
+            long maskedVal = shiftedValLong & 0xf;
+
+            if(maskedVal != patternPieceAsLong)
+                return false;
+        }
+
+        return true;
+    }
+
     public boolean match(IntVal value){
 
+        String pattern = super.getPattern();
+        int val = value.intValue();
+
+        int patternLength = pattern.length();
+
+        if(patternLength > 8){
+            int num = value.intValue();
+            LongVal newVal = new LongVal((long)num);
+            return match(newVal);
+        }
+
+        if(patternLength * 4 < Integer.toBinaryString(val).length()){
+            int shiftedValue = val >> (patternLength * 4);
+            if(shiftedValue != 0){
+                return false;
+            }
+        }
+
+        for (int i = 0; i < patternLength; i++) {
+            char current = pattern.charAt(i);
+            if (current == 'x' || current == 'z')
+                continue;
+            
+            int patternPieceAsInt = Integer.parseInt("" + current, 16);
+            int shiftedValInt = val >> 4*(patternLength - i) - 4;
+            int maskedVal = shiftedValInt & 0xf;
+
+            if(maskedVal != patternPieceAsInt)
+                return false;
+        }
+
+        return true;
+    }
+
+    public boolean match(UnsignedIntVal value){
         String pattern = super.getPattern();
         int val = value.intValue();
 
@@ -121,8 +189,78 @@ public class HexadecimalPattern extends Pattern{
         return true;
     }
 
+    public boolean match(UnsignedShortVal value){
+        String pattern = super.getPattern();
+        short val = value.shortValue();
+
+        int patternLength = pattern.length();
+
+        if(patternLength > 4){
+            short num = value.shortValue();
+            IntVal newVal = new IntVal(num);
+            return match(newVal);
+        }
+
+        if(patternLength * 4 < Integer.toBinaryString(val).length()){
+            short shiftedValue = (short)(val >> (patternLength * 4));
+            if(shiftedValue != 0){
+                return false;
+            }
+        }
+
+        for (int i = 0; i < patternLength; i++) {
+            char current = pattern.charAt(i);
+            if (current == 'x' || current == 'z')
+                continue;
+            
+            short patternPieceAsShort = Short.parseShort("" + current, 16);
+            short shiftedValShort = (short)(val >> 4*(patternLength - i) - 4);
+            short maskedVal = (short)(shiftedValShort & 0xf);
+
+            if(maskedVal != patternPieceAsShort)
+                return false;
+        }
+
+        return true;
+    }
+
     public boolean match(ByteVal value){
 
+        String pattern = super.getPattern();
+        byte val = value.byteValue();
+
+        int patternLength = pattern.length();
+
+        if(patternLength > 2){
+            byte num = value.byteValue();
+            ShortVal newVal = new ShortVal(num);
+            return match(newVal);
+        }
+
+        if(patternLength * 4 < Integer.toBinaryString(val).length()){
+            byte shiftedValue = (byte)(val >> (patternLength * 4));
+            if(shiftedValue != 0){
+                return false;
+            }
+        }
+
+        for (int i = 0; i < patternLength; i++) {
+            char current = pattern.charAt(i);
+            if (current == 'x' || current == 'z')
+                continue;
+            
+            byte patternPieceAsByte = Byte.parseByte("" + current, 16);
+            byte shiftedValByte = (byte)(val >> 4*(patternLength - i) - 4);
+            byte maskedVal = (byte)(shiftedValByte & 0xf);
+
+            if(maskedVal != patternPieceAsByte)
+                return false;
+        }
+
+        return true;
+    }
+
+    public boolean match(UnsignedByteVal value){
         String pattern = super.getPattern();
         byte val = value.byteValue();
 

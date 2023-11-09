@@ -6,6 +6,10 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Byt
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.LongVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ShortVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedByteVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedIntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedLongVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedShortVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
@@ -35,9 +39,13 @@ public abstract class Pattern implements Value{
 
     public boolean match(Value value) throws Exception{
         if(value.isBoolValue()) return match((BoolVal)value);
+        else if(value.isUnsignedByteValue()) return match((UnsignedByteVal)value);
         else if(value.isByteValue()) return match((ByteVal)value);
+        else if(value.isUnsignedIntValue()) return match((UnsignedIntVal)value);
         else if(value.isIntValue()) return match((IntVal)value);
+        else if(value.isUnsignedLongValue()) return match((UnsignedLongVal)value);
         else if(value.isLongValue()) return match((LongVal)value);
+        else if(value.isUnsignedShortValue()) return match((UnsignedShortVal)value);
         else if(value.isShortValue()) return match((ShortVal)value);
         else if(value.isVector()) return match((VectorVal)value);
         else if(value instanceof CircuitElem) return match((CircuitElem)value);
@@ -48,15 +56,14 @@ public abstract class Pattern implements Value{
     }
 
     public abstract boolean match(LongVal value);
-
+    public abstract boolean match(UnsignedLongVal value);
     public abstract boolean match(IntVal value);
-
+    public abstract boolean match(UnsignedIntVal value);
     public abstract boolean match(ShortVal value);
-
+    public abstract boolean match(UnsignedShortVal value);
     public abstract boolean match(ByteVal value);
-
+    public abstract boolean match(UnsignedByteVal value);
     public abstract boolean match(VectorVal value);
-
     public abstract boolean match(CircuitElem value);
 
     public double realValue(){
