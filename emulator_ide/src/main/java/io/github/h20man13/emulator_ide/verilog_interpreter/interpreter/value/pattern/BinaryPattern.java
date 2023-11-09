@@ -90,7 +90,7 @@ public class BinaryPattern extends Pattern{
 
         int patternLength = pattern.length();
 
-        if(patternLength > 8){
+        if(patternLength > 32){
             int num = value.intValue();
             LongVal newVal = new LongVal((long)num);
             return match(newVal);
@@ -126,7 +126,7 @@ public class BinaryPattern extends Pattern{
 
         int patternLength = pattern.length();
 
-        if(patternLength > 8){
+        if(patternLength > 32){
             int num = value.intValue();
             LongVal newVal = new LongVal((long)num);
             return match(newVal);
@@ -162,13 +162,13 @@ public class BinaryPattern extends Pattern{
 
         int patternLength = pattern.length();
 
-        if(patternLength > 4){
+        if(patternLength > 16){
             short num = value.shortValue();
             IntVal newVal = new IntVal(num);
             return match(newVal);
         }
 
-        if(patternLength * 3 < Integer.toBinaryString(val).length()){
+        if(patternLength < Integer.toBinaryString(val).length()){
             short shiftedValue = (short)(val >> patternLength);
             if(shiftedValue != 0){
                 return false;
@@ -198,13 +198,13 @@ public class BinaryPattern extends Pattern{
 
         int patternLength = pattern.length();
 
-        if(patternLength > 4){
+        if(patternLength > 16){
             short num = value.shortValue();
             IntVal newVal = new IntVal(num);
             return match(newVal);
         }
 
-        if(patternLength * 3 < Integer.toBinaryString(val).length()){
+        if(patternLength  < Integer.toBinaryString(val).length()){
             short shiftedValue = (short)(val >> patternLength);
             if(shiftedValue != 0){
                 return false;
@@ -234,7 +234,7 @@ public class BinaryPattern extends Pattern{
 
         int patternLength = pattern.length();
 
-        if(patternLength > 2){
+        if(patternLength > 8){
             byte num = value.byteValue();
             ShortVal newVal = new ShortVal(num);
             return match(newVal);
@@ -270,7 +270,7 @@ public class BinaryPattern extends Pattern{
 
         int patternLength = pattern.length();
 
-        if(patternLength > 2){
+        if(patternLength > 8){
             byte num = value.byteValue();
             ShortVal newVal = new ShortVal(num);
             return match(newVal);
