@@ -19,9 +19,13 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.Utils;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.IntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.StrVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedIntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayIntVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayRegVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayVectorVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.nodes.RegVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.Lexer;
@@ -315,10 +319,7 @@ public class VerilogInterpreter extends Interpreter {
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			ArrayVal<RegVal> arrayDec = new ArrayVal<RegVal>(ArraySize);
-			for(int i = 0; i < ArraySize; i++){
-				arrayDec.AddElem(new RegVal(false));
-			}
+			ArrayRegVal arrayDec = new ArrayRegVal(ArraySize);
 			environment.addVariable(decl.declarationIdentifier, arrayDec);
 		} else {
 			Utils.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -344,10 +345,7 @@ public class VerilogInterpreter extends Interpreter {
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			ArrayVal<VectorVal> arrVal = new ArrayVal<VectorVal>(ArraySize);
-			for(int i = 0; i < ArraySize; i++){
-				arrVal.AddElem(new VectorVal(vecVal1.intValue(), vecVal2.intValue()));
-			}
+			ArrayVectorVal arrVal = new ArrayVectorVal(ArraySize, vecVal1.intValue(), vecVal2.intValue());
 			environment.addVariable(decl.declarationIdentifier, arrVal);
 		} else {
 			Utils.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
@@ -534,9 +532,17 @@ public class VerilogInterpreter extends Interpreter {
 			Value leftHandDeref = leftHandPtr.deRefrence();
 
 			Value leftHandIndex = interpretShallowOptimizedExpression(leftHandElement.index1);
-			if(leftHandDeref instanceof ArrayVal){
-				ArrayVal<Value> leftHandArray = (ArrayVal<Value>)leftHandDeref;
-				leftHandArray.SetElemAtIndex(leftHandIndex.intValue(), expVal);
+			if(leftHandDeref instanceof ArrayVectorVal){
+				ArrayVectorVal leftHandArray = (ArrayVectorVal)leftHandDeref;
+				VectorVal vec = leftHandArray.ElemAtIndex(leftHandIndex.intValue());
+				Utils.shallowAssign(vec, expVal.longValue());
+			} else if(leftHandDeref instanceof ArrayRegVal){
+				ArrayRegVal leftHandArray = (ArrayRegVal)leftHandDeref;
+				RegVal vec = leftHandArray.ElemAtIndex(leftHandIndex.intValue());
+				vec.setSignal(expVal.boolValue());	
+			} else if(leftHandDeref instanceof ArrayIntVal){
+				ArrayIntVal leftHandArray = (ArrayIntVal)leftHandDeref;
+				leftHandArray.SetElemAtIndex(leftHandIndex.intValue(), new UnsignedIntVal(expVal.intValue()));
 			} else if(leftHandDeref instanceof VectorVal){
 				VectorVal leftHandVector = (VectorVal)leftHandDeref;
 				CircuitElem elem = leftHandVector.getValue(leftHandIndex.intValue());
@@ -808,10 +814,16 @@ public class VerilogInterpreter extends Interpreter {
 			Pointer<Value> data = environment.lookupVariable(ident);
 			Value dataObject = data.deRefrence();
 
-			if (dataObject instanceof ArrayVal) {
-				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
+			if (dataObject instanceof ArrayVectorVal) {
+				ArrayVectorVal arr = (ArrayVectorVal)dataObject;
 				VectorVal vec = arr.ElemAtIndex(expr.intValue());
 				return Utils.getOptimalForm(vec);
+			} else if(dataObject instanceof ArrayRegVal){
+				ArrayRegVal arr = (ArrayRegVal)dataObject;
+				return arr.ElemAtIndex(expr.intValue());	
+			} else if(dataObject instanceof ArrayIntVal){
+				ArrayIntVal arr = (ArrayIntVal)dataObject;
+				return arr.ElemAtIndex(expr.intValue());	
 			} else if (dataObject instanceof VectorVal) {
 				return ((VectorVal)dataObject).getValue(expr.intValue());
 			} else {
@@ -841,10 +853,16 @@ public class VerilogInterpreter extends Interpreter {
 			Pointer<Value> data = environment.lookupVariable(ident);
 			Value dataObject = data.deRefrence();
 
-			if (dataObject instanceof ArrayVal) {
-				ArrayVal<VectorVal> arr = (ArrayVal<VectorVal>)dataObject;
+			if (dataObject instanceof ArrayVectorVal) {
+				ArrayVectorVal arr = (ArrayVectorVal)dataObject;
 				VectorVal vec = arr.ElemAtIndex(expr.intValue());
 				return vec;
+			} else if(dataObject instanceof ArrayRegVal){
+				ArrayRegVal arr = (ArrayRegVal)dataObject;
+				return arr.ElemAtIndex(expr.intValue());	
+			} else if(dataObject instanceof ArrayIntVal){
+				ArrayIntVal arr = (ArrayIntVal)dataObject;
+				return arr.ElemAtIndex(expr.intValue());	
 			} else if (dataObject instanceof VectorVal) {
 				return ((VectorVal)dataObject).getValue(expr.intValue());
 			} else {

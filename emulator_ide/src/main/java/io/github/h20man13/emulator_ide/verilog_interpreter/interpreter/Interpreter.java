@@ -17,6 +17,7 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Uns
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.UnsignedShortVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.Value;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.VectorVal;
+import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayIntVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.array.ArrayVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.CircuitElem;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.circuit_elem.circuitry.Multiplexer;
@@ -642,7 +643,7 @@ public abstract class Interpreter {
 		int ArraySize = RegVal2.intValue() - RegVal1.intValue();
 
 		if(!environment.localVariableExists(decl.declarationIdentifier)){
-			environment.addVariable(decl.declarationIdentifier, new ArrayVal<IntVal>(ArraySize));
+			environment.addVariable(decl.declarationIdentifier, new ArrayIntVal(ArraySize));
 		} else {
 			Utils.errorAndExit("Error Variable allready exists with the name " + decl.declarationIdentifier);
 			return Utils.errorOccured();
