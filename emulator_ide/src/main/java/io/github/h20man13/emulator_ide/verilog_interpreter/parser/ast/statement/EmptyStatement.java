@@ -21,4 +21,8 @@ public class EmptyStatement extends AstNode implements Statement {
         return statVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){ // TODO Auto-generated method stub
+        return "";
+    }
 }

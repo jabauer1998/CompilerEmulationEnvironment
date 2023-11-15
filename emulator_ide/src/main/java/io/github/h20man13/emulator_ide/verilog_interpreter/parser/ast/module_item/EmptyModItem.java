@@ -19,4 +19,8 @@ public class EmptyModItem extends AstNode implements ModuleItem {
         return modVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){ // TODO Auto-generated method stub
+        return "";
+    }
 }

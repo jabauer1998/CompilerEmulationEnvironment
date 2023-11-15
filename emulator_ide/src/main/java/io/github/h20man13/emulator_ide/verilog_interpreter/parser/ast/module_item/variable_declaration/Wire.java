@@ -27,6 +27,18 @@ public class Wire{
             public Expression GetIndex2(){ // TODO Auto-generated method stub
                 return vectorIndex2; 
             }
+
+            @Override
+            public String toString(){
+                StringBuilder sb = new StringBuilder();
+                sb.append("wire [");
+                sb.append(GetIndex1().toString());
+                sb.append(":");
+                sb.append(GetIndex2().toString());
+                sb.append("] ");
+                sb.append(super.toString());
+                return sb.toString();
+            }
         }
     }
     public class Scalar{
@@ -37,6 +49,14 @@ public class Wire{
 
             public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
                 return modVisitor.visit(this, argv);
+            }
+
+            @Override
+            public String toString(){
+                StringBuilder sb = new StringBuilder();
+                sb.append("wire ");
+                sb.append(super.toString());
+                return sb.toString();
             }
         }
     }

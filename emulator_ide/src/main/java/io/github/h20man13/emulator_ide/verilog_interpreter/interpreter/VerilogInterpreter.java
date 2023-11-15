@@ -761,15 +761,7 @@ public class VerilogInterpreter extends Interpreter {
 		if (environment.variableExists(ident)) {
 			Pointer<Value> data = environment.lookupVariable(ident);
 			Value dataObject = data.deRefrence();
-
-			if (dataObject instanceof VectorVal) {
-				VectorVal toRet = ((VectorVal)dataObject).getShallowSlice(startIndex.intValue(), endIndex.intValue());
-				return Utils.getOptimalForm(toRet);
-			} else {
-				Utils.errorAndExit("Unkown slice type for " + ident + " [ Type -> " + dataObject.getClass() + " ]");
-				return Utils.errorOccured();
-			}
-
+			return dataObject.getShallowSlice(startIndex.intValue(), endIndex.intValue());
 		} else {
 			Utils.errorAndExit("Array or VectorVal " + ident + " not found");
 			return Utils.errorOccured();

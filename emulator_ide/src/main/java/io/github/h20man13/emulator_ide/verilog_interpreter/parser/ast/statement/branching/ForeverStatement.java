@@ -26,4 +26,12 @@ public class ForeverStatement extends AstNode implements Statement {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("forever\n");
+        sb.append(stat.toString());
+        return sb.toString();
+    }
 }

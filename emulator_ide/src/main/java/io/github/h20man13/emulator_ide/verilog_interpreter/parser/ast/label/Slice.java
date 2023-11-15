@@ -44,4 +44,16 @@ public class Slice extends Label {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append('[');
+        sb.append(index1.toString());
+        sb.append(':');
+        sb.append(index2.toString());
+        sb.append(']');
+        return sb.toString();
+    }
 }

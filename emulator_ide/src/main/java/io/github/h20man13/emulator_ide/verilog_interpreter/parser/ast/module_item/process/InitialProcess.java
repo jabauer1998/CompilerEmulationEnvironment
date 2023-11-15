@@ -26,4 +26,14 @@ public class InitialProcess extends ProcessBase{
     public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
         return modVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){ // TODO Auto-generated method stub
+        StringBuilder sb = new StringBuilder();
+        sb.append("intitial\n");
+        sb.append(statement.toString());
+        sb.append('\n');
+        sb.append("end\n");
+        return sb.toString();
+    }
 }

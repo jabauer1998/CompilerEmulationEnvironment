@@ -44,4 +44,21 @@ public class FunctionCall extends AstNode implements Expression {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(functionName);
+        sb.append('(');
+        int argSize = argumentList.size();
+        for(int i = 0; i < argSize; i++){
+            Expression arg = argumentList.get(i);
+            sb.append(arg.toString());
+            if(i < argSize + 1){
+                sb.append(", ");
+            }
+        }
+        sb.append(')');
+        return sb.toString();
+    }
 }

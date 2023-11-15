@@ -43,4 +43,9 @@ public abstract class Label extends AstNode implements Expression, LValue {
      *                       class
      */
     abstract public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv);
+
+    @Override
+    public String toString(){
+        return this.labelIdentifier;
+    }
 }

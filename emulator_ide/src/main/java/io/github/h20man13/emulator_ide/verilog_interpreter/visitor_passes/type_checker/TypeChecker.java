@@ -45,7 +45,6 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_ite
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Output;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Real;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Reg;
-import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.RegValueList;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Unidentified;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Wire;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.EmptyStatement;
@@ -1988,10 +1987,6 @@ public class TypeChecker implements ExpressionVisitor<TypeCheckerVariableData.Ty
 
 		return null;
 	}
-
-	@Override
-	public Void visit(RegValueList decls, Object... argv){ // TODO Auto-generated method stub
-	return null; }
 
 	@Override
 	public Void visit(DefCaseItem stat, Object... argv){ // TODO Auto-generated method stub

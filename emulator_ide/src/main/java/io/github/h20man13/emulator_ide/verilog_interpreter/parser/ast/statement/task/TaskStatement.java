@@ -9,7 +9,7 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visito
 import java.util.List;
 
 public class TaskStatement extends AstNode implements Statement {
-    public final String     taskName;
+    public final String taskName;
     public final List<Expression> argumentList;
 
     public TaskStatement(Position start, String taskName, List<Expression> argumentList) {
@@ -28,5 +28,22 @@ public class TaskStatement extends AstNode implements Statement {
      */
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(taskName);
+        int argSize = argumentList.size();
+        sb.append('(');
+        for(int i = 0; i < argSize; i++){
+            Expression exp = argumentList.get(i);
+            sb.append(exp.toString());
+            if(i < argSize - 1){
+                sb.append(", ");
+            }
+        }
+        sb.append(')');
+        return sb.toString();
     }
 }

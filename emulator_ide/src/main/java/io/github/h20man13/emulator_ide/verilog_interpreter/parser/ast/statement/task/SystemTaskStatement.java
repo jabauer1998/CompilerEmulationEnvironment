@@ -23,4 +23,12 @@ public class SystemTaskStatement extends TaskStatement {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append('$');
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }

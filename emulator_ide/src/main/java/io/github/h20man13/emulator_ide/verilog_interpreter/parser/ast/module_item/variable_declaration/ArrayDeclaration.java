@@ -16,4 +16,16 @@ public abstract class ArrayDeclaration extends IdentDeclaration{
     }
 
     public abstract <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv);
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append('[');
+        sb.append(this.arrayIndex1);
+        sb.append(':');
+        sb.append(this.arrayIndex2);
+        sb.append(']');
+        return sb.toString();
+    }
 }

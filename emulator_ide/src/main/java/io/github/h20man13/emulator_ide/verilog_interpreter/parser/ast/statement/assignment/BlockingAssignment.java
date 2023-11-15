@@ -36,4 +36,13 @@ public class BlockingAssignment extends Assignment<LValue, Expression> {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(leftHandSide.toString());
+        sb.append(" = ");
+        sb.append(rightHandSide.toString());
+        return sb.toString();
+    }
 }

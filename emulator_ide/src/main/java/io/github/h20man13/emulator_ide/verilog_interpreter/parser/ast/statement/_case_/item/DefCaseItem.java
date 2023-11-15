@@ -23,5 +23,11 @@ public class DefCaseItem extends CaseItem {
         return statVisitor.visit(this, argv);
     }
 
-    
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("default: ");
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }

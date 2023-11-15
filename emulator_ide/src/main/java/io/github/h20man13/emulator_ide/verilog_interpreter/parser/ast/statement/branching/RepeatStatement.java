@@ -9,7 +9,7 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visito
 
 public class RepeatStatement extends AstNode implements Statement {
     public final Statement stat; // Statement
-    public final Expression      exp;  // Expression
+    public final Expression exp;  // Expression
 
     public RepeatStatement(Position start, Expression exp, Statement stat) {
         super(start);
@@ -27,5 +27,15 @@ public class RepeatStatement extends AstNode implements Statement {
      */
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("repeat (");
+        sb.append(exp.toString());
+        sb.append(") \n");
+        sb.append(stat.toString());
+        return sb.toString();
     }
 }

@@ -35,4 +35,9 @@ public class HexadecimalNode extends AstNode implements Expression{
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){ // TODO Auto-generated method stub
+        return lexeme;
+     }
 }

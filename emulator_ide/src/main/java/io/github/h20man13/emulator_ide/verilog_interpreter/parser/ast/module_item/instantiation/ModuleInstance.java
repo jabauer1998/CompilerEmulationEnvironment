@@ -29,4 +29,20 @@ public class ModuleInstance extends AstNode implements ModuleItem {
         return modVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(instanceName);
+        sb.append('(');
+        int size = expList.size();
+        for(int i = 0; i < size; i++){
+            Expression exp = expList.get(i);
+            sb.append(exp.toString());
+            if(i < size - 1){
+                sb.append(", ");
+            }
+        }
+        sb.append(')');
+        return sb.toString();
+    }
 }

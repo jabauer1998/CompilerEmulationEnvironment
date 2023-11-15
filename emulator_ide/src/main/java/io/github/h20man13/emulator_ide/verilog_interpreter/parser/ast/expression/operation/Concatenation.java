@@ -16,7 +16,6 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visito
  * @author Jacob Bauer
  */
 public class Concatenation extends AstNode implements Expression, LValue{
-
     public final List<Expression> circuitElementExpressionList; // list of Expressions to concatenate
 
     /**
@@ -42,4 +41,21 @@ public class Concatenation extends AstNode implements Expression, LValue{
     @Override
     public <DataType> Pointer<DataType> getLValue(SymbolTable<Pointer<DataType>> environment){ // TODO Auto-generated method stub
     return null; }
+
+    @Override
+    public String toString(){ // TODO Auto-generated method stub
+        StringBuilder sb = new StringBuilder();
+        int expressionListSize = circuitElementExpressionList.size();
+        sb.append('{');
+        boolean first = true;
+        for(int i = 0; i < expressionListSize; i++){
+            Expression exp = circuitElementExpressionList.get(i);
+            sb.append(exp.toString());
+            if(i < expressionListSize - 1){
+                sb.append(',');
+            }
+        }
+        sb.append('}');
+        return sb.toString();
+    }
 }

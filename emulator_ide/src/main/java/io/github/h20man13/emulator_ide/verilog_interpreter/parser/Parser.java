@@ -49,7 +49,6 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_ite
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Output;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Real;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Reg;
-import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.RegValueList;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Unidentified;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_item.variable_declaration.Wire;
 import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.EmptyStatement;

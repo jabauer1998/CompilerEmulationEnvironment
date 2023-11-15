@@ -7,7 +7,6 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.statement.
 import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
 
 public class FunctionDeclaration extends ProcedureDeclaration {
-
     public final ModuleItem      functionName;
 
     public FunctionDeclaration(Position start, ModuleItem functionName, List<ModuleItem> paramaters, Statement stat) {
@@ -23,6 +22,17 @@ public class FunctionDeclaration extends ProcedureDeclaration {
      */
     public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
         return modVisitor.visit(this, argv);
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("function ");
+        sb.append(functionName.toString());
+        sb.append('\n');
+        sb.append(super.toString());
+        sb.append("endfunction\n");
+        return sb.toString();
     }
 
 }

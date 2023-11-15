@@ -27,4 +27,15 @@ public class SeqBlockStatement extends AstNode implements Statement {
         return statVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("begin\n");
+        for(Statement stat : statementList){
+            sb.append(stat.toString());
+            sb.append(";\n");
+        }
+        sb.append("end\n");
+        return sb.toString();
+    }
 }

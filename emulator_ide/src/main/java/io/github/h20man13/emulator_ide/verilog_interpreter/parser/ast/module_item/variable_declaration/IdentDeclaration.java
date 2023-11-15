@@ -15,4 +15,9 @@ public abstract class IdentDeclaration extends AstNode implements ModuleItem{
     }
 
     public abstract <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv);
+
+    @Override
+    public String toString(){
+        return declarationIdentifier;
+    }
 }

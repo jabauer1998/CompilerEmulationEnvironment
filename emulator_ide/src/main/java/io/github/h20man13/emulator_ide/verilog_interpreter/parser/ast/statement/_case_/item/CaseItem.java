@@ -26,4 +26,8 @@ public abstract class CaseItem extends AstNode implements Statement {
      */
     public abstract <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv);
 
+    @Override
+    public String toString(){
+        return statement.toString();
+    }
 }

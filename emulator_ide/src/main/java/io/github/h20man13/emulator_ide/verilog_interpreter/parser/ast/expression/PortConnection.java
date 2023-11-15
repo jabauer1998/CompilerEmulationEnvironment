@@ -37,4 +37,15 @@ public class PortConnection extends AstNode implements Expression {
         return exprVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append('.');
+        sb.append(connectingTo);
+        sb.append('(');
+        sb.append(connectingFrom.toString());
+        sb.append(')');
+        return sb.toString();
+    }
+
 }

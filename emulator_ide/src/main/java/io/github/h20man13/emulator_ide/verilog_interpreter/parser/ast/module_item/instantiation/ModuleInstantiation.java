@@ -8,7 +8,6 @@ import io.github.H20man13.emulator_ide.verilog_interpreter.parser.ast.module_ite
 import io.github.H20man13.emulator_ide.verilog_interpreter.visitor_passes.visitor.ModuleVisitor;
 
 public class ModuleInstantiation extends AstNode implements ModuleItem{
-
     public final String      moduleType;
     public final List<ModuleInstance> modList;
 
@@ -26,5 +25,20 @@ public class ModuleInstantiation extends AstNode implements ModuleItem{
     public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
         return modVisitor.visit(this, argv);
     }
-
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(moduleType);
+        sb.append(' ');
+        int size = modList.size();
+        for(int i = 0; i < size; i++){
+            ModuleInstance exp = modList.get(i);
+            sb.append(exp.toString());
+            if(i < size - 1){
+                sb.append(", ");
+            }
+        }
+        sb.append(";");
+        return sb.toString();
+    }
 }

@@ -25,4 +25,17 @@ public abstract class ProcedureDeclaration extends AstNode implements ModuleItem
      */
     public abstract <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv);
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        int size = paramaters.size();
+        for(int i = 0; i < size; i++){
+            ModuleItem param = paramaters.get(i);
+            sb.append(param);
+            sb.append("\n");
+        }
+
+        sb.append(stat.toString());
+        return sb.toString();
+    }
 }

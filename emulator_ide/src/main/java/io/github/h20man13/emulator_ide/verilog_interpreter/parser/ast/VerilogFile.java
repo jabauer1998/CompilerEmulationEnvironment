@@ -16,7 +16,16 @@ public class VerilogFile extends AstNode {
    public final List<ModuleDeclaration> modules;
 
    public VerilogFile(Position Pos, List<ModuleDeclaration> modules){
-        super(Pos);
-        this.modules = modules;
+     super(Pos);
+     this.modules = modules;
+   }
+
+   @Override
+   public String toString(){
+     StringBuilder sb = new StringBuilder();
+     for(ModuleDeclaration decl: modules){
+          sb.append(decl.toString());
+     }
+     return sb.toString();
    }
 }

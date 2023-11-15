@@ -28,4 +28,15 @@ public class WaitStatement extends AstNode implements Statement{
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("wait ");
+        sb.append('(');
+        sb.append(exp.toString());
+        sb.append(")");
+        sb.append(stat.toString());
+        return sb.toString();
+    }
 }

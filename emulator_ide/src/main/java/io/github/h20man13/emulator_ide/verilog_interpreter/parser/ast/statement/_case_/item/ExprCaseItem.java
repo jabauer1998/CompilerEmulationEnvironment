@@ -27,4 +27,20 @@ public class ExprCaseItem extends CaseItem {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        int exprListSize = expList.size();
+        for(int i = 0; i < exprListSize; i++){
+            Expression exp = expList.get(i);
+            sb.append(exp.toString());
+            if(i < exprListSize - 1){
+                sb.append(", ");
+            }
+        }
+        sb.append(" : ");
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }

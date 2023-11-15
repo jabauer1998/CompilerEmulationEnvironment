@@ -23,4 +23,24 @@ public class NonBlockingAssignment extends Assignment<List<LValue>, List<Express
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        List<LValue> lList = leftHandSide;
+        List<Expression> rExp = rightHandSide;
+
+        int size = lList.size();
+        for(int i = 0; i < size; i++){
+            LValue left = lList.get(i);
+            Expression right = rExp.get(i);
+
+            sb.append(left.toString());
+            sb.append(" <= ");
+            sb.append(right.toString());
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
 }

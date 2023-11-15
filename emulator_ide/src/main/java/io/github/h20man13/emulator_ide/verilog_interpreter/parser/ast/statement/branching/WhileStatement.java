@@ -29,4 +29,15 @@ public class WhileStatement extends AstNode implements Statement {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("while (");
+        sb.append(exp.toString());
+        sb.append(")\n");
+        sb.append(stat.toString());
+
+        return sb.toString();
+    }
 }

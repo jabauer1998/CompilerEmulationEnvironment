@@ -14,4 +14,18 @@ public class ModuleDeclaration extends AstNode {
         this.moduleName = moduleName;
         this.moduleItemList = Collections.unmodifiableList(moduleItemList);
     }
+
+    @Override
+    public String toString(){ // TODO Auto-generated method stub
+        StringBuilder sb = new StringBuilder();
+        sb.append("module ");
+        sb.append(moduleName);
+        sb.append(";\n");
+        for(ModuleItem item : moduleItemList){
+            sb.append(item.toString());
+            sb.append("\n");
+        }
+        sb.append("endmodule\n");
+        return sb.toString();
+    }
 }

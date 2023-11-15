@@ -25,4 +25,13 @@ public class IfElseStatement extends IfStatement {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append("else\n");
+        sb.append(falseStatement.toString());
+        return sb.toString();
+    }
 }

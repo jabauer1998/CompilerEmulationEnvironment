@@ -17,5 +17,13 @@ public class Real {
         public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
             return modVisitor.visit(this, argv);
         }
+
+        @Override
+        public String toString(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("real ");
+            sb.append(super.toString());
+            return sb.toString();
+        }
     }
 }

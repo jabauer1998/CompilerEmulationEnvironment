@@ -13,6 +13,14 @@ public class Int {
         public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
             return modVisitor.visit(this, argv);
         }
+
+        @Override
+        public String toString(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("integer ");
+            sb.append(super.toString());
+            return sb.toString();
+        }
     }
     public class Ident extends IdentDeclaration{
         public Ident(Position start, String lexeme){
@@ -21,6 +29,14 @@ public class Int {
 
         public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
             return modVisitor.visit(this, argv);
+        }
+
+        @Override
+        public String toString(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("integer ");
+            sb.append(super.toString());
+            return sb.toString();
         }
     }
 }

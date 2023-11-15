@@ -24,4 +24,14 @@ public class TaskDeclaration extends ProcedureDeclaration {
         return modVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("task ");
+        sb.append(taskName);
+        sb.append('\n');
+        sb.append(super.toString());
+        sb.append("endtask\n");
+        return sb.toString();
+    }
 }

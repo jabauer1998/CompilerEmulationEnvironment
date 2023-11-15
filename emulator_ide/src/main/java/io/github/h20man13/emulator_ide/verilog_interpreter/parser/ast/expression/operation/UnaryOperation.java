@@ -51,4 +51,18 @@ public class UnaryOperation extends AstNode implements Expression {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        switch(Op){
+            case PLUS: sb.append("+");
+            case MINUS: sb.append("-");
+            case LNEG: sb.append("!");
+            case BNEG: sb.append("~");
+        }
+
+        sb.append(rightHandSideExpression.toString());
+        return sb.toString();
+    }
 }

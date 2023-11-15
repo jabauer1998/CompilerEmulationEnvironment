@@ -43,4 +43,15 @@ public class TernaryOperation extends AstNode implements Expression {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(condition.toString());
+        sb.append(" ? ");
+        sb.append(ifTrue.toString());
+        sb.append(" : ");
+        sb.append(ifFalse.toString());
+        return sb.toString();
+    }
 }

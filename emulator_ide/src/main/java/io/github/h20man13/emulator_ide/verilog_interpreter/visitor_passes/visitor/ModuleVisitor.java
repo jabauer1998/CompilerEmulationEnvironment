@@ -263,14 +263,6 @@ public interface ModuleVisitor<ModVisitType> {
 
     public ModVisitType visit(Real.Ident decl, Object... argv);
 
-     /**
-     * This is used to visit any real declaration in verilog. Ex. real a, b, c ... ;
-     * 
-     * @param decl
-     */
-
-    public ModVisitType visit(RegValueList decls, Object... argv);
-
     /**
      * This is used to visit any andgate declaration in verilog. Ex. integer a, b, c ... ;
      * 

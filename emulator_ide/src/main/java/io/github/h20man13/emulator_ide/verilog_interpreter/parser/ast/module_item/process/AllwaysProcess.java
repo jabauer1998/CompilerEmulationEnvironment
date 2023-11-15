@@ -30,5 +30,12 @@ public class AllwaysProcess extends ProcessBase {
 		return modVisitor.visit(this, argv);
 	}
 
-	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("allways\n");
+		sb.append(statement.toString());
+		sb.append("end\n");
+		return sb.toString();
+	}
 }

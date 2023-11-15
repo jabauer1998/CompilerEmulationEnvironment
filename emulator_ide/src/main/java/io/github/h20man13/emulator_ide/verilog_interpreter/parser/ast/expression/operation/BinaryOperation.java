@@ -66,4 +66,38 @@ public class BinaryOperation extends AstNode implements Expression {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("( ");
+        sb.append(left.toString());
+        sb.append(' ');
+        switch(Op){
+            case PLUS: sb.append('+');
+            case MINUS: sb.append('-');
+            case TIMES: sb.append('*');
+            case DIV: sb.append('/');
+            case MOD: sb.append('%');
+            case EQ2: sb.append("==");
+            case EQ3: sb.append("===");
+            case NE1: sb.append("!=");
+            case NE2: sb.append("!==");
+            case LAND: sb.append("&&");
+            case LOR: sb.append("||");
+            case LE: sb.append("<=");
+            case LT: sb.append("<");
+            case GE: sb.append(">=");
+            case GT: sb.append(">");
+            case BAND: sb.append("&");
+            case BOR: sb.append("|");
+            case BXOR: sb.append("^");
+            case BXNOR: sb.append("~^");
+            case LSHIFT: sb.append("<<");
+            case RSHIFT: sb.append(">>");
+        }
+        sb.append(right.toString());
+        sb.append(" )");
+        return sb.toString();
+    }
 }

@@ -23,5 +23,10 @@ public class Unidentified {
             return modVisitor.visit(this, argv);
         }
 
+        @Override
+        public String toString(){
+            return declaration;
+        }
+
     }
 }

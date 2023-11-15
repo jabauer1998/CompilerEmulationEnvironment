@@ -29,6 +29,18 @@ public class Input {
                 public Expression GetIndex2(){ // TODO Auto-generated method stub
                     return vectorIndex2; 
                 }
+
+                @Override
+                public String toString(){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("input wire [");
+                    sb.append(GetIndex1().toString());
+                    sb.append(":");
+                    sb.append(GetIndex2().toString());
+                    sb.append("] ");
+                    sb.append(super.toString());
+                    return sb.toString();
+                }
             }
         }
         public final class Scalar{
@@ -40,6 +52,14 @@ public class Input {
 
                 public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
                     return modVisitor.visit(this, argv);
+                }
+
+                @Override
+                public String toString(){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("input wire ");
+                    sb.append(super.toString());
+                    return sb.toString();
                 }
             }
         }
@@ -75,6 +95,18 @@ public class Input {
                 public Expression GetIndex2(){ // TODO Auto-generated method stub
                     return vectorIndex2; 
                 }
+
+                @Override
+                public String toString(){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("input reg [");
+                    sb.append(GetIndex1().toString());
+                    sb.append(":");
+                    sb.append(GetIndex2().toString());
+                    sb.append("] ");
+                    sb.append(super.toString());
+                    return sb.toString();
+                }
             }
         }
         public final class Scalar {
@@ -93,6 +125,14 @@ public class Input {
         
                 public <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv){
                     return modVisitor.visit(this, argv);
+                }
+
+                @Override
+                public String toString(){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("input reg ");
+                    sb.append(super.toString());
+                    return sb.toString();
                 }
             }
         }

@@ -14,5 +14,4 @@ public abstract class GateDeclaration <OutputType> extends AstNode implements Mo
     }
 
     public abstract <ModVisitType> ModVisitType accept(ModuleVisitor<ModVisitType> modVisitor, Object... argv);
-
 }

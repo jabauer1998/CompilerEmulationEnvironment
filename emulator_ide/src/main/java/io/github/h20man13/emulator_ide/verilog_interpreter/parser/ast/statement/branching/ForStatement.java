@@ -34,4 +34,19 @@ public class ForStatement extends AstNode implements Statement {
     public <StatVisitType> StatVisitType accept(StatementVisitor<StatVisitType> statVisitor, Object... argv){
         return statVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("for (");
+        sb.append(init.toString());
+        sb.append("; ");
+        sb.append(exp.toString());
+        sb.append("; ");
+        sb.append(change.toString());
+        sb.append(")\n");
+        sb.append(stat.toString());
+        sb.append("\n");
+        return sb.toString();
+    }
 }

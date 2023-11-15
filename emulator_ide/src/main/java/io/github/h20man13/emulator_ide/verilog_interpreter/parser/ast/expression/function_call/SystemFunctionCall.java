@@ -28,4 +28,12 @@ public class SystemFunctionCall extends FunctionCall {
     public <ExprVisitType> ExprVisitType accept(ExpressionVisitor<ExprVisitType> exprVisitor, Object... argv){
         return exprVisitor.visit(this, argv);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append('$');
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }

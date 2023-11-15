@@ -18,4 +18,20 @@ public class AndGateDeclaration extends GateDeclaration<List<Expression>> {
         return modVisitor.visit(this, argv);
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("and(");
+        List<Expression> gateList = gateConnections;
+        int size = gateList.size();
+        for(int i = 0; i < size; i++){
+            Expression exp = gateList.get(i);
+            sb.append(exp.toString());
+            if(i < size - 1){
+                sb.append(", ");
+            }
+        }
+        sb.append(");");
+        return sb.toString();
+    }
 }
