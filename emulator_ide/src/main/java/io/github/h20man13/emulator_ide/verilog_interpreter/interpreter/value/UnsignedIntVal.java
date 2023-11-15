@@ -130,7 +130,7 @@ public class UnsignedIntVal implements Value, Unsigned {
 
         int size = end - start + 1;
 
-        long val = (value >> startIndex);
+        long val = (value >> start);
         long toKeepMask = ((1 << size) - 1);
 
         return Utils.getOptimalUnsignedForm(val & toKeepMask);
