@@ -337,10 +337,6 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 					Z = !solution32;
 					N = solution32[31];
             		V = (solution32[31] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[31] & op1[`WIDTH] & op2[`WIDTH]);
-					$display("C is %d", C);
-					$display("Z is %d", Z);
-					$display("N is %d", N);
-					$display("V is %d", V);
 	     		end
 
 				//If the instruction wants a result return it
@@ -474,10 +470,7 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 		  					op2 = getRegister(INSTR[15:12]);
 		  					MEM[address] = getRegister(INSTR[15:12]) & 8'b11111111;
 	       				end else begin //In word mode
-		  					totalholder[`WIDTH:24] =(getRegister(INSTR[15:12]) >> 24) & 8'b11111111;
-		  					totalholder[23:16] = (getRegister(INSTR[15:12]) >> 16) & 8'b11111111;
-		  					totalholder[15:8] = (getRegister(INSTR[15:12]) >> 8) & 8'b11111111;
-		  					totalholder[7:0] = getRegister(INSTR[15:12]) & 8'b11111111;
+		  					totalholder = getRegister(INSTR[15:12]);
 		  					MEM[address] = totalholder[`WIDTH:24];
 							MEM[address + 1] = totalholder[23:16];
 							MEM[address + 2] = totalholder[15:8];
@@ -664,7 +657,6 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
       while(InstructionCode != 28 && R15 < `MEMSIZE) begin
 	 	INSTR = fetch(R15); //old Fetch
 	 	InstructionCode = decode(INSTR);
-		$display("Decode is %d", InstructionCode);
 	 	incriment; //increment the program counter by a word or 4 bytes
 	 	execute(InstructionCode);
       end
