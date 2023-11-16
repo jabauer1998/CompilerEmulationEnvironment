@@ -308,58 +308,58 @@ public class ArmProcessorTest {
     public void testForLoopBasic2(){
         String assembly = "LDR R13, totalBytes\r\n" + //
                           "B begin_0\r\n" + //
-                        "h: .WORD 0\r\n" + //
-                        "l8: .WORD 1\r\n" + //
-                        "l7: .WORD 0\r\n" + //
-                        "l9: .WORD 10\r\n" + //
-                        "c: .WORD 4\r\n" + //
-                        "m0: .WORD 1\r\n" + //
-                        "m1: .WORD 0\r\n" + //
-                        "totalBytes: .WORD 3668\r\n" + //
-                        "begin_0: B begin_1\r\n" + //
-                        "WriteLn: SWI 4\r\n" + //
-                        "LDR R2, [R13]\r\n" + //
-                        "SUB R13, R13, #2\r\n" + //
-                        "MOV R15, R14\r\n" + //
-                        "WriteInt: LDR R2, c\r\n" + //
-                        "LDR R2, [R13, -R2]\r\n" + //
-                        "STR R2, h\r\n" + //
-                        "LDR R0, h\r\n" + //
-                        "SWI 1\r\n" + //
-                        "LDR R3, [R13]\r\n" + //
-                        "SUB R13, R13, #2\r\n" + //
-                        "MOV R15, R14\r\n" + //
-                        "begin_1: B begin_2\r\n" + //
-                        "begin_2: B begin_3\r\n" + //
-                        "begin_3: LDR R3, l8\r\n" + //
-                        "STR R3, l7\r\n" + //
-                        "FORBEG_0_LEVEL_0: LDR R2, l7\r\n" + //
-                        "LDR R3, l9\r\n" + //
-                        "CMP R2, R3\r\n" + //
-                        "BLT FORLOOP_0_LEVEL_0\r\n" + //
-                        "BGE FOREND_0_LEVEL_0\r\n" + //
-                        "FORLOOP_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
-                        "STR R14, [R13, #-8]\r\n" + //
-                        "LDR R4, c\r\n" + //
-                        "LDR R2, l7\r\n" + //
-                        "STR R2, [R13,-R4]\r\n" + //
-                        "BL WriteInt\r\n" + //
-                        "LDR R14, [R13, #-8]\r\n" + //
-                        "SUB R13, R13, #8\r\n" + //
-                        "LDR R2, l7\r\n" + //
-                        "LDR R4, m0\r\n" + //
-                        "ADD R5, R2, R4\r\n" + //
-                        "STR R5, m1\r\n" + //
-                        "LDR R2, m1\r\n" + //
-                        "STR R2, l7\r\n" + //
-                        "B FORBEG_0_LEVEL_0\r\n" + //
-                        "FOREND_0_LEVEL_0: ADD R13, R13, #4\r\n" + //
-                        "STR R14, [R13, #-4]\r\n" + //
-                        "BL WriteLn\r\n" + //
-                        "LDR R14, [R13, #-4]\r\n" + //
-                        "SUB R13, R13, #4\r\n" + //
-                        "STP\r\n";
-        String expectedResult = "10/n";
+                          "h: .WORD 0\r\n" + //
+                          "l8: .WORD 1\r\n" + //
+                          "l7: .WORD 0\r\n" + //
+                          "l9: .WORD 10\r\n" + //
+                          "c: .WORD 4\r\n" + //
+                          "m0: .WORD 1\r\n" + //
+                          "m1: .WORD 0\r\n" + //
+                          "totalBytes: .WORD 3668\r\n" + //
+                          "begin_0: B begin_1\r\n" + //
+                          "WriteLn: SWI 4\r\n" + //
+                          "LDR R2, [R13]\r\n" + //
+                          "SUB R13, R13, #2\r\n" + //
+                          "MOV R15, R14\r\n" + //
+                          "WriteInt: LDR R2, c\r\n" + //
+                          "LDR R2, [R13, -R2]\r\n" + //
+                          "STR R2, h\r\n" + //
+                          "LDR R0, h\r\n" + //
+                          "SWI 1\r\n" + //
+                          "LDR R3, [R13]\r\n" + //
+                          "SUB R13, R13, #2\r\n" + //
+                          "MOV R15, R14\r\n" + //
+                          "begin_1: B begin_2\r\n" + //
+                          "begin_2: B begin_3\r\n" + //
+                          "begin_3: LDR R3, l8\r\n" + //
+                          "STR R3, l7\r\n" + //
+                          "FORBEG_0_LEVEL_0: LDR R2, l7\r\n" + //
+                          "LDR R3, l9\r\n" + //
+                          "CMP R2, R3\r\n" + //
+                          "BLT FORLOOP_0_LEVEL_0\r\n" + //
+                          "BGE FOREND_0_LEVEL_0\r\n" + //
+                          "FORLOOP_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                          "STR R14, [R13, #-8]\r\n" + //
+                          "LDR R4, c\r\n" + //
+                          "LDR R2, l7\r\n" + //
+                          "STR R2, [R13,-R4]\r\n" + //
+                          "BL WriteInt\r\n" + //
+                          "LDR R14, [R13, #-8]\r\n" + //
+                          "SUB R13, R13, #8\r\n" + //
+                          "LDR R2, l7\r\n" + //
+                          "LDR R4, m0\r\n" + //
+                          "ADD R5, R2, R4\r\n" + //
+                          "STR R5, m1\r\n" + //
+                          "LDR R2, m1\r\n" + //
+                          "STR R2, l7\r\n" + //
+                          "B FORBEG_0_LEVEL_0\r\n" + //
+                          "FOREND_0_LEVEL_0: ADD R13, R13, #4\r\n" + //
+                          "STR R14, [R13, #-4]\r\n" + //
+                          "BL WriteLn\r\n" + //
+                          "LDR R14, [R13, #-4]\r\n" + //
+                          "SUB R13, R13, #4\r\n" + //
+                          "STP\r\n";
+        String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }

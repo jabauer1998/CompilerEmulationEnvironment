@@ -235,8 +235,8 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	   `LS : checkCC = ~C & Z;
 	   `GE : checkCC = N == V;
 	   `LT : checkCC = N != V;
-	   `GT : checkCC = ~Z & (N == V);
-	   `LE : checkCC = Z | (N != V);
+	   `GT : checkCC = ~Z && (N == V);
+	   `LE : checkCC = Z || (N != V);
 	   `AL : checkCC = 1; //allways exec
 	   default: begin
 	      $display("Error: Unidentified intsruction when checkingCC %d\n", codecc);
@@ -256,12 +256,14 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
       input [31:0] code;
       reg [31:0]   op1;
 	  reg [31:0]   op2;
+	  reg op1Sign;
+	  reg op2Sign;
       reg [31:0]   cc;
       reg [31:0]   copy;
       reg [31:0]   dest;
       reg [31:0]   offset;
       reg [32:0]   solution32;
-      reg [64:0]   solution64;
+      reg [64:0]   solution64;   
       reg [31:0]   address;
       reg [31:0]   totalholder;
       reg [15:0]   regList;
@@ -320,8 +322,14 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 	     		case(code) //perform the specified operation
 	       			2, 10: solution32 = op1 & op2;
 	       			3, 11: solution32 = op1 ^ op2;
-	       			4, 12: solution32 = op1 - op2;
-	       			5: solution32 = op2 - op1;
+	       			4, 12: begin
+						op2 = ~op2 + 1;
+						solution32 = op1 + op2;
+					end
+	       			5: begin
+						op1 = ~op1 + 1;
+						solution32 = op2 + op1;
+					end
 	       			6, 13: solution32 = op1 + op2;
 	       			7: solution32 = op1 + op2 + C;
 	       			8: solution32 = op1 - op2 + C - 1;
@@ -385,7 +393,7 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 					C = solution32[32];
 					Z = solution32 == 0 ? 1 : 0;
 					N = solution32[`WIDTH] == 1 ? 1 : 0;
-					V = (solution32[`WIDTH] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[`WIDTH] & op1[`WIDTH] & op2[`WIDTH]);
+					V = (solution32[`WIDTH] & ~op1[`WIDTH] & ~op2[`WIDTH]) | (~solution32[`WIDTH] & op1[`WIDTH] & ~op2[`WIDTH]);
 	    		end
 	  		end
 	  		22: begin //MULL | MLAL
