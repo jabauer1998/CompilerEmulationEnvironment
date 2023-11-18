@@ -112,4 +112,12 @@ public class StrVal implements Value{
     public Value getShallowSlice(int startIndex, int endIndex) throws Exception{
         throw new UnsupportedOperationException("Cant perform a shallow slice operation on a String operand");
     }
+
+    public int length(){
+        return value.length();
+    }
+
+    public char charAt(int index){
+        return value.charAt(index);
+    }
 }

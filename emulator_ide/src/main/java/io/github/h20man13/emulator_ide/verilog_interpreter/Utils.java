@@ -1,6 +1,7 @@
 package io.github.H20man13.emulator_ide.verilog_interpreter;
 
 import java.io.File;
+import java.util.List;
 import javax.management.RuntimeErrorException;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.BoolVal;
 import io.github.H20man13.emulator_ide.verilog_interpreter.interpreter.value.ByteVal;
@@ -4636,6 +4637,44 @@ public class Utils {
 		else if(val.isUnsignedIntValue()) return val.longValue();
 		else if(val.isIntValue()) return val.intValue();
 		else return val.longValue();
+	}
+
+	public static String formatString(StrVal valString, List<Value> values){
+		int valueIndex = 0;
+		int valStrIndex = 0;
+		int valStrSize = valString.length();
+
+		StringBuilder result = new StringBuilder();
+		while(valStrIndex < valStrSize){
+			char currentChar = valString.charAt(valStrIndex);
+			if(currentChar == '%'){
+				if(valStrIndex + 1 < valStrSize){
+					char nextChar = valString.charAt(valStrIndex + 1);
+					if(nextChar == 'd'){
+						Value nextVal = values.get(valueIndex);
+						result.append(nextVal.intValue());
+						valStrIndex += 2;
+						valueIndex++;
+					} else if(nextChar == 'f'){
+						Value nextVal = values.get(valueIndex);
+						result.append(nextVal.realValue());
+						valStrIndex +=2;
+						valueIndex++;
+					} else {
+						result.append(currentChar);
+						valStrIndex++;
+					}
+				} else {
+					result.append(currentChar);
+					valStrIndex++;
+				}
+			} else {
+				result.append(currentChar);
+				valStrIndex++;
+			}
+		}
+
+		return result.toString();
 	}
 
 	public static Value convertToRawValue(Object obj){
