@@ -453,12 +453,14 @@ reg [7:0] MEM [0:`MEMSIZE]; //Simulated Ram for this processor
 					end
 					
 	     			if(INSTR[24])//Pre indexed
-	       				if(INSTR[23]) //Up bit is set
+	       				if(INSTR[23]) begin //Up bit is set
 		 					address = getRegister(INSTR[19:16]) + offset;	        
-	       				else //Down bit is set
+						end else begin //Down bit is set
 		 					address = getRegister(INSTR[19:16]) - offset;
-	     			else
+						end
+	     			else begin
 	       				address = getRegister(INSTR[19:16]);
+					end
 
 	     			if(INSTR[21])//Write back enabled
 	       				setRegister(INSTR[19:16], address);

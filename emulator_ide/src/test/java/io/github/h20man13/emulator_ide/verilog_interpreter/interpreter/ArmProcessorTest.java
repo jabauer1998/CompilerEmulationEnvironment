@@ -393,8 +393,8 @@ public class ArmProcessorTest {
                 "MVN R2, R2\r\n" + //
                 "STR R2, m9\r\n" + //
                 "LDR R3, m9\r\n" + //
-                "LDR R3, n0\r\n" + //
-                "ADD R3, R3, R3\r\n" + //
+                "LDR R9, n0\r\n" + //
+                "ADD R3, R3, R9\r\n" + //
                 "STR R3, n1\r\n" + //
                 "LDR R3, n1\r\n" + //
                 "STR R3, m7\r\n" + //
@@ -428,14 +428,14 @@ public class ArmProcessorTest {
                 "SUB R13, R13, #12\r\n" + //
                 "STR R4, n6\r\n" + //
                 "LDR R2, n2\r\n" + //
-                "LDR R2, n6\r\n" + //
-                "ADD R2, R2, R2\r\n" + //
+                "LDR R9, n6\r\n" + //
+                "ADD R2, R2, R9\r\n" + //
                 "STR R2, n7\r\n" + //
                 "LDR R2, n7\r\n" + //
                 "STR R2, n2\r\n" + //
                 "B FORBEG_0_LEVEL_0\r\n" + //
                 "FOREND_0_LEVEL_0: STP\r\n";
-        String expectedResult = "";
+        String expectedResult = "10\n9\n8\n7\n6\n5\n4\n3\n2\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }
