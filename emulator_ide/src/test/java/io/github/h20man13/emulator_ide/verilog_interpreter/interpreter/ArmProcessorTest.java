@@ -577,7 +577,7 @@ public class ArmProcessorTest {
                         "STR R5, n2\r\n" + //
                         "B FORBEG_0_LEVEL_0\r\n" + //
                         "FOREND_0_LEVEL_0: STP\r\n";
-        String expectedResult = "";
+        String expectedResult = "10\n9\n8\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }
