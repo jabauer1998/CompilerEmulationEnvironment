@@ -939,4 +939,196 @@ public class ArmProcessorTest {
         String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
+
+    @Test
+    public void testIfStatementBasic(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                "B begin_0\r\n" + //
+                "h: .WORD 0\r\n" + //
+                "n2: .WORD 1\r\n" + //
+                "n3: .WORD 0\r\n" + //
+                "n4: .WORD 0\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "s5: .BYTE 1\r\n" + //
+                "n6: .WORD 4\r\n" + //
+                "c: .WORD 4\r\n" + //
+                "n7: .WORD 5\r\n" + //
+                "s8: .BYTE 1\r\n" + //
+                "n8: .WORD 2\r\n" + //
+                "t0: .BYTE 1\r\n" + //
+                "n9: .WORD 5\r\n" + //
+                "o0: .WORD 6\r\n" + //
+                "totalBytes: .WORD 3891\r\n" + //
+                "begin_0: B begin_1\r\n" + //
+                "WriteLn: SWI 4\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "WriteInt: LDR R2, c\r\n" + //
+                "LDR R2, [R13, -R2]\r\n" + //
+                "STR R2, h\r\n" + //
+                "LDR R0, h\r\n" + //
+                "SWI 1\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "begin_1: B begin_2\r\n" + //
+                "begin_2: LDR R2, n2\r\n" + //
+                "STR R2, n3\r\n" + //
+                "LDR R2, n4\r\n" + //
+                "STR R2, n5\r\n" + //
+                "B begin_3\r\n" + //
+                "begin_3: LDR R2, n3\r\n" + //
+                "LDRB R3, s5\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_3_SEQ_0_LEVEL_0\r\n" + //
+                "BNE IFNEXT_3_SEQ_0_LEVEL_0\r\n" + //
+                "IFSTAT_3_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R3, c\r\n" + //
+                "LDR R4, n6\r\n" + //
+                "STR R4, [R13,-R3]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_3_LEVEL_0\r\n" + //
+                "IFNEXT_3_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R3, c\r\n" + //
+                "LDR R4, n7\r\n" + //
+                "STR R4, [R13,-R3]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_3_LEVEL_0\r\n" + //
+                "IFNEXT_3_SEQ_1_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                "IFEND_3_LEVEL_0: LDR R3, n5\r\n" + //
+                "LDRB R4, s8\r\n" + //
+                "TEQ R3, R4\r\n" + //
+                "BEQ IFSTAT_4_SEQ_0_LEVEL_0\r\n" + //
+                "BNE IFNEXT_4_SEQ_0_LEVEL_0\r\n" + //
+                "IFSTAT_4_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n8\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_0\r\n" + //
+                "IFNEXT_4_SEQ_0_LEVEL_0: LDR R2, n3\r\n" + //
+                "LDRB R3, t0\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_4_SEQ_1_LEVEL_0\r\n" + //
+                "BNE IFNEXT_4_SEQ_1_LEVEL_0\r\n" + //
+                "IFSTAT_4_SEQ_1_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n9\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_0\r\n" + //
+                "IFNEXT_4_SEQ_1_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, o0\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_0\r\n" + //
+                "IFNEXT_4_SEQ_2_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                "IFEND_4_LEVEL_0: STP\r\n";
+        String expectedResult = "4\n5\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
+
+    @Test
+    public void testIfStatementAdvanced(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                "B begin_0\r\n" + //
+                "n2: .BYTE 1\r\n" + //
+                "n3: .WORD 0\r\n" + //
+                "n4: .BYTE 0\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "s4: .BYTE 1\r\n" + //
+                "s5: .BYTE 1\r\n" + //
+                "n6: .WORD 5\r\n" + //
+                "c: .WORD 4\r\n" + //
+                "n7: .WORD 6\r\n" + //
+                "s8: .BYTE 1\r\n" + //
+                "n8: .WORD 7\r\n" + //
+                "n9: .WORD 8\r\n" + //
+                "totalBytes: .WORD 3853\r\n" + //
+                "begin_0: B begin_1\r\n" + //
+                "WriteInt: LDR R2, c\r\n" + //
+                "LDR R2, [R13, -R2]\r\n" + //
+                "STR R2, h\r\n" + //
+                "LDR R0, h\r\n" + //
+                "SWI 1\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "begin_1: B begin_2\r\n" + //
+                "begin_2: LDRB R2, n2\r\n" + //
+                "STR R2, n3\r\n" + //
+                "LDRB R2, n4\r\n" + //
+                "STR R2, n5\r\n" + //
+                "B begin_3\r\n" + //
+                "begin_3: LDR R2, n3\r\n" + //
+                "LDRB R3, s4\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_3_SEQ_0_LEVEL_0\r\n" + //
+                "BNE IFNEXT_3_SEQ_0_LEVEL_0\r\n" + //
+                "IFSTAT_3_SEQ_0_LEVEL_0: LDR R2, n5\r\n" + //
+                "LDRB R3, s5\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_4_SEQ_0_LEVEL_1\r\n" + //
+                "BNE IFNEXT_4_SEQ_0_LEVEL_1\r\n" + //
+                "IFSTAT_4_SEQ_0_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n6\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_1\r\n" + //
+                "IFNEXT_4_SEQ_0_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n7\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_1\r\n" + //
+                "IFNEXT_4_SEQ_1_LEVEL_1: ADD R0, R0, #0\r\n" + //
+                "IFEND_4_LEVEL_1: B IFEND_3_LEVEL_0\r\n" + //
+                "IFNEXT_3_SEQ_0_LEVEL_0: LDR R2, n5\r\n" + //
+                "LDRB R3, s8\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_6_SEQ_0_LEVEL_1\r\n" + //
+                "BNE IFNEXT_6_SEQ_0_LEVEL_1\r\n" + //
+                "IFSTAT_6_SEQ_0_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n8\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_6_LEVEL_1\r\n" + //
+                "IFNEXT_6_SEQ_0_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n9\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_6_LEVEL_1\r\n" + //
+                "IFNEXT_6_SEQ_1_LEVEL_1: ADD R0, R0, #0\r\n" + //
+                "IFEND_6_LEVEL_1: B IFEND_3_LEVEL_0\r\n" + //
+                "IFNEXT_3_SEQ_1_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                "IFEND_3_LEVEL_0: STP\r\n";
+        String expectedResult = "6\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
 }
