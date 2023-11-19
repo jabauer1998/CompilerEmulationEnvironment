@@ -503,7 +503,7 @@ public class ArmProcessorTest {
                         "STR R2, n2\r\n" + //
                         "FORBEG_0_LEVEL_0: LDR R2, n2\r\n" + //
                         "LDR R3, n5\r\n" + //
-                        "TST R2, R3\r\n" + //
+                        "TEQ R2, R3\r\n" + //
                         "BNE FORLOOP_0_LEVEL_0\r\n" + //
                         "BEQ FOREND_0_LEVEL_0\r\n" + //
                         "FORLOOP_0_LEVEL_0: LDR R4, n6\r\n" + //
@@ -577,7 +577,15 @@ public class ArmProcessorTest {
                         "STR R5, n2\r\n" + //
                         "B FORBEG_0_LEVEL_0\r\n" + //
                         "FOREND_0_LEVEL_0: STP\r\n";
-        String expectedResult = "10\n9\n8\n";
+        String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }
