@@ -864,7 +864,79 @@ public class ArmProcessorTest {
                               + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n8\n\\n\n"
                               + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n9\n\\n\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
 
-        
+    @Test
+    public void testRepeatLoopBasic(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                "B begin_0\r\n" + //
+                "h: .WORD 0\r\n" + //
+                "n3: .WORD 1\r\n" + //
+                "n2: .WORD 0\r\n" + //
+                "n4: .WORD 10\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "s4: .BYTE 1\r\n" + //
+                "c: .WORD 4\r\n" + //
+                "n6: .WORD 1\r\n" + //
+                "n7: .WORD 0\r\n" + //
+                "n8: .WORD 10\r\n" + //
+                "n9: .WORD 0\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "totalBytes: .WORD 3777\r\n" + //
+                "begin_0: B begin_1\r\n" + //
+                "WriteLn: SWI 4\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "WriteInt: LDR R2, c\r\n" + //
+                "LDR R2, [R13, -R2]\r\n" + //
+                "STR R2, h\r\n" + //
+                "LDR R0, h\r\n" + //
+                "SWI 1\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "begin_1: B begin_2\r\n" + //
+                "begin_2: B begin_3\r\n" + //
+                "begin_3: LDR R2, n3\r\n" + //
+                "STR R2, n2\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "LDR R3, n4\r\n" + //
+                "CMP R2, R3\r\n" + //
+                "MOVGE R4, #1\r\n" + //
+                "MOVLT R4, #0\r\n" + //
+                "STR R4, n5\r\n" + //
+                "REPEATBEG_0_LEVEL_0: LDR R4, n5\r\n" + //
+                "LDRB R3, s4\r\n" + //
+                "TEQ R4, R3\r\n" + //
+                "BEQ REPEATEND_0_LEVEL_0\r\n" + //
+                "BNE REPEATLOOP_0_LEVEL_0\r\n" + //
+                "REPEATLOOP_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R3, c\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "STR R2, [R13,-R3]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "LDR R3, n6\r\n" + //
+                "ADD R4, R2, R3\r\n" + //
+                "STR R4, n7\r\n" + //
+                "LDR R4, n7\r\n" + //
+                "STR R4, n2\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "LDR R3, n8\r\n" + //
+                "CMP R2, R3\r\n" + //
+                "MOVGE R4, #1\r\n" + //
+                "MOVLT R4, #0\r\n" + //
+                "STR R4, n9\r\n" + //
+                "LDR R4, n9\r\n" + //
+                "STR R4, n5\r\n" + //
+                "B REPEATBEG_0_LEVEL_0\r\n" + //
+                "REPEATEND_0_LEVEL_0: ADD R13, R13, #4\r\n" + //
+                "STR R14, [R13, #-4]\r\n" + //
+                "BL WriteLn\r\n" + //
+                "LDR R14, [R13, #-4]\r\n" + //
+                "SUB R13, R13, #4\r\n" + //
+                "STP\r\n";
+        String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }
