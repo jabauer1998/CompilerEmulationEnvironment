@@ -438,4 +438,146 @@ public class ArmProcessorTest {
         String expectedResult = "10\n9\n8\n7\n6\n5\n4\n3\n2\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
+
+    @Test
+    public void testForLoopAdvanced(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                        "B begin_0\r\n" + //
+                        "h: .WORD 0\r\n" + //
+                        "m8: .WORD 0\r\n" + //
+                        "m9: .WORD 0\r\n" + //
+                        "n0: .WORD 1\r\n" + //
+                        "n1: .WORD 0\r\n" + //
+                        "m7: .WORD 0\r\n" + //
+                        "n4: .WORD 1\r\n" + //
+                        "n2: .WORD 0\r\n" + //
+                        "n5: .WORD 10\r\n" + //
+                        "n6: .WORD 1\r\n" + //
+                        "n3: .WORD 0\r\n" + //
+                        "n7: .WORD 10\r\n" + //
+                        "n8: .WORD 1\r\n" + //
+                        "n9: .WORD 0\r\n" + //
+                        "n3: .WORD 0\r\n" + //
+                        "o0: .WORD 10\r\n" + //
+                        "n3: .WORD 0\r\n" + //
+                        "o1: .WORD 0\r\n" + //
+                        "c: .WORD 4\r\n" + //
+                        "N: .WORD 4\r\n" + //
+                        "O: .WORD 8\r\n" + //
+                        "o2: .WORD 1\r\n" + //
+                        "o3: .WORD 0\r\n" + //
+                        "o4: .WORD 0\r\n" + //
+                        "n3: .WORD 0\r\n" + //
+                        "o5: .WORD 1\r\n" + //
+                        "o6: .WORD 0\r\n" + //
+                        "n2: .WORD 0\r\n" + //
+                        "totalBytes: .WORD 3960\r\n" + //
+                        "begin_0: B begin_1\r\n" + //
+                        "WriteLn: SWI 4\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "WriteInt: LDR R2, c\r\n" + //
+                        "LDR R2, [R13, -R2]\r\n" + //
+                        "STR R2, h\r\n" + //
+                        "LDR R0, h\r\n" + //
+                        "SWI 1\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "begin_1: B begin_2\r\n" + //
+                        "INeg: LDR R2, N\r\n" + //
+                        "LDR R2, [R13, -R2]\r\n" + //
+                        "STR R2, m8\r\n" + //
+                        "LDR R2, m8\r\n" + //
+                        "MVN R2, R2\r\n" + //
+                        "STR R2, m9\r\n" + //
+                        "LDR R2, m9\r\n" + //
+                        "LDR R3, n0\r\n" + //
+                        "ADD R4, R2, R3\r\n" + //
+                        "STR R4, n1\r\n" + //
+                        "LDR R4, n1\r\n" + //
+                        "STR R4, m7\r\n" + //
+                        "LDR R2, m7\r\n" + //
+                        "LDR R3, O\r\n" + //
+                        "STR R2, [R13, -R3]\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "begin_2: B begin_3\r\n" + //
+                        "begin_3: LDR R2, n4\r\n" + //
+                        "STR R2, n2\r\n" + //
+                        "FORBEG_0_LEVEL_0: LDR R2, n2\r\n" + //
+                        "LDR R3, n5\r\n" + //
+                        "TST R2, R3\r\n" + //
+                        "BNE FORLOOP_0_LEVEL_0\r\n" + //
+                        "BEQ FOREND_0_LEVEL_0\r\n" + //
+                        "FORLOOP_0_LEVEL_0: LDR R4, n6\r\n" + //
+                        "STR R4, n3\r\n" + //
+                        "FORBEG_1_LEVEL_1: LDR R4, n3\r\n" + //
+                        "LDR R5, n7\r\n" + //
+                        "CMP R4, R5\r\n" + //
+                        "BLT FORLOOP_1_LEVEL_1\r\n" + //
+                        "BGE FOREND_1_LEVEL_1\r\n" + //
+                        "FORLOOP_1_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R6, c\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "STR R4, [R13,-R6]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "LDR R6, n8\r\n" + //
+                        "ADD R7, R4, R6\r\n" + //
+                        "STR R7, n9\r\n" + //
+                        "LDR R7, n9\r\n" + //
+                        "STR R7, n3\r\n" + //
+                        "B FORBEG_1_LEVEL_1\r\n" + //
+                        "FOREND_1_LEVEL_1: ADD R13, R13, #4\r\n" + //
+                        "STR R14, [R13, #-4]\r\n" + //
+                        "BL WriteLn\r\n" + //
+                        "LDR R14, [R13, #-4]\r\n" + //
+                        "SUB R13, R13, #4\r\n" + //
+                        "LDR R4, o0\r\n" + //
+                        "STR R4, n3\r\n" + //
+                        "FORBEG_2_LEVEL_1: LDR R4, n3\r\n" + //
+                        "LDR R5, o1\r\n" + //
+                        "CMP R4, R5\r\n" + //
+                        "BGT FORLOOP_2_LEVEL_1\r\n" + //
+                        "BLE FOREND_2_LEVEL_1\r\n" + //
+                        "FORLOOP_2_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R6, c\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "STR R4, [R13,-R6]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "LDR R6, o2\r\n" + //
+                        "ADD R13, R13, #12\r\n" + //
+                        "STR R6, [R13, #-4]\r\n" + //
+                        "STR R14, [R13, #-12]\r\n" + //
+                        "BL INeg\r\n" + //
+                        "LDR R6, [R13, #-8]\r\n" + //
+                        "LDR R14, [R13, #-12]\r\n" + //
+                        "SUB R13, R13, #12\r\n" + //
+                        "STR R6, o3\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "LDR R6, o3\r\n" + //
+                        "ADD R7, R4, R6\r\n" + //
+                        "STR R7, o4\r\n" + //
+                        "LDR R7, o4\r\n" + //
+                        "STR R7, n3\r\n" + //
+                        "B FORBEG_2_LEVEL_1\r\n" + //
+                        "FOREND_2_LEVEL_1: ADD R13, R13, #4\r\n" + //
+                        "STR R14, [R13, #-4]\r\n" + //
+                        "BL WriteLn\r\n" + //
+                        "LDR R14, [R13, #-4]\r\n" + //
+                        "SUB R13, R13, #4\r\n" + //
+                        "LDR R2, n2\r\n" + //
+                        "LDR R4, o5\r\n" + //
+                        "ADD R5, R2, R4\r\n" + //
+                        "STR R5, o6\r\n" + //
+                        "LDR R5, o6\r\n" + //
+                        "STR R5, n2\r\n" + //
+                        "B FORBEG_0_LEVEL_0\r\n" + //
+                        "FOREND_0_LEVEL_0: STP\r\n";
+        String expectedResult = "";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
 }
