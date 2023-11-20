@@ -503,7 +503,7 @@ public class ArmProcessorTest {
                         "STR R2, n2\r\n" + //
                         "FORBEG_0_LEVEL_0: LDR R2, n2\r\n" + //
                         "LDR R3, n5\r\n" + //
-                        "TST R2, R3\r\n" + //
+                        "TEQ R2, R3\r\n" + //
                         "BNE FORLOOP_0_LEVEL_0\r\n" + //
                         "BEQ FOREND_0_LEVEL_0\r\n" + //
                         "FORLOOP_0_LEVEL_0: LDR R4, n6\r\n" + //
@@ -577,7 +577,467 @@ public class ArmProcessorTest {
                         "STR R5, n2\r\n" + //
                         "B FORBEG_0_LEVEL_0\r\n" + //
                         "FOREND_0_LEVEL_0: STP\r\n";
-        String expectedResult = "10\n9\n8\n";
+        String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n"
+                              + "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n10\n9\n8\n7\n6\n5\n4\n3\n2\n1\n\\n\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
+
+    @Test
+    public void testWhileLoopBasic(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                        "B begin_0\r\n" + //
+                        "h: .WORD 0\r\n" + //
+                        "n2: .WORD 10\r\n" + //
+                        "n3: .WORD 0\r\n" + //
+                        "n5: .WORD 0\r\n" + //
+                        "n4: .WORD 0\r\n" + //
+                        "n6: .WORD 0\r\n" + //
+                        "s4: .BYTE 1\r\n" + //
+                        "s5: .BYTE 1\r\n" + //
+                        "c: .WORD 4\r\n" + //
+                        "n7: .WORD 1\r\n" + //
+                        "n8: .WORD 0\r\n" + //
+                        "n4: .WORD 0\r\n" + //
+                        "n9: .WORD 0\r\n" + //
+                        "n6: .WORD 0\r\n" + //
+                        "totalBytes: .WORD 3790\r\n" + //
+                        "begin_0: B begin_1\r\n" + //
+                        "WriteLn: SWI 4\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "WriteInt: LDR R2, c\r\n" + //
+                        "LDR R2, [R13, -R2]\r\n" + //
+                        "STR R2, h\r\n" + //
+                        "LDR R0, h\r\n" + //
+                        "SWI 1\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "begin_1: B begin_2\r\n" + //
+                        "begin_2: LDR R2, n2\r\n" + //
+                        "STR R2, n3\r\n" + //
+                        "B begin_3\r\n" + //
+                        "begin_3: LDR R2, n5\r\n" + //
+                        "STR R2, n4\r\n" + //
+                        "LDR R2, n4\r\n" + //
+                        "LDR R3, n3\r\n" + //
+                        "CMP R2, R3\r\n" + //
+                        "MOVLT R4, #1\r\n" + //
+                        "MOVGE R4, #0\r\n" + //
+                        "STR R4, n6\r\n" + //
+                        "LDR R4, n6\r\n" + //
+                        "LDRB R5, s4\r\n" + //
+                        "TEQ R4, R5\r\n" + //
+                        "BEQ WHILESTAT_12_SEQ_0_LEVEL_0\r\n" + //
+                        "BNE WHILENEXT_12_SEQ_0_LEVEL_0\r\n" + //
+                        "WHILECOND_12_SEQ_0_LEVEL_0: LDR R4, n6\r\n" + //
+                        "LDRB R5, s5\r\n" + //
+                        "TEQ R4, R5\r\n" + //
+                        "BEQ WHILESTAT_12_SEQ_0_LEVEL_0\r\n" + //
+                        "BNE WHILEEND_12_LEVEL_0\r\n" + //
+                        "WHILESTAT_12_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R4, c\r\n" + //
+                        "LDR R2, n4\r\n" + //
+                        "STR R2, [R13,-R4]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "LDR R2, n4\r\n" + //
+                        "LDR R4, n7\r\n" + //
+                        "ADD R5, R2, R4\r\n" + //
+                        "STR R5, n8\r\n" + //
+                        "LDR R5, n8\r\n" + //
+                        "STR R5, n4\r\n" + //
+                        "LDR R2, n4\r\n" + //
+                        "LDR R3, n3\r\n" + //
+                        "CMP R2, R3\r\n" + //
+                        "MOVLT R4, #1\r\n" + //
+                        "MOVGE R4, #0\r\n" + //
+                        "STR R4, n9\r\n" + //
+                        "LDR R4, n9\r\n" + //
+                        "STR R4, n6\r\n" + //
+                        "B WHILECOND_12_SEQ_0_LEVEL_0\r\n" + //
+                        "WHILENEXT_12_SEQ_0_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                        "WHILEEND_12_LEVEL_0: STP\r\n";
+        String expectedResult = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
+
+    @Test
+    public void testWhileLoopAdvanced(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                        "B begin_0\r\n" + //
+                        "h: .WORD 0\r\n" + //
+                        "n2: .WORD 10\r\n" + //
+                        "n3: .WORD 0\r\n" + //
+                        "n4: .WORD 0\r\n" + //
+                        "n5: .WORD 0\r\n" + //
+                        "n6: .WORD 0\r\n" + //
+                        "n8: .WORD 0\r\n" + //
+                        "t4: .BYTE 1\r\n" + //
+                        "t5: .BYTE 1\r\n" + //
+                        "c: .WORD 4\r\n" + //
+                        "n9: .WORD 1\r\n" + //
+                        "o0: .WORD 0\r\n" + //
+                        "n6: .WORD 0\r\n" + //
+                        "o1: .WORD 0\r\n" + //
+                        "n8: .WORD 0\r\n" + //
+                        "t7: .BYTE 1\r\n" + //
+                        "t8: .BYTE 1\r\n" + //
+                        "n7: .WORD 0\r\n" + //
+                        "o3: .WORD 0\r\n" + //
+                        "t9: .BYTE 1\r\n" + //
+                        "u0: .BYTE 1\r\n" + //
+                        "o4: .WORD 1\r\n" + //
+                        "o5: .WORD 0\r\n" + //
+                        "n7: .WORD 0\r\n" + //
+                        "o6: .WORD 0\r\n" + //
+                        "o3: .WORD 0\r\n" + //
+                        "o7: .WORD 1\r\n" + //
+                        "o8: .WORD 0\r\n" + //
+                        "n6: .WORD 0\r\n" + //
+                        "o9: .WORD 0\r\n" + //
+                        "o2: .WORD 0\r\n" + //
+                        "totalBytes: .WORD 4230\r\n" + //
+                        "begin_0: B begin_1\r\n" + //
+                        "WriteLn: SWI 4\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "WriteInt: LDR R2, c\r\n" + //
+                        "LDR R2, [R13, -R2]\r\n" + //
+                        "STR R2, h\r\n" + //
+                        "LDR R0, h\r\n" + //
+                        "SWI 1\r\n" + //
+                        "MOV R15, R14\r\n" + //
+                        "begin_1: B begin_2\r\n" + //
+                        "begin_2: LDR R2, n2\r\n" + //
+                        "STR R2, n3\r\n" + //
+                        "LDR R2, n4\r\n" + //
+                        "STR R2, n5\r\n" + //
+                        "B begin_3\r\n" + //
+                        "begin_3: LDR R2, n5\r\n" + //
+                        "STR R2, n6\r\n" + //
+                        "LDR R3, n6\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "CMP R3, R4\r\n" + //
+                        "MOVGT R5, #1\r\n" + //
+                        "MOVLE R5, #0\r\n" + //
+                        "STR R5, n8\r\n" + //
+                        "LDR R5, n8\r\n" + //
+                        "LDRB R6, t4\r\n" + //
+                        "TEQ R5, R6\r\n" + //
+                        "BEQ WHILESTAT_12_SEQ_0_LEVEL_0\r\n" + //
+                        "BNE WHILENEXT_12_SEQ_0_LEVEL_0\r\n" + //
+                        "WHILECOND_12_SEQ_0_LEVEL_0: LDR R5, n8\r\n" + //
+                        "LDRB R2, t5\r\n" + //
+                        "TEQ R5, R2\r\n" + //
+                        "BEQ WHILESTAT_12_SEQ_0_LEVEL_0\r\n" + //
+                        "BNE WHILEEND_12_LEVEL_0\r\n" + //
+                        "WHILESTAT_12_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R2, c\r\n" + //
+                        "LDR R3, n6\r\n" + //
+                        "STR R3, [R13,-R2]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "LDR R3, n6\r\n" + //
+                        "LDR R2, n9\r\n" + //
+                        "ADD R5, R3, R2\r\n" + //
+                        "STR R5, o0\r\n" + //
+                        "LDR R5, o0\r\n" + //
+                        "STR R5, n6\r\n" + //
+                        "LDR R2, n6\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "CMP R2, R4\r\n" + //
+                        "MOVGT R3, #1\r\n" + //
+                        "MOVLE R3, #0\r\n" + //
+                        "STR R3, o1\r\n" + //
+                        "LDR R3, o1\r\n" + //
+                        "STR R3, n8\r\n" + //
+                        "B WHILECOND_12_SEQ_0_LEVEL_0\r\n" + //
+                        "WHILENEXT_12_SEQ_0_LEVEL_0: LDR R2, n6\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "CMP R2, R4\r\n" + //
+                        "MOVLT R3, #1\r\n" + //
+                        "MOVGE R3, #0\r\n" + //
+                        "STR R3, o2\r\n" + //
+                        "LDR R3, o2\r\n" + //
+                        "LDRB R5, t7\r\n" + //
+                        "TEQ R3, R5\r\n" + //
+                        "BEQ WHILESTAT_12_SEQ_1_LEVEL_0\r\n" + //
+                        "BNE WHILENEXT_12_SEQ_1_LEVEL_0\r\n" + //
+                        "WHILECOND_12_SEQ_1_LEVEL_0: LDR R3, o2\r\n" + //
+                        "LDRB R5, t8\r\n" + //
+                        "TEQ R3, R5\r\n" + //
+                        "BEQ WHILESTAT_12_SEQ_1_LEVEL_0\r\n" + //
+                        "BNE WHILEEND_12_LEVEL_0\r\n" + //
+                        "WHILESTAT_12_SEQ_1_LEVEL_0: LDR R3, n5\r\n" + //
+                        "STR R3, n7\r\n" + //
+                        "LDR R5, n7\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "CMP R5, R4\r\n" + //
+                        "MOVLT R6, #1\r\n" + //
+                        "MOVGE R6, #0\r\n" + //
+                        "STR R6, o3\r\n" + //
+                        "LDR R6, o3\r\n" + //
+                        "LDRB R7, t9\r\n" + //
+                        "TEQ R6, R7\r\n" + //
+                        "BEQ WHILESTAT_14_SEQ_0_LEVEL_1\r\n" + //
+                        "BNE WHILENEXT_14_SEQ_0_LEVEL_1\r\n" + //
+                        "WHILECOND_14_SEQ_0_LEVEL_1: LDR R6, o3\r\n" + //
+                        "LDRB R7, u0\r\n" + //
+                        "TEQ R6, R7\r\n" + //
+                        "BEQ WHILESTAT_14_SEQ_0_LEVEL_1\r\n" + //
+                        "BNE WHILEEND_14_LEVEL_1\r\n" + //
+                        "WHILESTAT_14_SEQ_0_LEVEL_1: ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R6, c\r\n" + //
+                        "LDR R5, n7\r\n" + //
+                        "STR R5, [R13,-R6]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "LDR R5, n7\r\n" + //
+                        "LDR R6, o4\r\n" + //
+                        "ADD R7, R5, R6\r\n" + //
+                        "STR R7, o5\r\n" + //
+                        "LDR R7, o5\r\n" + //
+                        "STR R7, n7\r\n" + //
+                        "LDR R5, n7\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "CMP R5, R4\r\n" + //
+                        "MOVLT R6, #1\r\n" + //
+                        "MOVGE R6, #0\r\n" + //
+                        "STR R6, o6\r\n" + //
+                        "LDR R6, o6\r\n" + //
+                        "STR R6, o3\r\n" + //
+                        "B WHILECOND_14_SEQ_0_LEVEL_1\r\n" + //
+                        "WHILENEXT_14_SEQ_0_LEVEL_1: ADD R0, R0, #0\r\n" + //
+                        "WHILEEND_14_LEVEL_1: ADD R13, R13, #4\r\n" + //
+                        "STR R14, [R13, #-4]\r\n" + //
+                        "BL WriteLn\r\n" + //
+                        "LDR R14, [R13, #-4]\r\n" + //
+                        "SUB R13, R13, #4\r\n" + //
+                        "ADD R13, R13, #8\r\n" + //
+                        "STR R14, [R13, #-8]\r\n" + //
+                        "LDR R5, c\r\n" + //
+                        "LDR R2, n6\r\n" + //
+                        "STR R2, [R13,-R5]\r\n" + //
+                        "BL WriteInt\r\n" + //
+                        "LDR R14, [R13, #-8]\r\n" + //
+                        "SUB R13, R13, #8\r\n" + //
+                        "ADD R13, R13, #4\r\n" + //
+                        "STR R14, [R13, #-4]\r\n" + //
+                        "BL WriteLn\r\n" + //
+                        "LDR R14, [R13, #-4]\r\n" + //
+                        "SUB R13, R13, #4\r\n" + //
+                        "LDR R2, n6\r\n" + //
+                        "LDR R5, o7\r\n" + //
+                        "ADD R6, R2, R5\r\n" + //
+                        "STR R6, o8\r\n" + //
+                        "LDR R6, o8\r\n" + //
+                        "STR R6, n6\r\n" + //
+                        "LDR R2, n6\r\n" + //
+                        "LDR R4, n3\r\n" + //
+                        "CMP R2, R4\r\n" + //
+                        "MOVLT R5, #1\r\n" + //
+                        "MOVGE R5, #0\r\n" + //
+                        "STR R5, o9\r\n" + //
+                        "LDR R5, o9\r\n" + //
+                        "STR R5, o2\r\n" + //
+                        "B WHILECOND_12_SEQ_1_LEVEL_0\r\n" + //
+                        "WHILENEXT_12_SEQ_1_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                        "WHILEEND_12_LEVEL_0: STP\r\n";
+        String expectedResult = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n0\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n1\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n2\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n3\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n4\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n5\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n6\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n7\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n8\n\\n\n"
+                              + "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n9\n\\n\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
+
+    @Test
+    public void testRepeatLoopBasic(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                "B begin_0\r\n" + //
+                "h: .WORD 0\r\n" + //
+                "n3: .WORD 1\r\n" + //
+                "n2: .WORD 0\r\n" + //
+                "n4: .WORD 10\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "s4: .BYTE 1\r\n" + //
+                "c: .WORD 4\r\n" + //
+                "n6: .WORD 1\r\n" + //
+                "n7: .WORD 0\r\n" + //
+                "n8: .WORD 10\r\n" + //
+                "n9: .WORD 0\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "totalBytes: .WORD 3777\r\n" + //
+                "begin_0: B begin_1\r\n" + //
+                "WriteLn: SWI 4\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "WriteInt: LDR R2, c\r\n" + //
+                "LDR R2, [R13, -R2]\r\n" + //
+                "STR R2, h\r\n" + //
+                "LDR R0, h\r\n" + //
+                "SWI 1\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "begin_1: B begin_2\r\n" + //
+                "begin_2: B begin_3\r\n" + //
+                "begin_3: LDR R2, n3\r\n" + //
+                "STR R2, n2\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "LDR R3, n4\r\n" + //
+                "CMP R2, R3\r\n" + //
+                "MOVGE R4, #1\r\n" + //
+                "MOVLT R4, #0\r\n" + //
+                "STR R4, n5\r\n" + //
+                "REPEATBEG_0_LEVEL_0: LDR R4, n5\r\n" + //
+                "LDRB R3, s4\r\n" + //
+                "TEQ R4, R3\r\n" + //
+                "BEQ REPEATEND_0_LEVEL_0\r\n" + //
+                "BNE REPEATLOOP_0_LEVEL_0\r\n" + //
+                "REPEATLOOP_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R3, c\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "STR R2, [R13,-R3]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "LDR R3, n6\r\n" + //
+                "ADD R4, R2, R3\r\n" + //
+                "STR R4, n7\r\n" + //
+                "LDR R4, n7\r\n" + //
+                "STR R4, n2\r\n" + //
+                "LDR R2, n2\r\n" + //
+                "LDR R3, n8\r\n" + //
+                "CMP R2, R3\r\n" + //
+                "MOVGE R4, #1\r\n" + //
+                "MOVLT R4, #0\r\n" + //
+                "STR R4, n9\r\n" + //
+                "LDR R4, n9\r\n" + //
+                "STR R4, n5\r\n" + //
+                "B REPEATBEG_0_LEVEL_0\r\n" + //
+                "REPEATEND_0_LEVEL_0: ADD R13, R13, #4\r\n" + //
+                "STR R14, [R13, #-4]\r\n" + //
+                "BL WriteLn\r\n" + //
+                "LDR R14, [R13, #-4]\r\n" + //
+                "SUB R13, R13, #4\r\n" + //
+                "STP\r\n";
+        String expectedResult = "1\n2\n3\n4\n5\n6\n7\n8\n9\n\\n\n";
+        runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
+    }
+
+    @Test
+    public void testIfStatementBasic(){
+        String assembly = "LDR R13, totalBytes\r\n" + //
+                "B begin_0\r\n" + //
+                "h: .WORD 0\r\n" + //
+                "n2: .WORD 1\r\n" + //
+                "n3: .WORD 0\r\n" + //
+                "n4: .WORD 0\r\n" + //
+                "n5: .WORD 0\r\n" + //
+                "s5: .BYTE 1\r\n" + //
+                "n6: .WORD 4\r\n" + //
+                "c: .WORD 4\r\n" + //
+                "n7: .WORD 5\r\n" + //
+                "s8: .BYTE 1\r\n" + //
+                "n8: .WORD 2\r\n" + //
+                "t0: .BYTE 1\r\n" + //
+                "n9: .WORD 5\r\n" + //
+                "o0: .WORD 6\r\n" + //
+                "totalBytes: .WORD 3891\r\n" + //
+                "begin_0: B begin_1\r\n" + //
+                "WriteLn: SWI 4\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "WriteInt: LDR R2, c\r\n" + //
+                "LDR R2, [R13, -R2]\r\n" + //
+                "STR R2, h\r\n" + //
+                "LDR R0, h\r\n" + //
+                "SWI 1\r\n" + //
+                "MOV R15, R14\r\n" + //
+                "begin_1: B begin_2\r\n" + //
+                "begin_2: LDR R2, n2\r\n" + //
+                "STR R2, n3\r\n" + //
+                "LDR R2, n4\r\n" + //
+                "STR R2, n5\r\n" + //
+                "B begin_3\r\n" + //
+                "begin_3: LDR R2, n3\r\n" + //
+                "LDRB R3, s5\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_3_SEQ_0_LEVEL_0\r\n" + //
+                "BNE IFNEXT_3_SEQ_0_LEVEL_0\r\n" + //
+                "IFSTAT_3_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R3, c\r\n" + //
+                "LDR R4, n6\r\n" + //
+                "STR R4, [R13,-R3]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_3_LEVEL_0\r\n" + //
+                "IFNEXT_3_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R3, c\r\n" + //
+                "LDR R4, n7\r\n" + //
+                "STR R4, [R13,-R3]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_3_LEVEL_0\r\n" + //
+                "IFNEXT_3_SEQ_1_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                "IFEND_3_LEVEL_0: LDR R3, n5\r\n" + //
+                "LDRB R4, s8\r\n" + //
+                "TEQ R3, R4\r\n" + //
+                "BEQ IFSTAT_4_SEQ_0_LEVEL_0\r\n" + //
+                "BNE IFNEXT_4_SEQ_0_LEVEL_0\r\n" + //
+                "IFSTAT_4_SEQ_0_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n8\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_0\r\n" + //
+                "IFNEXT_4_SEQ_0_LEVEL_0: LDR R2, n3\r\n" + //
+                "LDRB R3, t0\r\n" + //
+                "TEQ R2, R3\r\n" + //
+                "BEQ IFSTAT_4_SEQ_1_LEVEL_0\r\n" + //
+                "BNE IFNEXT_4_SEQ_1_LEVEL_0\r\n" + //
+                "IFSTAT_4_SEQ_1_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, n9\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_0\r\n" + //
+                "IFNEXT_4_SEQ_1_LEVEL_0: ADD R13, R13, #8\r\n" + //
+                "STR R14, [R13, #-8]\r\n" + //
+                "LDR R2, c\r\n" + //
+                "LDR R3, o0\r\n" + //
+                "STR R3, [R13,-R2]\r\n" + //
+                "BL WriteInt\r\n" + //
+                "LDR R14, [R13, #-8]\r\n" + //
+                "SUB R13, R13, #8\r\n" + //
+                "B IFEND_4_LEVEL_0\r\n" + //
+                "IFNEXT_4_SEQ_2_LEVEL_0: ADD R0, R0, #0\r\n" + //
+                "IFEND_4_LEVEL_0: STP\r\n";
+        String expectedResult = "4\n5\n";
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }
