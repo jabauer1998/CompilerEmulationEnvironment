@@ -1041,6 +1041,7 @@ public class ArmProcessorTest {
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 
+    @Test
     public void testIfStatementAdvanced(){
         String assembly = "LDR R13, totalBytes\r\n" + //
                 "B begin_0\r\n" + //
