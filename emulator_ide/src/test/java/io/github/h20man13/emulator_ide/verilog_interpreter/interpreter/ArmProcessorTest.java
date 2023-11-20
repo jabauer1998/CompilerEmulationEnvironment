@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package io.github.H20man13.emulator_ide.verilog_interpreter.interpreter;
 
 import static org.junit.Assert.assertTrue;
@@ -1041,3 +1042,5 @@ public class ArmProcessorTest {
         runAssemblerAndInterpreterOnProcessor(assembly, expectedResult);
     }
 }
+=======
+>>>>>>> 8bb10ecbc5c45b197a94f8146f531832a77b42c2
